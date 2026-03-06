@@ -1,0 +1,336 @@
+// S-04 / S-09 배포 설정 (라이브 + 과제)
+// 스펙: docs/screens/phase1-live-core.md#s-04
+//       docs/screens/phase2-assignment.md#s-09
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { Rocket, Copy, Info } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useToast } from '@/components/ui/use-toast'
+import { groupsApi, sessionsApi } from '@/lib/api'
+import type { Group, DeployFormValues, AnswerReveal } from '@/types'
+
+export default function DeployPage() {
+  const { setId } = useParams<{ setId: string }>()
+  const router = useRouter()
+  const { toast } = useToast()
+
+  const [groups, setGroups] = useState<Group[]>([])
+  const [deploying, setDeploying] = useState(false)
+  const [noDeadline, setNoDeadline] = useState(false)
+
+  const [form, setForm] = useState<DeployFormValues>({
+    session_type: 'live',
+    game_mode: 'quiz_battle',
+    deploy_type: 'public_qr',
+    time_limit_per_q: 20,
+    allow_retry: false,
+    allow_hint: false,
+    group_id: undefined,
+    new_group_name: '',
+    // 과제 전용
+    open_at: undefined,
+    close_at: undefined,
+    answer_reveal: 'on_submit',
+  })
+
+  useEffect(() => {
+    groupsApi.list().then(setGroups).catch(console.error)
+  }, [])
+
+  const handleDeploy = async () => {
+    // 공통 유효성
+    if (form.time_limit_per_q < 1) {
+      toast({ title: '제한 시간은 1초 이상이어야 합니다.', variant: 'destructive' })
+      return
+    }
+    if (form.deploy_type === 'existing_group' && !form.group_id) {
+      toast({ title: '그룹을 선택해 주세요.', variant: 'destructive' })
+      return
+    }
+    if (form.deploy_type === 'new_group' && !form.new_group_name?.trim()) {
+      toast({ title: '그룹 이름을 입력해 주세요.', variant: 'destructive' })
+      return
+    }
+
+    // 과제 유효성
+    if (form.session_type === 'assignment' && !noDeadline) {
+      if (!form.open_at || !form.close_at) {
+        toast({ title: '오픈 기간을 설정해 주세요.', variant: 'destructive' })
+        return
+      }
+      if (new Date(form.close_at) <= new Date(form.open_at)) {
+        toast({ title: '마감일이 시작일보다 빠릅니다.', variant: 'destructive' })
+        return
+      }
+      if (new Date(form.close_at) < new Date()) {
+        toast({ title: '마감일이 이미 지났습니다.', variant: 'destructive' })
+        return
+      }
+    }
+
+    // 그룹 멤버 0명 경고 (continue 허용)
+    if (form.deploy_type === 'existing_group' && form.group_id) {
+      const group = groups.find((g) => g.group_id === form.group_id)
+      if (group?.member_count === 0) {
+        toast({ title: '그룹에 멤버가 없습니다. 게스트도 QR로 입장할 수 있습니다.' })
+      }
+    }
+
+    setDeploying(true)
+    try {
+      const payload: DeployFormValues = {
+        ...form,
+        close_at: noDeadline ? undefined : form.close_at,
+      }
+      const session = await sessionsApi.create(setId, payload)
+
+      if (form.session_type === 'live') {
+        router.push(`/live/${session.session_id}/waiting`)
+      } else {
+        toast({ title: '과제가 배포되었습니다.' })
+        router.push('/dashboard')
+      }
+    } catch {
+      toast({ title: '배포에 실패했습니다.', variant: 'destructive' })
+    } finally {
+      setDeploying(false)
+    }
+  }
+
+  const handleCopyGuestLink = () => {
+    // TODO: 실제 배포 후 sessionId가 있어야 하지만, 여기서는 preview 용도
+    const link = `${window.location.origin}/play/[sessionId]`
+    navigator.clipboard.writeText(link)
+    toast({ title: '게스트 초대 링크가 복사되었습니다.' })
+  }
+
+  const isAssignment = form.session_type === 'assignment'
+  const showEmailBanner =
+    isAssignment &&
+    form.deploy_type === 'existing_group' &&
+    form.group_id &&
+    (groups.find((g) => g.group_id === form.group_id)?.member_count ?? 0) > 0
+
+  return (
+    <div className="max-w-lg mx-auto space-y-8">
+      <h1 className="text-2xl font-bold">배포 설정</h1>
+
+      {/* 배포 유형 */}
+      <section className="space-y-3">
+        <Label className="text-base font-semibold">배포 유형</Label>
+        <RadioGroup
+          value={form.session_type}
+          onValueChange={(v) =>
+            setForm({ ...form, session_type: v as 'live' | 'assignment' })
+          }
+          className="flex gap-6"
+        >
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="live" id="live" />
+            <Label htmlFor="live">라이브</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="assignment" id="assignment" />
+            <Label htmlFor="assignment">과제</Label>
+          </div>
+        </RadioGroup>
+      </section>
+
+      {/* 게임 설정 */}
+      <section className="space-y-4 rounded-lg border p-4">
+        <p className="font-semibold text-sm text-gray-500">게임 설정</p>
+
+        <div className="flex items-center justify-between">
+          <Label>문항당 제한 시간 (초)</Label>
+          <Input
+            type="number"
+            min={1}
+            max={300}
+            className="w-24 text-right"
+            value={form.time_limit_per_q}
+            onChange={(e) =>
+              setForm({ ...form, time_limit_per_q: Number(e.target.value) })
+            }
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label>오답 재도전 허용</Label>
+          <Switch
+            checked={form.allow_retry}
+            onCheckedChange={(v) => setForm({ ...form, allow_retry: v })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label>힌트 사용 허용</Label>
+          <Switch
+            checked={form.allow_hint}
+            onCheckedChange={(v) => setForm({ ...form, allow_hint: v })}
+          />
+        </div>
+      </section>
+
+      {/* 과제 전용 설정 */}
+      {isAssignment && (
+        <section className="space-y-4 rounded-lg border p-4">
+          <p className="font-semibold text-sm text-gray-500">과제 설정</p>
+
+          {/* 오픈 기간 */}
+          <div className="space-y-2">
+            <Label>오픈 기간</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="datetime-local"
+                className="flex-1"
+                value={form.open_at ?? ''}
+                onChange={(e) => setForm({ ...form, open_at: e.target.value })}
+              />
+              <span className="text-gray-400">~</span>
+              <Input
+                type="datetime-local"
+                className="flex-1"
+                value={form.close_at ?? ''}
+                onChange={(e) => setForm({ ...form, close_at: e.target.value })}
+                disabled={noDeadline}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="no-deadline"
+                checked={noDeadline}
+                onCheckedChange={(v) => {
+                  setNoDeadline(!!v)
+                  if (v) setForm({ ...form, close_at: undefined })
+                }}
+              />
+              <Label htmlFor="no-deadline" className="text-sm text-gray-500 cursor-pointer">
+                무기한 (마감일 없음)
+              </Label>
+            </div>
+          </div>
+
+          {/* 정답 공개 시점 */}
+          <div className="space-y-2">
+            <Label>정답 공개 시점</Label>
+            <RadioGroup
+              value={form.answer_reveal ?? 'on_submit'}
+              onValueChange={(v) =>
+                setForm({ ...form, answer_reveal: v as AnswerReveal })
+              }
+              className="space-y-2"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="on_submit" id="reveal_on_submit" />
+                <Label htmlFor="reveal_on_submit">제출 즉시</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="after_close" id="reveal_after_close" />
+                <Label htmlFor="reveal_after_close">마감 후</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="never" id="reveal_never" />
+                <Label htmlFor="reveal_never">비공개</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </section>
+      )}
+
+      {/* 배포 대상 */}
+      <section className="space-y-4 rounded-lg border p-4">
+        <p className="font-semibold text-sm text-gray-500">배포 대상</p>
+
+        <RadioGroup
+          value={form.deploy_type}
+          onValueChange={(v) =>
+            setForm({ ...form, deploy_type: v as DeployFormValues['deploy_type'] })
+          }
+          className="space-y-3"
+        >
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="public_qr" id="public_qr" />
+            <Label htmlFor="public_qr">QR 공개 배포 (누구나 입장)</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="existing_group" id="existing_group" />
+            <Label htmlFor="existing_group">기존 그룹 선택</Label>
+          </div>
+          {form.deploy_type === 'existing_group' && (
+            <Select
+              value={form.group_id}
+              onValueChange={(v) => setForm({ ...form, group_id: v })}
+            >
+              <SelectTrigger className="ml-6">
+                <SelectValue placeholder="그룹 선택..." />
+              </SelectTrigger>
+              <SelectContent>
+                {groups.map((g) => (
+                  <SelectItem key={g.group_id} value={g.group_id}>
+                    {g.name} ({g.member_count ?? 0}명)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="new_group" id="new_group" />
+            <Label htmlFor="new_group">신규 그룹 생성</Label>
+          </div>
+          {form.deploy_type === 'new_group' && (
+            <Input
+              className="ml-6"
+              placeholder="그룹 이름 입력..."
+              value={form.new_group_name}
+              onChange={(e) => setForm({ ...form, new_group_name: e.target.value })}
+            />
+          )}
+        </RadioGroup>
+
+        {/* 과제: 그룹 선택 시 이메일 발송 안내 */}
+        {showEmailBanner && (
+          <div className="flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-700">
+            <Info className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>그룹 내 멤버에게 과제 안내 이메일이 자동 발송됩니다.</span>
+          </div>
+        )}
+
+        {/* 과제: 게스트 링크 복사 */}
+        {isAssignment && (
+          <div className="flex items-center justify-between rounded-lg border border-dashed px-3 py-2.5">
+            <p className="text-sm text-gray-600">게스트 초대 링크 (수동 발송용)</p>
+            <Button variant="outline" size="sm" onClick={handleCopyGuestLink}>
+              <Copy className="mr-1 h-3.5 w-3.5" />
+              링크 복사
+            </Button>
+          </div>
+        )}
+      </section>
+
+      {/* 배포 버튼 */}
+      <Button size="lg" className="w-full" onClick={handleDeploy} disabled={deploying}>
+        <Rocket className="mr-2 h-5 w-5" />
+        {deploying
+          ? '배포 중...'
+          : isAssignment
+          ? '과제 배포하기'
+          : '배포하고 대기화면으로 →'}
+      </Button>
+    </div>
+  )
+}

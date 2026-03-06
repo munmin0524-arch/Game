@@ -1,0 +1,284 @@
+// ============================================================
+// 교육 퀴즈 게임 — TypeScript 타입 정의
+// data-model.md 기반으로 자동 생성
+// ============================================================
+
+// ─────────────────────────────────────────────────────────────
+// 공통
+// ─────────────────────────────────────────────────────────────
+
+export type UUID = string
+
+export type Timestamp = string // ISO 8601
+
+// ─────────────────────────────────────────────────────────────
+// 회원 체계
+// ─────────────────────────────────────────────────────────────
+
+export type JoinType = 'email_direct' | 'sso_vivasem'
+export type UserRole = 'host' | 'member'
+
+export interface Member {
+  member_id: UUID
+  email: string
+  nickname: string
+  join_type: JoinType
+  is_verified: boolean
+  age_consent_yn: boolean
+  age_consent_at: Timestamp | null
+  created_at: Timestamp
+  updated_at: Timestamp
+}
+
+export interface HostProfile {
+  host_profile_id: UUID
+  member_id: UUID
+  is_certified: boolean
+  created_at: Timestamp
+}
+
+export interface Guest {
+  guest_id: UUID
+  email: string
+  nickname: string
+  cookie_token: UUID | null
+  linked_member_id: UUID | null
+  created_at: Timestamp
+}
+
+// 클라이언트에서 현재 로그인 사용자를 표현할 때 사용
+export type CurrentUser =
+  | { type: 'member'; data: Member; isHost: boolean }
+  | { type: 'guest'; data: Guest }
+
+// ─────────────────────────────────────────────────────────────
+// 그룹
+// ─────────────────────────────────────────────────────────────
+
+export type GroupType = 'manual' | 'auto_live'
+export type ParticipantType = 'member' | 'guest'
+
+export interface Group {
+  group_id: UUID
+  host_member_id: UUID
+  name: string
+  type: GroupType
+  created_at: Timestamp
+  member_count?: number // 집계 필드 (API 응답에 포함)
+  // auto_live 전용 JOIN 필드
+  session_id?: UUID
+  session_title?: string
+  session_status?: SessionStatus
+  session_type?: SessionType
+}
+
+export interface GroupMember {
+  group_member_id: UUID
+  group_id: UUID
+  member_id: UUID | null
+  guest_id: UUID | null
+  participant_type: ParticipantType
+  joined_at: Timestamp
+  removed_at: Timestamp | null
+  // JOIN 필드
+  nickname?: string
+  email?: string
+}
+
+// ─────────────────────────────────────────────────────────────
+// 콘텐츠 (세트지·문항)
+// ─────────────────────────────────────────────────────────────
+
+export type QuestionType = 'multiple_choice' | 'ox' | 'short_answer'
+
+export interface QuestionOption {
+  index: number
+  text: string
+}
+
+export interface QuestionSet {
+  set_id: UUID
+  host_member_id: UUID
+  title: string
+  subject: string | null
+  grade: string | null
+  tags: string[]
+  is_deleted: boolean
+  original_set_id: UUID | null
+  created_at: Timestamp
+  updated_at: Timestamp
+  question_count?: number // 집계 필드
+}
+
+export interface Question {
+  question_id: UUID
+  set_id: UUID
+  type: QuestionType
+  order_index: number
+  content: string
+  options: QuestionOption[] | null // 객관식만
+  answer: string // 객관식: "2", OX: "O"/"X", 단답형: 텍스트
+  hint: string | null
+  explanation: string | null
+  media_url: string | null
+  created_at: Timestamp
+  // 문항 뱅크 필터용 (optional)
+  grade?: string        // 1학년, 2학년, 3학년
+  difficulty?: string   // 쉬움, 보통, 어려움
+  unit?: string         // 단원명
+}
+
+// 에디터에서 사용하는 임시 상태 (저장 전)
+export type QuestionDraft = Omit<Question, 'question_id' | 'set_id' | 'created_at'>
+
+// ─────────────────────────────────────────────────────────────
+// 배포·세션
+// ─────────────────────────────────────────────────────────────
+
+export type SessionType = 'live' | 'assignment'
+export type GameMode = 'quiz_battle'
+export type DeployType = 'existing_group' | 'new_group' | 'public_qr'
+export type SessionStatus = 'waiting' | 'in_progress' | 'paused' | 'completed' | 'cancelled'
+export type ScorePolicy = 'first_attempt' | 'last_attempt' | 'best_attempt'
+export type AnswerReveal = 'never' | 'on_submit' | 'after_close'
+
+export interface Session {
+  session_id: UUID
+  set_id: UUID
+  host_member_id: UUID
+  group_id: UUID | null
+  deploy_type: DeployType
+  session_type: SessionType
+  game_mode: GameMode
+  status: SessionStatus
+  time_limit_per_q: number // 초, 기본값 20
+  allow_retry: boolean
+  allow_hint: boolean
+  score_policy: ScorePolicy // 현재 'first_attempt' 고정
+  max_attempts: number // 현재 1 고정
+  open_at: Timestamp | null
+  close_at: Timestamp | null
+  answer_reveal: AnswerReveal
+  qr_code: string | null
+  qr_expires_at: Timestamp | null
+  created_at: Timestamp
+  updated_at: Timestamp
+  // JOIN 필드
+  set_title?: string
+}
+
+// 배포 설정 폼 입력값
+export interface DeployFormValues {
+  session_type: SessionType
+  game_mode: GameMode
+  deploy_type: DeployType
+  group_id?: UUID
+  new_group_name?: string
+  time_limit_per_q: number
+  allow_retry: boolean
+  allow_hint: boolean
+  // 과제형 추가
+  open_at?: Timestamp
+  close_at?: Timestamp
+  answer_reveal?: AnswerReveal
+}
+
+// ─────────────────────────────────────────────────────────────
+// 플레이·응답
+// ─────────────────────────────────────────────────────────────
+
+export type ResultStatus = 'not_started' | 'in_progress' | 'submitted' | 'abandoned' | 'pending_sync'
+
+export interface ParticipantResult {
+  result_id: UUID
+  session_id: UUID
+  member_id: UUID | null
+  guest_id: UUID | null
+  attempt_no: number
+  status: ResultStatus
+  current_q_index: number
+  total_score: number | null
+  correct_count: number | null
+  total_response_time_sec: number | null
+  rank: number | null
+  completion_yn: boolean
+  started_at: Timestamp | null
+  submitted_at: Timestamp | null
+  // JOIN 필드
+  nickname?: string
+  participant_type?: ParticipantType
+}
+
+export interface ResponseEvent {
+  event_id: UUID
+  session_id: UUID
+  result_id: UUID
+  question_id: UUID
+  selected_answer: string | null
+  is_correct: boolean | null
+  response_time_sec: number | null
+  hint_used: boolean
+  is_skipped: boolean
+  attempt_no: number
+  answered_at: Timestamp | null
+}
+
+// ─────────────────────────────────────────────────────────────
+// 실시간 (WebSocket) 이벤트 타입
+// ─────────────────────────────────────────────────────────────
+
+// 대기화면
+export interface WsStudentJoined {
+  participant: {
+    id: string
+    nickname: string
+    type: ParticipantType
+  }
+}
+
+export interface WsStudentLeft {
+  participantId: string
+}
+
+// 플레이
+export interface WsQuestionShow {
+  question: {
+    question_id: UUID
+    type: QuestionType
+    content: string
+    options: QuestionOption[] | null
+    hint: string | null // allow_hint가 false면 null
+  }
+  questionIndex: number
+  totalQuestions: number
+  timeLimit: number
+}
+
+export interface WsQuestionEnd {
+  correctAnswer: string
+  is_correct: boolean
+  score_earned: number
+  my_rank: number
+}
+
+export interface WsAnswerCountUpdate {
+  answered: number
+  total: number
+  distribution: Record<string, number> // "1": 3, "2": 8, ...
+}
+
+// ─────────────────────────────────────────────────────────────
+// API 공통 응답 래퍼
+// ─────────────────────────────────────────────────────────────
+
+export interface ApiResponse<T> {
+  data: T
+  error?: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  total: number
+  page: number
+  limit: number
+}
