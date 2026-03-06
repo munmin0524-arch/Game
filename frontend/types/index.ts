@@ -104,6 +104,7 @@ export interface QuestionSet {
   grade: string | null
   tags: string[]
   is_deleted: boolean
+  is_shared: boolean
   original_set_id: UUID | null
   created_at: Timestamp
   updated_at: Timestamp
@@ -121,6 +122,7 @@ export interface Question {
   hint: string | null
   explanation: string | null
   media_url: string | null
+  achievement_standards?: string[] | null
   created_at: Timestamp
   // 문항 뱅크 필터용 (optional)
   grade?: string        // 1학년, 2학년, 3학년
@@ -130,6 +132,84 @@ export interface Question {
 
 // 에디터에서 사용하는 임시 상태 (저장 전)
 export type QuestionDraft = Omit<Question, 'question_id' | 'set_id' | 'created_at'>
+
+// ─────────────────────────────────────────────────────────────
+// 마켓플레이스
+// ─────────────────────────────────────────────────────────────
+
+export type SharedSetStatus = 'published' | 'hidden' | 'removed_by_admin'
+export type DownloadType = 'full_set' | 'partial_questions'
+export type ReportReason = 'inappropriate' | 'copyright' | 'spam' | 'other'
+export type ReportStatus = 'pending' | 'reviewed' | 'resolved'
+
+export interface SharedSet {
+  shared_set_id: UUID
+  set_id: UUID
+  host_member_id: UUID
+  status: SharedSetStatus
+  title: string
+  description: string | null
+  subject: string
+  grade: string
+  tags: string[] | null
+  question_count: number
+  like_count: number
+  download_count: number
+  achievement_standards: string[] | null
+  published_at: Timestamp
+  updated_at: Timestamp
+  // JOIN 필드
+  host_nickname?: string
+  is_certified?: boolean
+  is_liked?: boolean // 현재 사용자의 좋아요 여부
+  questions?: Question[] // 상세 조회 시
+}
+
+export interface SharedSetLike {
+  like_id: UUID
+  shared_set_id: UUID
+  member_id: UUID
+  created_at: Timestamp
+}
+
+export interface SharedSetDownload {
+  download_id: UUID
+  shared_set_id: UUID
+  member_id: UUID
+  target_set_id: UUID | null
+  download_type: DownloadType
+  question_count: number
+  created_at: Timestamp
+}
+
+export interface SharedSetReport {
+  report_id: UUID
+  shared_set_id: UUID
+  reporter_member_id: UUID
+  reason: ReportReason
+  detail: string | null
+  status: ReportStatus
+  created_at: Timestamp
+}
+
+export interface AchievementStandard {
+  standard_id: string // "[9수01-01]"
+  subject: string
+  grade_band: string
+  domain: string
+  description: string
+}
+
+// 공유 설정 폼
+export interface PublishFormValues {
+  title: string
+  description?: string
+  subject: string
+  grade: string
+  unit?: string
+  achievement_standards?: string[]
+  tags?: string[]
+}
 
 // ─────────────────────────────────────────────────────────────
 // 배포·세션

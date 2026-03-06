@@ -16,6 +16,7 @@
 7. [학습 데이터 항목 & 리포트 활용](#7-학습-데이터-항목--리포트-활용)
 8. [관계 다이어그램 (ERD)](#8-관계-다이어그램-erd)
 9. [주요 쿼리 패턴](#9-주요-쿼리-패턴)
+10. [마켓플레이스](#10-마켓플레이스)
 
 ---
 
@@ -40,6 +41,12 @@
 | 10 | `response_events` | 응답 이벤트 | 문항별 응답 날것 데이터 (Redis → RDB 이관) |
 | **로그** | | | |
 | 11 | `report_view_logs` | 리포트 조회 로그 | Host의 리포트 열람 기록 |
+| **마켓플레이스** | | | |
+| 12 | `shared_sets` | 공유 세트지 | 커뮤니티에 공유된 세트 메타 |
+| 13 | `shared_set_likes` | 좋아요 | 교사의 좋아요 기록 |
+| 14 | `shared_set_downloads` | 다운로드 기록 | 문항 복사 이력 |
+| 15 | `shared_set_reports` | 신고 | 부적절 콘텐츠 신고 |
+| 16 | `achievement_standard_tags` | 성취기준 마스터 | 교육과정 성취기준 코드 |
 
 ---
 
@@ -142,6 +149,7 @@ INDEX idx_guest_linked_member (linked_member_id)
 | `grade` | VARCHAR(50) | NULL | 학년 |
 | `tags` | JSON | NULL | 키워드 태그 배열 `["태그1", "태그2"]` |
 | `is_deleted` | BOOLEAN | DEFAULT false | soft delete. 배포 이력 있으면 실제 삭제 불가 |
+| `is_shared` | BOOLEAN | DEFAULT false | 커뮤니티 마켓플레이스 공유 여부 |
 | `original_set_id` | UUID | FK → question_sets, NULL | 복제 시 원본 set_id |
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `updated_at` | TIMESTAMP | NOT NULL | |
@@ -168,6 +176,7 @@ INDEX idx_guest_linked_member (linked_member_id)
 | `hint` | TEXT | NULL | 힌트 (session.allow_hint = true일 때 노출) |
 | `explanation` | TEXT | NULL | 해설 (session.answer_reveal 설정에 따라 결과 화면 노출) |
 | `media_url` | VARCHAR(500) | NULL | 첨부 이미지 URL (추후 개발) |
+| `achievement_standards` | JSON | NULL | 성취기준 코드 배열 `["[9수01-01]", "[9수01-02]"]` |
 | `created_at` | TIMESTAMP | NOT NULL | |
 
 ---
@@ -384,6 +393,14 @@ members ────────────────────────
 participant_results:
   ├── member_id → members (Member 참여자)
   └── guest_id  → guests  (Guest 참여자)
+
+question_sets ──── shared_sets (1:1, set_id UNIQUE)
+                      │
+                      ├── shared_set_likes (member_id → members)
+                      ├── shared_set_downloads (member_id → members, target_set_id → question_sets)
+                      └── shared_set_reports (reporter_member_id → members)
+
+achievement_standard_tags (독립 마스터)
 ```
 
 **핵심 관계**
@@ -391,6 +408,7 @@ participant_results:
 - `participant_results` ← 학생 1명의 1회 플레이. `sessions`에 귀속. Member 또는 Guest 중 하나만.
 - `response_events` ← 모든 응답의 날것 데이터. `participant_results`와 `questions`에 귀속.
 - `guests.linked_member_id` ← 게스트→멤버 전환 시 데이터 연결 브릿지.
+- `shared_sets` ← 마켓플레이스 공유. `question_sets`와 1:1. 좋아요/다운로드/신고 하위 테이블.
 
 ---
 
@@ -492,4 +510,124 @@ WHERE gm.group_id = :group_id
   AND gm.removed_at IS NULL
   AND (pr.status IS NULL OR pr.status != 'submitted')
 ORDER BY nickname;
+```
+
+---
+
+## 10. 마켓플레이스
+
+### 10-1. `shared_sets` (공유 세트지)
+
+> 커뮤니티에 공유된 세트지 메타 정보. `question_sets`와 1:1 관계.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `shared_set_id` | UUID | PK | |
+| `set_id` | UUID | FK → question_sets, UNIQUE | 원본 세트 (1:1) |
+| `host_member_id` | UUID | FK → members, NOT NULL | 공유한 Host |
+| `status` | ENUM | NOT NULL, DEFAULT 'published' | `published` / `hidden` / `removed_by_admin` |
+| `title` | VARCHAR(300) | NOT NULL | 공유 시 제목 |
+| `description` | TEXT | NULL | 설명 |
+| `subject` | VARCHAR(100) | NOT NULL | 과목 (필수) |
+| `grade` | VARCHAR(50) | NOT NULL | 학년 (필수) |
+| `tags` | JSON | NULL | 태그 배열 `["소수", "합성수"]` |
+| `question_count` | INTEGER | NOT NULL | 문항 수 스냅샷 |
+| `like_count` | INTEGER | DEFAULT 0 | 좋아요 수 (비정규화) |
+| `download_count` | INTEGER | DEFAULT 0 | 다운로드 수 (비정규화) |
+| `achievement_standards` | JSON | NULL | 성취기준 코드 배열 |
+| `published_at` | TIMESTAMP | NOT NULL | 최초 공유 일시 |
+| `updated_at` | TIMESTAMP | NOT NULL | |
+
+**비고**
+- `like_count`, `download_count`: 조회 성능을 위한 비정규화. 좋아요/다운로드 시 트리거 또는 앱 레벨에서 동기 갱신.
+- `status = 'hidden'`: 작성자 자발적 숨김 또는 신고 3건 누적 시 자동 전환.
+- `set_id` UNIQUE: 하나의 세트는 하나의 공유만 가능. 공유 해제 후 재공유 시 새 레코드.
+
+**인덱스**
+```sql
+UNIQUE INDEX idx_shared_set_id (set_id)
+INDEX idx_shared_host (host_member_id)
+INDEX idx_shared_subject_grade (subject, grade)
+INDEX idx_shared_popularity (like_count DESC, download_count DESC)
+INDEX idx_shared_published (published_at DESC)
+```
+
+---
+
+### 10-2. `shared_set_likes` (좋아요)
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `like_id` | UUID | PK | |
+| `shared_set_id` | UUID | FK → shared_sets, NOT NULL | |
+| `member_id` | UUID | FK → members, NOT NULL | 좋아요 누른 교사 |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
+**인덱스**
+```sql
+UNIQUE INDEX idx_like_unique (shared_set_id, member_id)
+```
+
+---
+
+### 10-3. `shared_set_downloads` (다운로드 기록)
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `download_id` | UUID | PK | |
+| `shared_set_id` | UUID | FK → shared_sets, NOT NULL | |
+| `member_id` | UUID | FK → members, NOT NULL | 다운로드한 교사 |
+| `target_set_id` | UUID | FK → question_sets, NULL | 복사된 대상 세트 |
+| `download_type` | ENUM | NOT NULL | `full_set` / `partial_questions` |
+| `question_count` | INTEGER | NOT NULL | 복사한 문항 수 |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
+**인덱스**
+```sql
+INDEX idx_download_shared (shared_set_id)
+INDEX idx_download_member (member_id)
+```
+
+---
+
+### 10-4. `shared_set_reports` (신고)
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `report_id` | UUID | PK | |
+| `shared_set_id` | UUID | FK → shared_sets, NOT NULL | |
+| `reporter_member_id` | UUID | FK → members, NOT NULL | 신고자 |
+| `reason` | ENUM | NOT NULL | `inappropriate` / `copyright` / `spam` / `other` |
+| `detail` | TEXT | NULL | 상세 사유 |
+| `status` | ENUM | DEFAULT 'pending' | `pending` / `reviewed` / `resolved` |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
+**비고**
+- 1인 1신고 (UNIQUE 제약). 중복 신고 시 에러 반환.
+- 3건 이상 누적 시 `shared_sets.status = 'hidden'` 자동 전환.
+
+**인덱스**
+```sql
+UNIQUE INDEX idx_report_unique (shared_set_id, reporter_member_id)
+INDEX idx_report_status (status)
+```
+
+---
+
+### 10-5. `achievement_standard_tags` (성취기준 마스터)
+
+> 교육과정 성취기준 코드 마스터 테이블. 수학/영어부터 시드.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `standard_id` | VARCHAR(20) | PK | 예: `[9수01-01]` |
+| `subject` | VARCHAR(100) | NOT NULL | 수학, 영어 등 |
+| `grade_band` | VARCHAR(50) | NOT NULL | 중1-3, 초5-6 등 |
+| `domain` | VARCHAR(200) | NOT NULL | 영역 (수와 연산, 듣기 등) |
+| `description` | TEXT | NOT NULL | 성취기준 전문 |
+
+**인덱스**
+```sql
+INDEX idx_standard_subject (subject)
+INDEX idx_standard_grade (grade_band)
 ```

@@ -12,6 +12,10 @@ import type {
   DeployFormValues,
   ParticipantResult,
   PaginatedResponse,
+  SharedSet,
+  PublishFormValues,
+  AchievementStandard,
+  ReportReason,
   UUID,
 } from '@/types'
 
@@ -183,4 +187,111 @@ export const sessionsApi = {
       method: 'POST',
       body: JSON.stringify({ email, nickname }),
     }),
+}
+
+// ─────────────────────────────────────────────────────────────
+// 마켓플레이스 (Marketplace)
+// ─────────────────────────────────────────────────────────────
+
+export const marketplaceApi = {
+  /** 마켓플레이스 홈 (인기 + 최신) */
+  home: () =>
+    apiFetch<{ popular: SharedSet[]; recent: SharedSet[] }>('/api/marketplace'),
+
+  /** 검색 (필터, 페이지네이션, 정렬) */
+  search: (params?: {
+    q?: string
+    subject?: string
+    grade?: string
+    unit?: string
+    achievement_standard?: string
+    sort?: 'popular' | 'recent' | 'likes' | 'downloads'
+    page?: number
+    limit?: number
+  }) => {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {}).filter(([, v]) => v !== undefined) as [string, string][]
+    )
+    return apiFetch<PaginatedResponse<SharedSet>>(`/api/marketplace/search?${query}`)
+  },
+
+  /** 세트 상세 + 문항 목록 */
+  get: (sharedSetId: UUID) =>
+    apiFetch<SharedSet>(`/api/marketplace/${sharedSetId}`),
+
+  /** 세트 공유 (퍼블리시) */
+  publish: (setId: UUID, form: PublishFormValues) =>
+    apiFetch<SharedSet>('/api/marketplace', {
+      method: 'POST',
+      body: JSON.stringify({ set_id: setId, ...form }),
+    }),
+
+  /** 공유 정보 수정 */
+  update: (sharedSetId: UUID, form: Partial<PublishFormValues>) =>
+    apiFetch<SharedSet>(`/api/marketplace/${sharedSetId}`, {
+      method: 'PUT',
+      body: JSON.stringify(form),
+    }),
+
+  /** 공유 해제 */
+  unpublish: (sharedSetId: UUID) =>
+    apiFetch<void>(`/api/marketplace/${sharedSetId}`, { method: 'DELETE' }),
+
+  /** 내가 공유한 세트 목록 */
+  my: () =>
+    apiFetch<SharedSet[]>('/api/marketplace/my'),
+
+  /** 문항 단위 검색 (에디터 연동) */
+  searchQuestions: (params?: {
+    q?: string
+    subject?: string
+    grade?: string
+    achievement_standard?: string
+    type?: string
+    page?: number
+    limit?: number
+  }) => {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {}).filter(([, v]) => v !== undefined) as [string, string][]
+    )
+    return apiFetch<PaginatedResponse<Question & { shared_set_title: string; host_nickname: string }>>(`/api/marketplace/questions?${query}`)
+  },
+
+  /** 좋아요 토글 */
+  toggleLike: (sharedSetId: UUID) =>
+    apiFetch<{ liked: boolean; like_count: number }>(`/api/marketplace/${sharedSetId}/like`, {
+      method: 'POST',
+    }),
+
+  /** 다운로드 (세트/문항 복사) */
+  download: (sharedSetId: UUID, payload: {
+    target_set_id?: UUID
+    question_ids?: UUID[]
+    download_type: 'full_set' | 'partial_questions'
+  }) =>
+    apiFetch<{ target_set_id: UUID; question_count: number }>(`/api/marketplace/${sharedSetId}/download`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  /** 신고 */
+  report: (sharedSetId: UUID, reason: ReportReason, detail?: string) =>
+    apiFetch<void>(`/api/marketplace/${sharedSetId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, detail }),
+    }),
+}
+
+// ─────────────────────────────────────────────────────────────
+// 성취기준 (Achievement Standards)
+// ─────────────────────────────────────────────────────────────
+
+export const achievementStandardsApi = {
+  /** 성취기준 목록 (과목/학년 필터) */
+  list: (params?: { subject?: string; grade_band?: string }) => {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {}).filter(([, v]) => v !== undefined) as [string, string][]
+    )
+    return apiFetch<AchievementStandard[]>(`/api/achievement-standards?${query}`)
+  },
 }

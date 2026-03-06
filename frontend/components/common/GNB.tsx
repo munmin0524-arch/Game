@@ -29,6 +29,11 @@ const NAV_ITEMS = [
     match: (p: string) => p.startsWith('/groups'),
   },
   {
+    label: '마켓플레이스',
+    href: '/marketplace',
+    match: (p: string) => p.startsWith('/marketplace'),
+  },
+  {
     label: '히스토리',
     href: '/dashboard/history',
     match: (p: string) =>
