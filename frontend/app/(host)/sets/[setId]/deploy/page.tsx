@@ -35,7 +35,7 @@ export default function DeployPage() {
 
   const [form, setForm] = useState<DeployFormValues>({
     session_type: 'live',
-    game_mode: 'quiz_battle',
+    game_mode: 'tug_of_war',
     deploy_type: 'public_qr',
     time_limit_per_q: 20,
     allow_retry: false,

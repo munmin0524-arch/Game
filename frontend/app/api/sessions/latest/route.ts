@@ -9,7 +9,7 @@ export async function GET() {
     group_id: 'grp-1',
     deploy_type: 'existing_group',
     session_type: 'live',
-    game_mode: 'quiz_battle',
+    game_mode: 'tug_of_war',
     status: 'completed',
     time_limit_per_q: 20,
     allow_retry: false,
