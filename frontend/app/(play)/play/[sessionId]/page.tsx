@@ -197,7 +197,7 @@ export default function PlayPage() {
     if (!answer) return
 
     const timeSpent = Math.round((Date.now() - answerStartRef.current) / 1000)
-    submitAnswer(currentQ!.question_id, answer, timeSpent)
+    submitAnswer({ questionId: currentQ!.question_id, answer, timeSpent })
     setSubmitted(true)
   }
 
