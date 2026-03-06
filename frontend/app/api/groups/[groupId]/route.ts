@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-export const MOCK_GROUPS: Record<string, object> = {
+const MOCK_GROUPS: Record<string, object> = {
   'grp-1': { group_id: 'grp-1', host_member_id: 'host-1', name: '1학년 A반', type: 'manual', created_at: '2026-01-03T09:00:00Z', member_count: 15 },
   'grp-2': { group_id: 'grp-2', host_member_id: 'host-1', name: '2학년 수학 심화반', type: 'manual', created_at: '2026-01-10T10:00:00Z', member_count: 8 },
   'grp-3': { group_id: 'grp-3', host_member_id: 'host-1', name: '방과후 영어', type: 'manual', created_at: '2026-02-01T08:00:00Z', member_count: 23 },
