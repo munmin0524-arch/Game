@@ -100,7 +100,7 @@ function formatTime(iso: string) {
 const Q_TYPE_LABELS: Record<string, string> = {
   multiple_choice: '객관식',
   ox: 'OX',
-  short_answer: '단답형',
+  unscramble: '단어 배열',
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -123,7 +123,7 @@ export default function WaitingPage() {
 
   // 확장 세션 정보 (mock)
   const questionCount = (session as any)?.question_count ?? 15
-  const questionTypes = (session as any)?.question_types ?? { multiple_choice: 10, ox: 3, short_answer: 2 }
+  const questionTypes = (session as any)?.question_types ?? { multiple_choice: 10, ox: 3, unscramble: 2 }
   const roomCode = (session as any)?.room_code ?? 'QUIZ-0000'
   const gameMode = (session?.game_mode ?? 'tug_of_war') as GameMode
   const gameModeInfo = GAME_MODES[gameMode] ?? GAME_MODES.tug_of_war

@@ -1,6 +1,5 @@
-// S-16 리포트 (문항별 분석)
-// 스펙: docs/screens/phase3-group-report.md#s-16
-// 차트: Recharts 사용 (npm install recharts 필요)
+// S-16 리포트 (문항별 분석) — 스크롤 원페이지
+// 요약(종합 → 문항요약 → 개념별) → 상세(문항별 카드)
 
 'use client'
 
@@ -10,7 +9,12 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { useToast } from '@/components/ui/use-toast'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/common/EmptyState'
+import { AlertTriangle, TrendingDown, Clock, Users, Award } from 'lucide-react'
 import type { Question } from '@/types'
+
+// ─────────────────────────────────────────────────────────────
+// 타입
+// ─────────────────────────────────────────────────────────────
 
 interface QuestionReport {
   question: Question
@@ -18,17 +22,208 @@ interface QuestionReport {
   correct_count: number
   correct_rate: number          // 0~1
   avg_response_time_sec: number
+  min_response_time_sec?: number
+  max_response_time_sec?: number
   distribution: Record<string, number>
-  top_wrong_answers?: string[]  // 단답형 전용
 }
+
+// ─────────────────────────────────────────────────────────────
+// 요약 종합 섹션
+// ─────────────────────────────────────────────────────────────
+
+function SummaryOverview({ reports }: { reports: QuestionReport[] }) {
+  const totalParticipants = reports[0]?.total_participants ?? 0
+  // 제출율: 응답이 있는 학생 수 / 전체 (mock에서는 100%로 간주)
+  const submissionRate = 100
+
+  // 평균 정답률
+  const avgCorrectRate = reports.length > 0
+    ? reports.reduce((s, r) => s + r.correct_rate, 0) / reports.length
+    : 0
+
+  // 평균 풀이시간
+  const avgTime = reports.length > 0
+    ? reports.reduce((s, r) => s + r.avg_response_time_sec, 0) / reports.length
+    : 0
+
+  // 오답율 Top3
+  const sorted = [...reports].sort((a, b) => a.correct_rate - b.correct_rate)
+  const topWrong = sorted.slice(0, 3).filter((r) => r.correct_rate < 1)
+
+  // 정답율 Top3
+  const topCorrect = [...reports].sort((a, b) => b.correct_rate - a.correct_rate).slice(0, 3)
+
+  // 경고: 오답율 50%+
+  const highWrong = reports.filter((r) => r.correct_rate < 0.5)
+
+  // 경고: 후반부 급증
+  const orderedReports = [...reports].sort((a, b) => a.question.order_index - b.question.order_index)
+  const third = Math.max(1, Math.floor(orderedReports.length / 3))
+  const firstThirdAvg = orderedReports.slice(0, third).reduce((s, r) => s + (1 - r.correct_rate), 0) / third
+  const lastThirdAvg = orderedReports.slice(-third).reduce((s, r) => s + (1 - r.correct_rate), 0) / third
+  const hasLateSpike = lastThirdAvg - firstThirdAvg >= 0.2
+
+  return (
+    <section className="space-y-4">
+      <h2 className="text-lg font-bold text-gray-900">요약 종합</h2>
+
+      {/* 카드 3종 */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border bg-white p-4 text-center">
+          <Users className="h-5 w-5 text-blue-500 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-gray-900">{submissionRate}%</p>
+          <p className="text-xs text-gray-500">제출율 ({totalParticipants}명)</p>
+        </div>
+        <div className="rounded-xl border bg-white p-4 text-center">
+          <Award className="h-5 w-5 text-green-500 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-gray-900">{Math.round(avgCorrectRate * 100)}%</p>
+          <p className="text-xs text-gray-500">평균 정답률</p>
+        </div>
+        <div className="rounded-xl border bg-white p-4 text-center">
+          <Clock className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-gray-900">{avgTime.toFixed(1)}초</p>
+          <p className="text-xs text-gray-500">평균 풀이시간</p>
+        </div>
+      </div>
+
+      {/* Top3 */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl border bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-700 mb-2">오답율 높은 Top3</p>
+          {topWrong.map((r) => (
+            <div key={r.question.question_id} className="flex items-center justify-between text-sm py-1">
+              <span className="text-gray-700">Q{r.question.order_index}</span>
+              <span className="font-medium text-red-600">{Math.round((1 - r.correct_rate) * 100)}%</span>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-xl border bg-green-50 p-4">
+          <p className="text-sm font-semibold text-green-700 mb-2">정답율 높은 Top3</p>
+          {topCorrect.map((r) => (
+            <div key={r.question.question_id} className="flex items-center justify-between text-sm py-1">
+              <span className="text-gray-700">Q{r.question.order_index}</span>
+              <span className="font-medium text-green-600">{Math.round(r.correct_rate * 100)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 경고 배지 */}
+      {(highWrong.length > 0 || hasLateSpike) && (
+        <div className="flex flex-wrap gap-2">
+          {highWrong.map((r) => (
+            <Badge key={r.question.question_id} variant="destructive" className="gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Q{r.question.order_index} 오답 {Math.round((1 - r.correct_rate) * 100)}%
+            </Badge>
+          ))}
+          {hasLateSpike && (
+            <Badge variant="outline" className="gap-1 border-orange-300 text-orange-600">
+              <TrendingDown className="h-3 w-3" />
+              후반부 오답율 급증
+            </Badge>
+          )}
+        </div>
+      )}
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// 요약 문항 바 차트
+// ─────────────────────────────────────────────────────────────
+
+function SummaryQuestionBars({ reports }: { reports: QuestionReport[] }) {
+  const ordered = [...reports].sort((a, b) => a.question.order_index - b.question.order_index)
+  const barData = ordered.map((r) => ({
+    label: `Q${r.question.order_index}`,
+    correctRate: Math.round(r.correct_rate * 100),
+    hasWarning: r.correct_rate < 0.5,
+  }))
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-bold text-gray-900">요약 문항</h2>
+      <div className="rounded-xl border bg-white p-4">
+        <div className="space-y-2">
+          {barData.map((d) => (
+            <div key={d.label} className="flex items-center gap-3">
+              <span className="w-8 text-sm font-medium text-gray-600 shrink-0">{d.label}</span>
+              <div className="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${d.hasWarning ? 'bg-red-400' : 'bg-blue-500'}`}
+                  style={{ width: `${d.correctRate}%` }}
+                />
+              </div>
+              <span className={`text-sm font-medium w-12 text-right ${d.hasWarning ? 'text-red-600' : 'text-gray-700'}`}>
+                {d.correctRate}%
+              </span>
+              {d.hasWarning && <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// 요약 개념별 이해도
+// ─────────────────────────────────────────────────────────────
+
+function SummaryConceptBars({ reports }: { reports: QuestionReport[] }) {
+  // learning_map.depth1 기준으로 그룹핑
+  const conceptMap = new Map<string, { total: number; correct: number }>()
+  for (const r of reports) {
+    const concept = r.question.learning_map?.depth1 || r.question.unit || '기타'
+    if (!conceptMap.has(concept)) conceptMap.set(concept, { total: 0, correct: 0 })
+    const stats = conceptMap.get(concept)!
+    stats.total += r.total_participants
+    stats.correct += r.correct_count
+  }
+
+  const concepts = Array.from(conceptMap.entries())
+    .map(([name, stats]) => ({
+      name,
+      rate: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+    }))
+    .sort((a, b) => b.rate - a.rate)
+
+  if (concepts.length <= 1 && concepts[0]?.name === '기타') return null
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-bold text-gray-900">개념별 이해도</h2>
+      <div className="rounded-xl border bg-white p-4">
+        <div className="space-y-2">
+          {concepts.map((c) => (
+            <div key={c.name} className="flex items-center gap-3">
+              <span className="w-24 text-sm text-gray-600 shrink-0 truncate">{c.name}</span>
+              <div className="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${c.rate >= 70 ? 'bg-green-500' : c.rate >= 50 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                  style={{ width: `${c.rate}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium w-12 text-right text-gray-700">{c.rate}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// 상세 문항별 카드
+// ─────────────────────────────────────────────────────────────
 
 const OPTION_LABELS = ['①', '②', '③', '④', '⑤']
 
 function QuestionReportCard({ report }: { report: QuestionReport }) {
-  const { question, correct_rate, avg_response_time_sec, distribution, correct_count, total_participants, top_wrong_answers } = report
+  const { question, correct_rate, avg_response_time_sec, min_response_time_sec, max_response_time_sec, distribution, correct_count, total_participants } = report
 
-  // 차트 데이터 변환
-  const chartData = question.type === 'short_answer'
+  const chartData = question.type === 'unscramble'
     ? []
     : Object.entries(distribution).map(([key, count]) => ({
         label: OPTION_LABELS[parseInt(key) - 1] ?? key,
@@ -42,12 +237,18 @@ function QuestionReportCard({ report }: { report: QuestionReport }) {
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1 flex-1">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              Q{question.order_index}
-            </Badge>
+            <Badge variant="outline" className="text-xs">Q{question.order_index}</Badge>
             <Badge variant="secondary" className="text-xs">
-              {question.type === 'multiple_choice' ? '객관식' : question.type === 'ox' ? 'OX' : '단답형'}
+              {question.type === 'multiple_choice' ? '객관식' : question.type === 'ox' ? 'OX' : 'Unscramble'}
             </Badge>
+            {question.difficulty && (
+              <Badge variant="outline" className="text-xs">{question.difficulty}</Badge>
+            )}
+            {question.learning_map?.depth1 && (
+              <Badge variant="outline" className="text-xs text-purple-600 border-purple-200">
+                {question.learning_map.depth1}
+              </Badge>
+            )}
           </div>
           <p className="font-medium text-gray-800">{question.content}</p>
         </div>
@@ -60,14 +261,22 @@ function QuestionReportCard({ report }: { report: QuestionReport }) {
       </div>
 
       {/* 통계 요약 */}
-      <div className="flex gap-4 text-sm text-gray-600">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
         <span>정답 {correct_count}명 / 전체 {total_participants}명</span>
         <span>·</span>
-        <span>평균 응답 {avg_response_time_sec.toFixed(1)}초</span>
+        <span>평균 {avg_response_time_sec.toFixed(1)}초</span>
+        {min_response_time_sec != null && max_response_time_sec != null && (
+          <>
+            <span>·</span>
+            <span className="text-gray-400">
+              최소 {min_response_time_sec.toFixed(1)}초 / 최대 {max_response_time_sec.toFixed(1)}초
+            </span>
+          </>
+        )}
       </div>
 
-      {/* 선택지 분포 차트 (객관식 / OX) */}
-      {question.type !== 'short_answer' && chartData.length > 0 && (
+      {/* 선택지 분포 차트 */}
+      {question.type !== 'unscramble' && chartData.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-semibold text-gray-500">선택지 분포</p>
           <ResponsiveContainer width="100%" height={120}>
@@ -80,10 +289,7 @@ function QuestionReportCard({ report }: { report: QuestionReport }) {
               />
               <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, i) => (
-                  <Cell
-                    key={i}
-                    fill={entry.isCorrect ? '#22c55e' : '#94a3b8'}
-                  />
+                  <Cell key={i} fill={entry.isCorrect ? '#22c55e' : '#94a3b8'} />
                 ))}
               </Bar>
             </BarChart>
@@ -100,23 +306,13 @@ function QuestionReportCard({ report }: { report: QuestionReport }) {
           </div>
         </div>
       )}
-
-      {/* 단답형 오답 목록 (P-10: 텍스트 목록 방식) */}
-      {question.type === 'short_answer' && top_wrong_answers && top_wrong_answers.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-gray-500">주요 오답</p>
-          <div className="flex flex-wrap gap-2">
-            {top_wrong_answers.map((ans, i) => (
-              <span key={i} className="rounded-full bg-red-50 px-3 py-1 text-sm text-red-600 border border-red-100">
-                {ans}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
+
+// ─────────────────────────────────────────────────────────────
+// 메인 페이지
+// ─────────────────────────────────────────────────────────────
 
 export default function QuestionReportPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -141,7 +337,7 @@ export default function QuestionReportPage() {
   }, [sessionId, toast])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* 헤더 */}
       <div>
         <button
@@ -173,11 +369,28 @@ export default function QuestionReportPage() {
       ) : reports.length === 0 ? (
         <EmptyState icon="📊" title="데이터가 없습니다" description="참여자가 없거나 응답 데이터가 없습니다." />
       ) : (
-        <div className="space-y-4">
-          {reports.map((report) => (
-            <QuestionReportCard key={report.question.question_id} report={report} />
-          ))}
-        </div>
+        <>
+          {/* [요약] 종합 */}
+          <SummaryOverview reports={reports} />
+
+          {/* [요약] 문항 요약 바 */}
+          <SummaryQuestionBars reports={reports} />
+
+          {/* [요약] 개념별 이해도 */}
+          <SummaryConceptBars reports={reports} />
+
+          {/* [상세] 문항별 카드 */}
+          <section className="space-y-3">
+            <h2 className="text-lg font-bold text-gray-900">상세 문항별</h2>
+            <div className="space-y-4">
+              {[...reports]
+                .sort((a, b) => a.question.order_index - b.question.order_index)
+                .map((report) => (
+                  <QuestionReportCard key={report.question.question_id} report={report} />
+                ))}
+            </div>
+          </section>
+        </>
       )}
     </div>
   )

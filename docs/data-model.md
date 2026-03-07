@@ -168,7 +168,7 @@ INDEX idx_guest_linked_member (linked_member_id)
 |------|------|------|------|
 | `question_id` | UUID | PK | |
 | `set_id` | UUID | FK → question_sets, NOT NULL | 소속 퀴즈 |
-| `type` | ENUM | NOT NULL | `multiple_choice` / `ox` / `short_answer` |
+| `type` | ENUM | NOT NULL | `multiple_choice` / `ox` / `unscramble` |
 | `order_index` | INTEGER | NOT NULL | 문항 순서 (드래그앤드롭 변경 시 업데이트) |
 | `content` | TEXT | NOT NULL | 문제 지문 |
 | `options` | JSON | NULL | 객관식 선택지 `[{"index": 1, "text": "보기1"}, ...]` |
@@ -313,6 +313,10 @@ UNIQUE INDEX idx_result_unique_guest (session_id, guest_id)
 | `is_skipped` | BOOLEAN | DEFAULT false | 건너뛰기 여부 (교사 skip 또는 시간 초과) |
 | `attempt_no` | INTEGER | DEFAULT 1 | 재도전 허용 시 해당 문항 시도 횟수 |
 | `answered_at` | TIMESTAMP | NULL | 응답 제출 일시 |
+| `event_type` | ENUM | NULL | `first_input` / `modify` / `final_submit` / `skip` / `return`. NULL = 레거시 단건 이벤트 |
+| `input_sequence` | INTEGER | NULL | 해당 문항 내 입력 순서 (1=최초, 2=수정1, ...) |
+| `time_from_show_sec` | DECIMAL | NULL | 문항 노출 시점부터의 누적 시간 (초) |
+| `segment_time_sec` | DECIMAL | NULL | 이전 이벤트부터 현재까지의 구간 시간 (초) |
 
 **비고**
 - `selected_answer = NULL` + `is_skipped = true`: 시간 초과 또는 교사 강제 skip → 점수 **제외** (0점 아님).

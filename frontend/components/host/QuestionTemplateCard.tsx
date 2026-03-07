@@ -14,11 +14,10 @@ export interface QuestionTemplate {
 
 export const QUESTION_TEMPLATES: QuestionTemplate[] = [
   { id: 'mc2', label: '객관식 2지선다', type: 'multiple_choice', optionCount: 2 },
-  { id: 'short', label: '단답형', type: 'short_answer', optionCount: 0 },
   { id: 'mc4', label: '객관식 4지선다', type: 'multiple_choice', optionCount: 4 },
   { id: 'ox', label: 'OX 퀴즈', type: 'ox', optionCount: 0 },
   { id: 'mc5', label: '객관식 5지선다', type: 'multiple_choice', optionCount: 5 },
-  { id: 'fill', label: '빈칸 채우기', type: 'fill_in_blank', optionCount: 0 },
+  { id: 'unscramble', label: '단어 배열', type: 'unscramble', optionCount: 0 },
 ]
 
 // 미니 프리뷰 — 스크린샷 기반 컬러 블록

@@ -17,8 +17,7 @@ const OPTION_COLORS = [
 const TYPE_LABELS: Record<QuestionType, string> = {
   multiple_choice: '객관식',
   ox: 'OX',
-  short_answer: '단답형',
-  fill_in_blank: '빈칸 채우기',
+  unscramble: '단어 배열',
 }
 
 interface QuestionPreviewProps {
@@ -69,9 +68,7 @@ export function QuestionPreview({
       {/* 문제 텍스트 */}
       <div className={`bg-gradient-to-br from-emerald-600 to-green-700 rounded-2xl text-white ${compact ? 'p-4' : 'p-6'}`}>
         <p className={`font-semibold leading-relaxed ${compact ? 'text-sm' : 'text-lg'}`}>
-          {question.type === 'fill_in_blank'
-            ? renderContentWithBlanks(question.content)
-            : question.content || '(문제 내용 없음)'}
+          {question.content || '(문제 내용 없음)'}
         </p>
       </div>
 
@@ -113,30 +110,9 @@ export function QuestionPreview({
         </div>
       )}
 
-      {question.type === 'short_answer' && (
+      {question.type === 'unscramble' && (
         <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="답을 입력하세요..."
-            className="flex-1 rounded-xl border-2 border-gray-200 px-4 py-3 text-center text-lg focus:border-blue-400 focus:outline-none"
-            readOnly
-          />
-        </div>
-      )}
-
-      {question.type === 'fill_in_blank' && (
-        <div className="space-y-2">
-          {(question.content.match(/_{3,}/g) ?? []).map((_, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-500 w-16">빈칸 {i + 1}</span>
-              <input
-                type="text"
-                placeholder="답을 입력하세요..."
-                className="flex-1 rounded-xl border-2 border-gray-200 px-4 py-2 focus:border-blue-400 focus:outline-none"
-                readOnly
-              />
-            </div>
-          ))}
+          <p className="text-sm text-gray-500">단어를 올바른 순서로 배열하세요</p>
         </div>
       )}
 

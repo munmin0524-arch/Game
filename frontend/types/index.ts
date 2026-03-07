@@ -89,7 +89,7 @@ export interface GroupMember {
 // 콘텐츠 (세트지·문항)
 // ─────────────────────────────────────────────────────────────
 
-export type QuestionType = 'multiple_choice' | 'ox' | 'short_answer' | 'fill_in_blank'
+export type QuestionType = 'multiple_choice' | 'ox' | 'unscramble'
 
 export interface QuestionOption {
   index: number
@@ -383,6 +383,9 @@ export interface ParticipantResult {
   participant_type?: ParticipantType
 }
 
+// 응답 이벤트 타입 (이벤트 로그 방식)
+export type ResponseEventType = 'first_input' | 'modify' | 'final_submit' | 'skip' | 'return'
+
 export interface ResponseEvent {
   event_id: UUID
   session_id: UUID
@@ -395,6 +398,78 @@ export interface ResponseEvent {
   is_skipped: boolean
   attempt_no: number
   answered_at: Timestamp | null
+  // 이벤트 로그 확장 (1문항 = N개 이벤트)
+  event_type?: ResponseEventType
+  input_sequence?: number        // 입력 순서 (1=최초, 2=수정1, ...)
+  time_from_show_sec?: number    // 문항 노출부터 누적 시간
+  segment_time_sec?: number      // 이전 이벤트부터 구간 시간
+}
+
+// ─────────────────────────────────────────────────────────────
+// 분석 (리포트용)
+// ─────────────────────────────────────────────────────────────
+
+/** 2축 크로스 분석 패턴 (학생별) */
+export interface AnalysisPattern {
+  understands: boolean   // 개념 이해 여부 (정답률 + 응답시간 기반)
+  diligent: boolean      // 성실 여부 (수정횟수 + 풀이시간 기반)
+  needsHelp: boolean     // 도움 필요 (연속 오답 + 패턴 복합)
+  needsPraise: boolean   // 칭찬 필요 (연속 정답 + 성실)
+}
+
+/** 패턴 라벨 */
+export type PatternLabel = '이해' | '미이해' | '성실' | '찍기'
+export type CoachingLabel = '도움 필요' | '칭찬 필요' | '관찰' | '양호'
+
+/** 학생별 분석 결과 */
+export interface StudentAnalysis {
+  resultId: UUID
+  nickname: string
+  totalScore: number
+  correctCount: number
+  totalQuestions: number
+  totalTimeSec: number
+  pattern: AnalysisPattern
+  patternLabel: PatternLabel
+  coachingLabel: CoachingLabel
+  streaks: {
+    maxCorrect: number   // 최대 연속 정답
+    maxWrong: number     // 최대 연속 오답
+  }
+}
+
+/** 문항별 요약 통계 */
+export interface QuestionReportSummary {
+  submissionRate: number    // 제출율 (0~100)
+  avgScore: number          // 평균 점수
+  avgTimeSec: number        // 평균 풀이시간 (초)
+  topWrongQuestions: Array<{ questionId: UUID; wrongRate: number }>  // 오답율 Top3
+  topCorrectQuestions: Array<{ questionId: UUID; correctRate: number }> // 정답율 Top3
+  warnings: Array<{
+    questionId: UUID
+    type: 'high_wrong_rate' | 'late_spike'
+    value: number
+  }>
+}
+
+/** 개념(learning_map)별 이해도 */
+export interface ConceptUnderstanding {
+  concept: string          // learning_map depth1~4 중 하나
+  totalQuestions: number
+  correctCount: number
+  rate: number             // 이해도 % (0~100)
+}
+
+/** 문항별 바 차트 데이터 */
+export interface QuestionBarData {
+  questionId: UUID
+  orderIndex: number
+  content: string
+  correctRate: number      // 정답률 (0~100)
+  avgTimeSec: number
+  minTimeSec: number
+  maxTimeSec: number
+  hasWarning: boolean      // 오답율 50%+
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -456,3 +531,9 @@ export interface PaginatedResponse<T> {
   page: number
   limit: number
 }
+
+// ─────────────────────────────────────────────────────────────
+// 컨트롤 패널
+// ─────────────────────────────────────────────────────────────
+
+export * from './control'

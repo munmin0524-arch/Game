@@ -5,12 +5,32 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { BarChart2 } from 'lucide-react'
+import { BarChart2, HelpCircle, Star, Eye, ThumbsUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
 import { sessionsApi } from '@/lib/api'
-import type { ParticipantResult, ParticipantType } from '@/types'
+import { calcStudentPattern, calcStreaks, getPatternLabel, getCoachingLabel } from '@/lib/analysis'
+import type { ParticipantResult, ParticipantType, PatternLabel, CoachingLabel, ResponseEvent } from '@/types'
+
+const PATTERN_COLORS: Record<PatternLabel, string> = {
+  '이해': 'bg-green-500/20 text-green-300 border-green-500/30',
+  '미이해': 'bg-red-500/20 text-red-300 border-red-500/30',
+  '성실': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  '찍기': 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+}
+const COACHING_COLORS: Record<CoachingLabel, string> = {
+  '도움 필요': 'bg-red-500/20 text-red-300 border-red-500/30',
+  '칭찬 필요': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  '관찰': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  '양호': 'bg-green-500/20 text-green-300 border-green-500/30',
+}
+const COACHING_ICONS: Record<CoachingLabel, typeof HelpCircle> = {
+  '도움 필요': HelpCircle,
+  '칭찬 필요': ThumbsUp,
+  '관찰': Eye,
+  '양호': Star,
+}
 
 // TODO: 실제 인증 상태에서 가져올 것
 function useCurrentUser() {
@@ -36,6 +56,9 @@ export default function ResultPage() {
   const { isHost, nickname } = useCurrentUser()
 
   const [results, setResults] = useState<ParticipantResult[]>([])
+  const [myPatternLabel, setMyPatternLabel] = useState<PatternLabel | null>(null)
+  const [myCoachingLabel, setMyCoachingLabel] = useState<CoachingLabel | null>(null)
+  const [myStreaks, setMyStreaks] = useState<{ maxCorrect: number; maxWrong: number } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -44,7 +67,27 @@ export default function ResultPage() {
       .then(setResults)
       .catch(() => toast({ title: '결과를 불러오지 못했습니다.', variant: 'destructive' }))
       .finally(() => setLoading(false))
-  }, [sessionId, toast])
+
+    // 학생인 경우 본인 분석 데이터 로드
+    if (!isHost) {
+      fetch(`/api/sessions/${sessionId}/report/students`)
+        .then((r) => r.json())
+        .then((reports: { result: ParticipantResult; responses: ResponseEvent[] }[]) => {
+          const myReport = reports.find((r) => r.result.nickname === nickname)
+          if (!myReport) return
+          const allEvents = reports.flatMap((r) => r.responses)
+          const avgTime =
+            allEvents.length > 0
+              ? allEvents.reduce((s, e) => s + (e.response_time_sec ?? 0), 0) / allEvents.length
+              : 10
+          const pattern = calcStudentPattern(myReport.responses, avgTime)
+          setMyPatternLabel(getPatternLabel(pattern))
+          setMyCoachingLabel(getCoachingLabel(pattern))
+          setMyStreaks(calcStreaks(myReport.responses))
+        })
+        .catch(() => {}) // 분석 실패해도 결과 화면은 정상 표시
+    }
+  }, [sessionId, toast, isHost, nickname])
 
   const handleReplay = async () => {
     try {
@@ -101,7 +144,7 @@ export default function ResultPage() {
       <div className="mx-auto max-w-2xl px-4 py-8 space-y-8">
         {/* 학생 본인 순위 (고정 상단) */}
         {!isHost && myResult && (
-          <div className="rounded-xl border border-yellow-400/50 bg-yellow-400/10 px-6 py-4">
+          <div className="rounded-xl border border-yellow-400/50 bg-yellow-400/10 px-6 py-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">⭐</span>
@@ -119,6 +162,31 @@ export default function ResultPage() {
                 <p className="text-xs text-gray-400">맞춤 {myResult.correct_count}개</p>
               </div>
             </div>
+
+            {/* 패턴 · 코칭 · 연속 정답 */}
+            {(myPatternLabel || myCoachingLabel || myStreaks) && (
+              <div className="flex items-center gap-2 flex-wrap border-t border-yellow-400/20 pt-3">
+                {myPatternLabel && (
+                  <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${PATTERN_COLORS[myPatternLabel]}`}>
+                    {myPatternLabel}
+                  </span>
+                )}
+                {myCoachingLabel && (() => {
+                  const Icon = COACHING_ICONS[myCoachingLabel]
+                  return (
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${COACHING_COLORS[myCoachingLabel]}`}>
+                      <Icon className="h-3 w-3" />
+                      {myCoachingLabel}
+                    </span>
+                  )
+                })()}
+                {myStreaks && myStreaks.maxCorrect >= 2 && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/20 px-2.5 py-0.5 text-xs font-medium text-green-300">
+                    🔥 {myStreaks.maxCorrect}연속 정답
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         )}
 

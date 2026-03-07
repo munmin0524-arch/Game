@@ -96,11 +96,11 @@ export function QuestionDisplay({
         </div>
       )}
 
-      {/* 단답형 */}
-      {type === 'short_answer' && (
+      {/* 단어 배열 (unscramble) — TODO: 드래그 UI 구현 */}
+      {type === 'unscramble' && (
         <Input
           className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 text-lg h-12"
-          placeholder="답을 입력하세요"
+          placeholder="올바른 순서로 입력하세요"
           value={shortAnswerValue}
           onChange={(e) => onShortAnswerChange(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onShortAnswerSubmit()}

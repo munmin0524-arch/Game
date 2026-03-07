@@ -45,7 +45,7 @@ interface FeedbackState {
 
 interface CurrentQuestion {
   question_id: string
-  type: 'multiple_choice' | 'ox' | 'short_answer' | 'fill_in_blank'
+  type: 'multiple_choice' | 'ox' | 'unscramble'
   content: string
   options: QuestionOption[] | null
   hint: string | null
@@ -193,7 +193,7 @@ export default function PlayPage() {
   const handleSubmit = () => {
     if (submitted) return
     const answer =
-      currentQ?.type === 'short_answer' ? shortAnswerText.trim() : (selectedAnswer ?? '')
+      currentQ?.type === 'unscramble' ? shortAnswerText.trim() : (selectedAnswer ?? '')
     if (!answer) return
 
     const timeSpent = Math.round((Date.now() - answerStartRef.current) / 1000)
@@ -401,7 +401,7 @@ export default function PlayPage() {
         )}
 
         {/* 단답형 */}
-        {currentQ.type === 'short_answer' && (
+        {currentQ.type === 'unscramble' && (
           <div className="space-y-3">
             <Input
               className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 text-lg h-12"
@@ -443,7 +443,7 @@ export default function PlayPage() {
           onClick={handleSubmit}
           disabled={
             submitted ||
-            (currentQ.type === 'short_answer' ? !shortAnswerText.trim() : !selectedAnswer)
+            (currentQ.type === 'unscramble' ? !shortAnswerText.trim() : !selectedAnswer)
           }
         >
           {submitted ? '제출 완료 ✓' : '제출하기'}

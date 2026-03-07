@@ -24,8 +24,7 @@ interface PageProps {
 const TYPE_LABELS: Record<string, string> = {
   multiple_choice: '객관식',
   ox: 'OX',
-  short_answer: '단답형',
-  fill_in_blank: '빈칸 채우기',
+  unscramble: '단어 배열',
 }
 
 export default function SharedSetDetailPage({ params }: PageProps) {

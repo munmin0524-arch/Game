@@ -91,18 +91,6 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
     onChange({ ...draft, media_url: null })
   }
 
-  // 빈칸 채우기: 빈칸 개수 파악
-  const blankCount = (draft.content.match(/_{3,}/g) ?? []).length
-  const blankAnswers = draft.answer ? draft.answer.split(',') : []
-
-  const handleBlankAnswer = (idx: number, value: string) => {
-    const answers = [...blankAnswers]
-    answers[idx] = value
-    // 빈칸 수에 맞게 배열 길이 조정
-    while (answers.length < blankCount) answers.push('')
-    onChange({ ...draft, answer: answers.join(',') })
-  }
-
   const handleAddStandard = () => {
     const trimmed = standardInput.trim()
     if (!trimmed) return
@@ -130,8 +118,7 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
           <SelectContent>
             <SelectItem value="multiple_choice">객관식</SelectItem>
             <SelectItem value="ox">OX</SelectItem>
-            <SelectItem value="short_answer">단답형</SelectItem>
-            <SelectItem value="fill_in_blank">빈칸 채우기</SelectItem>
+            <SelectItem value="unscramble">단어 배열</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -140,20 +127,11 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
       <div className="space-y-1">
         <Label>문제</Label>
         <Textarea
-          placeholder={
-            draft.type === 'fill_in_blank'
-              ? '문제를 입력하세요 (빈칸은 ___ 으로 표시)'
-              : '문제를 입력하세요'
-          }
+          placeholder="문제를 입력하세요"
           rows={3}
           value={draft.content}
           onChange={(e) => onChange({ ...draft, content: e.target.value })}
         />
-        {draft.type === 'fill_in_blank' && (
-          <p className="text-xs text-gray-400 mt-1">
-            빈칸은 밑줄 3개 이상(___) 으로 표시하세요. 현재 {blankCount}개 빈칸 감지됨
-          </p>
-        )}
       </div>
 
       {/* 이미지 첨부 */}
@@ -283,11 +261,11 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
         </div>
       )}
 
-      {/* 단답형 정답 */}
-      {draft.type === 'short_answer' && (
+      {/* 단어 배열 정답 */}
+      {draft.type === 'unscramble' && (
         <div className="space-y-1">
           <Label>
-            정답
+            정답 (올바른 순서)
             {showAnswerError && !draft.answer && (
               <span className="ml-2 text-xs text-red-500">정답을 입력해 주세요</span>
             )}
@@ -295,36 +273,9 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
           <Input
             value={draft.answer}
             onChange={(e) => onChange({ ...draft, answer: e.target.value })}
-            placeholder="정답 텍스트 입력"
+            placeholder="올바른 단어 순서 입력"
             className={showAnswerError && !draft.answer ? 'border-red-400' : ''}
           />
-        </div>
-      )}
-
-      {/* 빈칸 채우기 정답 */}
-      {draft.type === 'fill_in_blank' && (
-        <div className="space-y-2">
-          <Label>
-            정답
-            {showAnswerError && !draft.answer && (
-              <span className="ml-2 text-xs text-red-500">정답을 입력해 주세요</span>
-            )}
-          </Label>
-          {blankCount === 0 ? (
-            <p className="text-sm text-gray-400">문제에 빈칸(___)을 추가하면 정답 입력 필드가 나타납니다.</p>
-          ) : (
-            Array.from({ length: blankCount }).map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500 w-16 shrink-0">빈칸 {i + 1}</span>
-                <Input
-                  value={blankAnswers[i] ?? ''}
-                  onChange={(e) => handleBlankAnswer(i, e.target.value)}
-                  placeholder={`빈칸 ${i + 1}의 정답`}
-                  className={showAnswerError && !draft.answer ? 'border-red-400' : ''}
-                />
-              </div>
-            ))
-          )}
         </div>
       )}
 

@@ -10,7 +10,7 @@ const MOCK_SESSIONS: Record<string, object> = {
     created_at: '2026-03-01T13:00:00Z', updated_at: '2026-03-01T14:00:00Z',
     set_title: '수학 1단원 — 집합과 명제',
     question_count: 15,
-    question_types: { multiple_choice: 10, ox: 3, short_answer: 2 },
+    question_types: { multiple_choice: 10, ox: 3, unscramble: 2 },
     room_code: 'QUIZ-7382',
   },
   'sess-2': {
@@ -23,7 +23,7 @@ const MOCK_SESSIONS: Record<string, object> = {
     created_at: '2026-02-27T10:00:00Z', updated_at: '2026-03-01T10:00:00Z',
     set_title: '영어 단어 퀴즈 — 수능 필수 500',
     question_count: 20,
-    question_types: { multiple_choice: 15, short_answer: 5 },
+    question_types: { multiple_choice: 15, unscramble: 5 },
     room_code: 'QUIZ-4519',
   },
   'sess-3': {
