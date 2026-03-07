@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type {
   StudentMonitorData,
@@ -30,6 +29,7 @@ interface StudentGridProps {
 // ─────────────────────────────────────────────────────────────
 
 const SORT_OPTIONS: { key: StudentSortKey; label: string }[] = [
+  { key: 'rank', label: '순위' },
   { key: 'name', label: '이름' },
   { key: 'score', label: '점수' },
   { key: 'accuracy', label: '정답률' },
@@ -47,19 +47,19 @@ const FILTER_OPTIONS: {
   { key: 'struggling', label: '연속 오답', desc: '3문항 이상 연속 틀림', color: 'text-red-600 hover:bg-red-50', activeColor: 'bg-red-600 text-white' },
   { key: 'guessing', label: '찍기 의심', desc: '2초 안에 답변', color: 'text-orange-600 hover:bg-orange-50', activeColor: 'bg-orange-500 text-white' },
   { key: 'star', label: '우수', desc: '3문항 이상 연속 정답', color: 'text-yellow-700 hover:bg-yellow-50', activeColor: 'bg-yellow-500 text-white' },
-  { key: 'slow', label: '시간 부족', desc: '시간 모자라 미응답', color: 'text-gray-500 hover:bg-gray-100', activeColor: 'bg-gray-600 text-white' },
+  { key: 'slow', label: '진행 느림', desc: '전체 문항 절반 미만 완료', color: 'text-gray-500 hover:bg-gray-100', activeColor: 'bg-gray-600 text-white' },
 ]
 
 const STATUS_DOT: Record<string, string> = {
   answering: 'bg-yellow-400 animate-pulse',
-  answered: 'bg-green-500',
+  finished: 'bg-green-500',
   disconnected: 'bg-red-400',
   idle: 'bg-gray-300',
 }
 
 const STATUS_LABEL: Record<string, string> = {
   answering: '풀이 중',
-  answered: '완료',
+  finished: '완료',
   disconnected: '연결 끊김',
   idle: '대기',
 }
@@ -68,20 +68,31 @@ const BADGE_CONFIG: Record<string, { label: string; className: string }> = {
   struggling: { label: '연속 오답', className: 'bg-red-100 text-red-700 border-red-200' },
   guessing: { label: '찍기 의심', className: 'bg-orange-100 text-orange-700 border-orange-200' },
   star: { label: '우수', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  slow: { label: '시간 부족', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  slow: { label: '진행 느림', className: 'bg-gray-100 text-gray-600 border-gray-200' },
 }
 
 const STATUS_ORDER: Record<string, number> = {
   answering: 0,
   idle: 1,
-  answered: 2,
+  finished: 2,
   disconnected: 3,
 }
 
-const AVATAR_COLORS = [
-  'bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500',
-  'bg-purple-500', 'bg-cyan-500', 'bg-pink-500', 'bg-indigo-500',
-]
+// ─────────────────────────────────────────────────────────────
+// 순위 계산 (점수 desc → 총 응답시간 asc)
+// ─────────────────────────────────────────────────────────────
+
+function computeRanks(students: StudentMonitorData[]): Map<string, number> {
+  const sorted = [...students].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    const aTime = a.perQuestionResults.reduce((s, r) => s + (r.responseTimeSec ?? 0), 0)
+    const bTime = b.perQuestionResults.reduce((s, r) => s + (r.responseTimeSec ?? 0), 0)
+    return aTime - bTime
+  })
+  const map = new Map<string, number>()
+  sorted.forEach((s, i) => map.set(s.participantId, i + 1))
+  return map
+}
 
 // ─────────────────────────────────────────────────────────────
 // 컴포넌트
@@ -95,9 +106,11 @@ export default function StudentGrid({
   multiSelectMode,
   onMultiSelectModeChange,
 }: StudentGridProps) {
-  const [sortKey, setSortKey] = useState<StudentSortKey>('score')
-  const [sortDir, setSortDir] = useState<StudentSortDir>('desc')
+  const [sortKey, setSortKey] = useState<StudentSortKey>('rank')
+  const [sortDir, setSortDir] = useState<StudentSortDir>('asc')
   const [filterBadge, setFilterBadge] = useState<StudentFilterBadge>('all')
+
+  const rankMap = useMemo(() => computeRanks(students), [students])
 
   const filtered = useMemo(() => {
     if (filterBadge === 'all') return students
@@ -109,15 +122,26 @@ export default function StudentGrid({
     list.sort((a, b) => {
       let cmp = 0
       switch (sortKey) {
-        case 'name': cmp = a.nickname.localeCompare(b.nickname, 'ko'); break
-        case 'score': cmp = a.score - b.score; break
-        case 'accuracy': cmp = a.accuracy - b.accuracy; break
-        case 'status': cmp = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9); break
+        case 'rank':
+          cmp = (rankMap.get(a.participantId) ?? 99) - (rankMap.get(b.participantId) ?? 99)
+          break
+        case 'name':
+          cmp = a.nickname.localeCompare(b.nickname, 'ko')
+          break
+        case 'score':
+          cmp = a.score - b.score
+          break
+        case 'accuracy':
+          cmp = a.accuracy - b.accuracy
+          break
+        case 'status':
+          cmp = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)
+          break
       }
       return sortDir === 'asc' ? cmp : -cmp
     })
     return list
-  }, [filtered, sortKey, sortDir])
+  }, [filtered, sortKey, sortDir, rankMap])
 
   const badgeCounts = useMemo(() => {
     const counts: Record<string, number> = { struggling: 0, guessing: 0, star: 0, slow: 0 }
@@ -130,7 +154,7 @@ export default function StudentGrid({
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     } else {
       setSortKey(key)
-      setSortDir(key === 'name' ? 'asc' : 'desc')
+      setSortDir(key === 'name' ? 'asc' : key === 'rank' ? 'asc' : 'desc')
     }
   }
 
@@ -201,38 +225,48 @@ export default function StudentGrid({
           <thead className="sticky top-0 bg-gray-50 border-b">
             <tr>
               {multiSelectMode && <th className="w-10 px-3 py-3" />}
-              <th className="px-4 py-3 text-left">
-                <button type="button" onClick={() => handleSort('name')} className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700">
-                  학생
-                  {sortKey === 'name' && <span>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>}
+              <th className="w-14 px-3 py-3 text-center">
+                <button type="button" onClick={() => handleSort('rank')} className="text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700">
+                  순위
+                  {sortKey === 'rank' && <span className="ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">상태</span>
+                <button type="button" onClick={() => handleSort('name')} className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700">
+                  학생
+                  {sortKey === 'name' && <span>{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-center">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">진행도</span>
               </th>
               <th className="px-4 py-3 text-right">
                 <button type="button" onClick={() => handleSort('score')} className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 ml-auto">
                   점수
-                  {sortKey === 'score' && <span>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>}
+                  {sortKey === 'score' && <span>{sortDir === 'asc' ? '↑' : '↓'}</span>}
                 </button>
               </th>
               <th className="px-4 py-3 text-right">
                 <button type="button" onClick={() => handleSort('accuracy')} className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 ml-auto">
                   정답률
-                  {sortKey === 'accuracy' && <span>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>}
+                  {sortKey === 'accuracy' && <span>{sortDir === 'asc' ? '↑' : '↓'}</span>}
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">알림</span>
               </th>
-              <th className="px-4 py-3 text-right">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">응답시간</span>
+              <th className="px-4 py-3 text-center">
+                <button type="button" onClick={() => handleSort('status')} className="text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700">
+                  상태
+                  {sortKey === 'status' && <span className="ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                </button>
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {sorted.map((student) => {
               const isSelected = selectedIds.includes(student.participantId)
+              const rank = rankMap.get(student.participantId) ?? 0
               return (
                 <tr
                   key={student.participantId}
@@ -265,6 +299,16 @@ export default function StudentGrid({
                     </td>
                   )}
 
+                  {/* 순위 */}
+                  <td className="px-3 py-3 text-center">
+                    <span className={cn(
+                      'text-sm font-bold tabular-nums',
+                      rank === 1 ? 'text-yellow-600' : rank === 2 ? 'text-gray-500' : rank === 3 ? 'text-amber-700' : 'text-gray-400',
+                    )}>
+                      {rank}
+                    </span>
+                  </td>
+
                   {/* 학생 */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -276,18 +320,32 @@ export default function StudentGrid({
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-900">{student.nickname}</p>
-                        {student.correctStreak >= 2 && (
+                        {student.correctStreak >= 3 && (
                           <p className="text-xs text-amber-600">{student.correctStreak}연속 정답</p>
                         )}
                       </div>
                     </div>
                   </td>
 
-                  {/* 상태 */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className={cn('h-2.5 w-2.5 rounded-full flex-shrink-0', STATUS_DOT[student.status])} />
-                      <span className="text-sm text-gray-600">{STATUS_LABEL[student.status]}</span>
+                  {/* 진행도 */}
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all',
+                            student.isFinished ? 'bg-green-500' : 'bg-blue-400',
+                          )}
+                          style={{ width: `${(student.completedQuestions / student.totalQuestions) * 100}%` }}
+                        />
+                      </div>
+                      <span className={cn(
+                        'text-sm tabular-nums font-medium whitespace-nowrap',
+                        student.isFinished ? 'text-green-600' : 'text-gray-700',
+                      )}>
+                        {student.completedQuestions}/{student.totalQuestions}
+                        {student.isFinished && ' ✓'}
+                      </span>
                     </div>
                   </td>
 
@@ -329,11 +387,12 @@ export default function StudentGrid({
                     </div>
                   </td>
 
-                  {/* 응답시간 */}
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm tabular-nums text-gray-500">
-                      {student.lastResponseTimeSec != null ? `${student.lastResponseTimeSec}초` : '—'}
-                    </span>
+                  {/* 상태 */}
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span className={cn('h-2 w-2 rounded-full flex-shrink-0', STATUS_DOT[student.status])} />
+                      <span className="text-xs text-gray-600 whitespace-nowrap">{STATUS_LABEL[student.status]}</span>
+                    </div>
                   </td>
                 </tr>
               )

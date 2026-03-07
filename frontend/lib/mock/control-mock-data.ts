@@ -1,5 +1,5 @@
 // ============================================================
-// 컨트롤 패널 Mock 데이터
+// 컨트롤 패널 Mock 데이터 (v3 — 스피드 퀴즈 개별 진행)
 // ============================================================
 
 import type {
@@ -8,6 +8,7 @@ import type {
   QuestionAccuracyPoint,
   LeaderboardEntry,
   LiveAnalyticsData,
+  PerQuestionAnalytics,
   BehaviorBadge,
   StudentStatus,
 } from '@/types'
@@ -33,29 +34,36 @@ function getAvatarColor(nickname: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 학생별 문항 응답 내역 생성
+// 5개 문항 정의
+// ─────────────────────────────────────────────────────────────
+
+const QUESTION_CONTENTS = [
+  '다음 중 소수가 아닌 것은?',
+  '피타고라스 정리에서 빗변을 구하는 공식은?',
+  '일차방정식 2x + 3 = 7의 해는?',
+  '삼각형의 내각의 합은?',
+  '원의 넓이를 구하는 공식은?',
+]
+
+// ─────────────────────────────────────────────────────────────
+// 학생별 문항 응답 내역 생성 (5문항)
 // ─────────────────────────────────────────────────────────────
 
 function makeQuestionResults(
-  correctPattern: boolean[],
+  correctPattern: (boolean | null)[],
 ): StudentQuestionResult[] {
-  const contents = [
-    '다음 중 소수가 아닌 것은?',
-    '피타고라스 정리에서 빗변을 구하는 공식은?',
-    '일차방정식 2x + 3 = 7의 해는?',
-  ]
   return correctPattern.map((isCorrect, i) => ({
     questionIndex: i + 1,
-    questionContent: contents[i],
-    selectedAnswer: isCorrect ? String(i + 1) : String(((i + 2) % 4) + 1),
+    questionContent: QUESTION_CONTENTS[i],
+    selectedAnswer: isCorrect === null ? null : isCorrect ? String(i + 1) : String(((i + 2) % 4) + 1),
     isCorrect,
-    responseTimeSec: isCorrect ? 5 + i * 2 : 12 + i,
-    isSkipped: false,
+    responseTimeSec: isCorrect === null ? null : isCorrect ? 5 + i * 2 : 12 + i,
+    isSkipped: isCorrect === null,
   }))
 }
 
 // ─────────────────────────────────────────────────────────────
-// 24명 Mock 학생
+// 24명 Mock 학생 (5문항 기준)
 // ─────────────────────────────────────────────────────────────
 
 interface StudentSeed {
@@ -66,48 +74,51 @@ interface StudentSeed {
   accuracy: number
   badges: BehaviorBadge[]
   lastResponseTimeSec: number | null
-  currentQuestionAnswered: boolean
-  correctPattern: boolean[]
+  correctPattern: (boolean | null)[] // null = 아직 안 풀음
+  completedQuestions: number
+  currentQuestionIndex: number
 }
 
+const TOTAL_QUESTIONS = 5
+
 const STUDENT_SEEDS: StudentSeed[] = [
-  // ── Star 학생 (3명) ──
-  { nickname: '수학천재', status: 'answered', score: 300, correctStreak: 3, accuracy: 100, badges: ['star'], lastResponseTimeSec: 4, currentQuestionAnswered: true, correctPattern: [true, true, true] },
-  { nickname: '김민준', status: 'answered', score: 280, correctStreak: 3, accuracy: 95, badges: ['star'], lastResponseTimeSec: 6, currentQuestionAnswered: true, correctPattern: [true, true, true] },
-  { nickname: '이서연', status: 'answered', score: 270, correctStreak: 3, accuracy: 90, badges: ['star'], lastResponseTimeSec: 5, currentQuestionAnswered: true, correctPattern: [true, true, true] },
+  // ── Star 학생 (3명) — 5/5 완료 ──
+  { nickname: '수학천재', status: 'finished', score: 500, correctStreak: 5, accuracy: 100, badges: ['star'], lastResponseTimeSec: 4, correctPattern: [true, true, true, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
+  { nickname: '김민준', status: 'finished', score: 460, correctStreak: 5, accuracy: 92, badges: ['star'], lastResponseTimeSec: 6, correctPattern: [true, true, true, true, false], completedQuestions: 5, currentQuestionIndex: 5 },
+  { nickname: '이서연', status: 'finished', score: 440, correctStreak: 3, accuracy: 88, badges: ['star'], lastResponseTimeSec: 5, correctPattern: [true, true, false, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
 
-  // ── Struggling 학생 (3명) ──
-  { nickname: '박지훈', status: 'answered', score: 50, correctStreak: 0, accuracy: 17, badges: ['struggling'], lastResponseTimeSec: 18, currentQuestionAnswered: true, correctPattern: [false, false, false] },
-  { nickname: '최유나', status: 'answered', score: 60, correctStreak: 0, accuracy: 20, badges: ['struggling'], lastResponseTimeSec: 15, currentQuestionAnswered: true, correctPattern: [false, false, true] },
-  { nickname: '정하은', status: 'answering', score: 30, correctStreak: 0, accuracy: 10, badges: ['struggling'], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [false, false, false] },
+  // ── Struggling 학생 (3명) — 2~3/5 진행 ──
+  { nickname: '박지훈', status: 'answering', score: 50, correctStreak: 0, accuracy: 0, badges: ['struggling'], lastResponseTimeSec: 18, correctPattern: [false, false, false, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
+  { nickname: '최유나', status: 'answering', score: 80, correctStreak: 0, accuracy: 25, badges: ['struggling'], lastResponseTimeSec: 15, correctPattern: [false, false, true, false, null], completedQuestions: 4, currentQuestionIndex: 5 },
+  { nickname: '정하은', status: 'answering', score: 30, correctStreak: 0, accuracy: 0, badges: ['struggling'], lastResponseTimeSec: null, correctPattern: [false, false, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
 
-  // ── Guessing 학생 (2명) ──
-  { nickname: '한도윤', status: 'answered', score: 120, correctStreak: 1, accuracy: 40, badges: ['guessing'], lastResponseTimeSec: 1, currentQuestionAnswered: true, correctPattern: [true, false, false] },
-  { nickname: '강서준', status: 'answered', score: 140, correctStreak: 0, accuracy: 47, badges: ['guessing'], lastResponseTimeSec: 2, currentQuestionAnswered: true, correctPattern: [false, true, false] },
+  // ── Guessing 학생 (2명) — 4~5/5 진행 ──
+  { nickname: '한도윤', status: 'answering', score: 180, correctStreak: 1, accuracy: 50, badges: ['guessing'], lastResponseTimeSec: 1, correctPattern: [true, false, true, false, null], completedQuestions: 4, currentQuestionIndex: 5 },
+  { nickname: '강서준', status: 'finished', score: 200, correctStreak: 0, accuracy: 40, badges: ['guessing'], lastResponseTimeSec: 2, correctPattern: [false, true, false, true, false], completedQuestions: 5, currentQuestionIndex: 5 },
 
-  // ── Slow 학생 (2명) ──
-  { nickname: '윤지아', status: 'answering', score: 100, correctStreak: 0, accuracy: 33, badges: ['slow'], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [true, false, false] },
-  { nickname: '임서현', status: 'answering', score: 80, correctStreak: 0, accuracy: 27, badges: ['slow'], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [false, true, false] },
+  // ── Slow 학생 (2명) — 1~2/5 진행 (절반 미만) ──
+  { nickname: '윤지아', status: 'answering', score: 100, correctStreak: 0, accuracy: 50, badges: ['slow'], lastResponseTimeSec: null, correctPattern: [true, null, null, null, null], completedQuestions: 1, currentQuestionIndex: 2 },
+  { nickname: '임서현', status: 'answering', score: 80, correctStreak: 0, accuracy: 50, badges: ['slow'], lastResponseTimeSec: null, correctPattern: [false, true, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
 
   // ── Disconnected (2명) ──
-  { nickname: '오현우', status: 'disconnected', score: 100, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [true, false, false] },
-  { nickname: '장예린', status: 'disconnected', score: 60, correctStreak: 0, accuracy: 33, badges: [], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [false, true, false] },
+  { nickname: '오현우', status: 'disconnected', score: 100, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: null, correctPattern: [true, false, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
+  { nickname: '장예린', status: 'disconnected', score: 60, correctStreak: 0, accuracy: 33, badges: [], lastResponseTimeSec: null, correctPattern: [false, true, false, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
 
   // ── Idle (2명) ──
-  { nickname: '배준서', status: 'idle', score: 150, correctStreak: 1, accuracy: 50, badges: [], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [true, false, true] },
-  { nickname: '신하윤', status: 'idle', score: 130, correctStreak: 0, accuracy: 43, badges: [], lastResponseTimeSec: null, currentQuestionAnswered: false, correctPattern: [true, true, false] },
+  { nickname: '배준서', status: 'idle', score: 0, correctStreak: 0, accuracy: 0, badges: [], lastResponseTimeSec: null, correctPattern: [null, null, null, null, null], completedQuestions: 0, currentQuestionIndex: 1 },
+  { nickname: '신하윤', status: 'idle', score: 0, correctStreak: 0, accuracy: 0, badges: [], lastResponseTimeSec: null, correctPattern: [null, null, null, null, null], completedQuestions: 0, currentQuestionIndex: 1 },
 
-  // ── 일반 학생 (10명) ──
-  { nickname: '송지호', status: 'answered', score: 240, correctStreak: 2, accuracy: 80, badges: [], lastResponseTimeSec: 8, currentQuestionAnswered: true, correctPattern: [true, true, false] },
-  { nickname: '노은서', status: 'answered', score: 220, correctStreak: 1, accuracy: 73, badges: [], lastResponseTimeSec: 10, currentQuestionAnswered: true, correctPattern: [true, false, true] },
-  { nickname: '황시우', status: 'answered', score: 200, correctStreak: 2, accuracy: 67, badges: [], lastResponseTimeSec: 7, currentQuestionAnswered: true, correctPattern: [true, true, false] },
-  { nickname: '전소율', status: 'answered', score: 190, correctStreak: 1, accuracy: 63, badges: [], lastResponseTimeSec: 9, currentQuestionAnswered: true, correctPattern: [false, true, true] },
-  { nickname: '권도현', status: 'answered', score: 180, correctStreak: 0, accuracy: 60, badges: [], lastResponseTimeSec: 11, currentQuestionAnswered: true, correctPattern: [true, true, false] },
-  { nickname: '유하린', status: 'answered', score: 170, correctStreak: 1, accuracy: 57, badges: [], lastResponseTimeSec: 12, currentQuestionAnswered: true, correctPattern: [true, false, true] },
-  { nickname: '문태윤', status: 'answered', score: 160, correctStreak: 0, accuracy: 53, badges: [], lastResponseTimeSec: 14, currentQuestionAnswered: true, correctPattern: [false, true, true] },
-  { nickname: '안채원', status: 'answered', score: 150, correctStreak: 1, accuracy: 50, badges: [], lastResponseTimeSec: 13, currentQuestionAnswered: true, correctPattern: [true, false, true] },
-  { nickname: '고윤호', status: 'answered', score: 140, correctStreak: 0, accuracy: 47, badges: [], lastResponseTimeSec: 15, currentQuestionAnswered: true, correctPattern: [true, false, false] },
-  { nickname: '백수빈', status: 'answered', score: 130, correctStreak: 0, accuracy: 43, badges: [], lastResponseTimeSec: 16, currentQuestionAnswered: true, correctPattern: [false, true, false] },
+  // ── 일반 학생 (10명) — 3~5/5 진행 ──
+  { nickname: '송지호', status: 'finished', score: 380, correctStreak: 2, accuracy: 80, badges: [], lastResponseTimeSec: 8, correctPattern: [true, true, false, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
+  { nickname: '노은서', status: 'finished', score: 360, correctStreak: 1, accuracy: 80, badges: [], lastResponseTimeSec: 10, correctPattern: [true, false, true, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
+  { nickname: '황시우', status: 'answering', score: 300, correctStreak: 2, accuracy: 75, badges: [], lastResponseTimeSec: 7, correctPattern: [true, true, false, true, null], completedQuestions: 4, currentQuestionIndex: 5 },
+  { nickname: '전소율', status: 'answering', score: 280, correctStreak: 1, accuracy: 75, badges: [], lastResponseTimeSec: 9, correctPattern: [false, true, true, true, null], completedQuestions: 4, currentQuestionIndex: 5 },
+  { nickname: '권도현', status: 'finished', score: 320, correctStreak: 0, accuracy: 60, badges: [], lastResponseTimeSec: 11, correctPattern: [true, true, false, false, true], completedQuestions: 5, currentQuestionIndex: 5 },
+  { nickname: '유하린', status: 'answering', score: 240, correctStreak: 1, accuracy: 67, badges: [], lastResponseTimeSec: 12, correctPattern: [true, false, true, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
+  { nickname: '문태윤', status: 'answering', score: 220, correctStreak: 0, accuracy: 67, badges: [], lastResponseTimeSec: 14, correctPattern: [false, true, true, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
+  { nickname: '안채원', status: 'answering', score: 200, correctStreak: 1, accuracy: 67, badges: [], lastResponseTimeSec: 13, correctPattern: [true, false, true, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
+  { nickname: '고윤호', status: 'answering', score: 180, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: 15, correctPattern: [true, false, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
+  { nickname: '백수빈', status: 'answering', score: 160, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: 16, correctPattern: [false, true, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
 ]
 
 export const MOCK_STUDENTS: StudentMonitorData[] = STUDENT_SEEDS.map(
@@ -121,20 +132,121 @@ export const MOCK_STUDENTS: StudentMonitorData[] = STUDENT_SEEDS.map(
     accuracy: seed.accuracy,
     badges: seed.badges,
     lastResponseTimeSec: seed.lastResponseTimeSec,
-    currentQuestionAnswered: seed.currentQuestionAnswered,
     perQuestionResults: makeQuestionResults(seed.correctPattern),
+    completedQuestions: seed.completedQuestions,
+    totalQuestions: TOTAL_QUESTIONS,
+    currentQuestionIndex: seed.currentQuestionIndex,
+    isFinished: seed.status === 'finished',
   }),
 )
+
+// ─────────────────────────────────────────────────────────────
+// 문항별 분석 데이터 (5문항)
+// ─────────────────────────────────────────────────────────────
+
+export const MOCK_QUESTION_ANALYTICS: PerQuestionAnalytics[] = [
+  {
+    questionIndex: 1,
+    questionContent: '다음 중 소수가 아닌 것은?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '2' },
+      { index: 2, text: '3' },
+      { index: 3, text: '4' },
+      { index: 4, text: '7' },
+    ],
+    correctOptionIndex: 3,
+    distribution: { '1': 2, '2': 3, '3': 14, '4': 1 },
+    correctCount: 14,
+    incorrectCount: 6,
+    unansweredCount: 4,
+    totalStudents: 24,
+    avgResponseTimeSec: 7.2,
+  },
+  {
+    questionIndex: 2,
+    questionContent: '피타고라스 정리에서 빗변을 구하는 공식은?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: 'c = a + b' },
+      { index: 2, text: 'c² = a² + b²' },
+      { index: 3, text: 'c = a × b' },
+      { index: 4, text: 'c² = a² - b²' },
+    ],
+    correctOptionIndex: 2,
+    distribution: { '1': 3, '2': 12, '3': 2, '4': 3 },
+    correctCount: 12,
+    incorrectCount: 8,
+    unansweredCount: 4,
+    totalStudents: 24,
+    avgResponseTimeSec: 10.5,
+  },
+  {
+    questionIndex: 3,
+    questionContent: '일차방정식 2x + 3 = 7의 해는?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: 'x = 1' },
+      { index: 2, text: 'x = 2' },
+      { index: 3, text: 'x = 3' },
+      { index: 4, text: 'x = 4' },
+    ],
+    correctOptionIndex: 2,
+    distribution: { '1': 2, '2': 9, '3': 4, '4': 1 },
+    correctCount: 9,
+    incorrectCount: 7,
+    unansweredCount: 8,
+    totalStudents: 24,
+    avgResponseTimeSec: 12.3,
+  },
+  {
+    questionIndex: 4,
+    questionContent: '삼각형의 내각의 합은?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '90°' },
+      { index: 2, text: '180°' },
+      { index: 3, text: '270°' },
+      { index: 4, text: '360°' },
+    ],
+    correctOptionIndex: 2,
+    distribution: { '1': 1, '2': 8, '3': 1, '4': 2 },
+    correctCount: 8,
+    incorrectCount: 4,
+    unansweredCount: 12,
+    totalStudents: 24,
+    avgResponseTimeSec: 6.8,
+  },
+  {
+    questionIndex: 5,
+    questionContent: '원의 넓이를 구하는 공식은?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: 'πr' },
+      { index: 2, text: 'πr²' },
+      { index: 3, text: '2πr' },
+      { index: 4, text: '2πr²' },
+    ],
+    correctOptionIndex: 2,
+    distribution: { '1': 0, '2': 6, '3': 2, '4': 0 },
+    correctCount: 6,
+    incorrectCount: 2,
+    unansweredCount: 16,
+    totalStudents: 24,
+    avgResponseTimeSec: 8.1,
+  },
+]
 
 // ─────────────────────────────────────────────────────────────
 // 정답률 추이
 // ─────────────────────────────────────────────────────────────
 
-export const MOCK_ACCURACY_TREND: QuestionAccuracyPoint[] = [
-  { questionIndex: 1, correctPercent: 85, avgResponseTimeSec: 8.2 },
-  { questionIndex: 2, correctPercent: 62, avgResponseTimeSec: 12.5 },
-  { questionIndex: 3, correctPercent: 38, avgResponseTimeSec: 15.1 },
-]
+export const MOCK_ACCURACY_TREND: QuestionAccuracyPoint[] =
+  MOCK_QUESTION_ANALYTICS.map((q) => ({
+    questionIndex: q.questionIndex,
+    correctPercent: Math.round((q.correctCount / (q.totalStudents - q.unansweredCount)) * 100),
+    avgResponseTimeSec: q.avgResponseTimeSec,
+  }))
 
 // ─────────────────────────────────────────────────────────────
 // 리더보드 (학생 데이터에서 파생)
@@ -151,13 +263,13 @@ export const MOCK_LEADERBOARD: LeaderboardEntry[] = [...MOCK_STUDENTS]
     avgResponseTimeSec:
       Math.round(
         (s.perQuestionResults.reduce((sum, r) => sum + (r.responseTimeSec ?? 0), 0) /
-          Math.max(s.perQuestionResults.length, 1)) *
+          Math.max(s.perQuestionResults.filter((r) => r.responseTimeSec !== null).length, 1)) *
           10,
       ) / 10,
   }))
 
 // ─────────────────────────────────────────────────────────────
-// 분석 데이터
+// 분석 데이터 (레거시 호환)
 // ─────────────────────────────────────────────────────────────
 
 export const MOCK_ANALYTICS: LiveAnalyticsData = {
@@ -166,11 +278,11 @@ export const MOCK_ANALYTICS: LiveAnalyticsData = {
   total: 24,
   accuracyTrend: MOCK_ACCURACY_TREND,
   currentQuestionDifficulty: 'hard',
-  isConfusing: true, // 38% < 40%
+  isConfusing: true,
 }
 
 // ─────────────────────────────────────────────────────────────
-// 현재 문항 Mock
+// 현재 문항 Mock (레거시 호환)
 // ─────────────────────────────────────────────────────────────
 
 export const MOCK_QUESTION: WsQuestionShow = {

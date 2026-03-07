@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 const STATUS_DOT: Record<StudentMonitorData['status'], string> = {
   answering: 'bg-yellow-400 animate-pulse',
-  answered: 'bg-green-500',
+  finished: 'bg-green-500',
   disconnected: 'bg-red-400',
   idle: 'bg-gray-300',
 }
