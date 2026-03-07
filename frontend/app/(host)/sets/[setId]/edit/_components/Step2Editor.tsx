@@ -92,25 +92,6 @@ export function Step2Editor() {
     dispatch({ type: 'REORDER_QUESTIONS', orderedIds: ids })
   }, [questions, dispatch])
 
-  // 템플릿 선택 모드
-  if (showTemplates) {
-    return (
-      <div className="flex h-full flex-col bg-white">
-        <div className="px-6 py-3 border-b bg-gray-50">
-          <h3 className="text-sm font-bold text-gray-700">게임 템플릿 선택</h3>
-          <p className="text-xs text-gray-400 mt-0.5">
-            과목: {setMeta.subject ?? '미설정'} — 사용할 템플릿을 선택하세요
-          </p>
-        </div>
-        <GameTemplateGrid
-          subject={subjectKey}
-          onSelect={handleAddFromTemplate}
-          onCancel={() => setShowTemplates(false)}
-        />
-      </div>
-    )
-  }
-
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 overflow-hidden">
@@ -243,9 +224,24 @@ export function Step2Editor() {
           </div>
         </aside>
 
-        {/* 우측: 편집기 + 프리뷰 */}
+        {/* 우측: 편집기 + 프리뷰 OR 템플릿 선택 */}
         <main className="flex-1 overflow-hidden flex flex-col bg-white">
-          {selectedQuestion ? (
+          {showTemplates ? (
+            /* 템플릿 선택 모드 */
+            <>
+              <div className="px-6 py-3 border-b bg-gray-50 shrink-0">
+                <h3 className="text-sm font-bold text-gray-700">게임 템플릿 선택</h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  과목: {setMeta.subject ?? '미설정'} — 사용할 템플릿을 선택하세요
+                </p>
+              </div>
+              <GameTemplateGrid
+                subject={subjectKey}
+                onSelect={handleAddFromTemplate}
+                onCancel={() => setShowTemplates(false)}
+              />
+            </>
+          ) : selectedQuestion ? (
             splitView ? (
               /* Split View: 60% 편집 + 40% 프리뷰 */
               <>
