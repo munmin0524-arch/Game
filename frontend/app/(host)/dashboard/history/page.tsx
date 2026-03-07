@@ -144,23 +144,6 @@ function DashboardSummary({
         </div>
       </div>
 
-      {/* 그룹별 요약 */}
-      {groups.length > 0 && (
-        <div className="rounded-xl border bg-white p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">나의 그룹별 보기</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {groups.slice(0, 6).map((g) => (
-              <div
-                key={g.group_id}
-                className="rounded-lg bg-gray-50 p-3 text-sm cursor-pointer hover:bg-blue-50 transition-colors"
-              >
-                <p className="font-medium text-gray-800 truncate">{g.name}</p>
-                <p className="text-xs text-gray-500">{g.member_count ?? 0}명</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </section>
   )
 }
