@@ -27,15 +27,16 @@ interface QuestionEditorProps {
 }
 
 const DIFFICULTY_OPTIONS = [
-  { value: '쉬움', label: '쉬움', color: 'bg-green-50 text-green-600 border-green-200' },
-  { value: '보통', label: '보통', color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
-  { value: '어려움', label: '어려움', color: 'bg-red-50 text-red-600 border-red-200' },
+  { value: '상', label: '상', color: 'bg-red-50 text-red-600 border-red-200' },
+  { value: '중', label: '중', color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
+  { value: '하', label: '하', color: 'bg-green-50 text-green-600 border-green-200' },
 ]
 
 export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [metaOpen, setMetaOpen] = useState(false)
   const [standardInput, setStandardInput] = useState('')
+  const [hashtagInput, setHashtagInput] = useState('')
 
   const handleTypeChange = (type: QuestionType) => {
     onChange({
@@ -360,9 +361,9 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
 
         {metaOpen && (
           <div className="mt-3 space-y-4 pl-1">
-            {/* 난이도 */}
+            {/* 난이도 (필수) */}
             <div className="space-y-1.5">
-              <Label className="text-gray-500">난이도</Label>
+              <Label>난이도 *</Label>
               <div className="flex gap-2">
                 {DIFFICULTY_OPTIONS.map((d) => (
                   <button
@@ -385,6 +386,16 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
               </div>
             </div>
 
+            {/* 게임 템플릿 코드 */}
+            {(draft as any).template_code && (
+              <div className="space-y-1">
+                <Label className="text-gray-500">게임 템플릿</Label>
+                <Badge variant="outline" className="text-xs text-purple-600 border-purple-200">
+                  {(draft as any).template_code}
+                </Badge>
+              </div>
+            )}
+
             {/* 단원 */}
             <div className="space-y-1">
               <Label className="text-gray-500">단원</Label>
@@ -393,6 +404,53 @@ export function QuestionEditor({ draft, onChange, showAnswerError }: QuestionEdi
                 onChange={(e) => onChange({ ...draft, unit: e.target.value || undefined } as any)}
                 placeholder="예: 1단원"
               />
+            </div>
+
+            {/* 해시태그 */}
+            <div className="space-y-1.5">
+              <Label className="text-gray-500">해시태그</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={hashtagInput}
+                  onChange={(e) => setHashtagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const tag = hashtagInput.trim().replace(/^#/, '')
+                      if (!tag) return
+                      const current = (draft as any).hashtags ?? []
+                      if (!current.includes(tag)) {
+                        onChange({ ...draft, hashtags: [...current, tag] } as any)
+                      }
+                      setHashtagInput('')
+                    }
+                  }}
+                  placeholder="# 태그 입력 후 Enter"
+                  className="flex-1"
+                />
+              </div>
+              {((draft as any).hashtags ?? []).length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {((draft as any).hashtags ?? []).map((tag: string) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="text-xs text-gray-600 border-gray-300 gap-1 pr-1"
+                    >
+                      #{tag}
+                      <button
+                        className="ml-0.5 rounded-full hover:bg-gray-200 p-0.5"
+                        onClick={() => {
+                          const current = (draft as any).hashtags ?? []
+                          onChange({ ...draft, hashtags: current.filter((t: string) => t !== tag) } as any)
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 성취기준 */}

@@ -106,9 +106,18 @@ export interface QuestionSet {
   is_deleted: boolean
   is_shared: boolean
   original_set_id: UUID | null
+  description?: string | null
+  source?: string | null
   created_at: Timestamp
   updated_at: Timestamp
   question_count?: number // 집계 필드
+}
+
+export interface LearningMap {
+  depth1?: string
+  depth2?: string
+  depth3?: string
+  depth4?: string // 수학만 4depth
 }
 
 export interface Question {
@@ -126,12 +135,33 @@ export interface Question {
   created_at: Timestamp
   // 문항 뱅크 필터용 (optional)
   grade?: string        // 1학년, 2학년, 3학년
-  difficulty?: string   // 쉬움, 보통, 어려움
+  difficulty?: string   // 상, 중, 하
   unit?: string         // 단원명
+  // 게임 에디터 확장 필드
+  template_code?: string        // 게임 템플릿 코드 (예: M4_WI_BIN)
+  learning_map?: LearningMap    // 학습맵 (과목별 depth 다름)
+  assessment_area?: string      // 영어만: 듣기/읽기/문법/어휘
+  hashtags?: string[]           // 해시태그
 }
 
 // 에디터에서 사용하는 임시 상태 (저장 전)
 export type QuestionDraft = Omit<Question, 'question_id' | 'set_id' | 'created_at'>
+
+// ─────────────────────────────────────────────────────────────
+// 게임 템플릿
+// ─────────────────────────────────────────────────────────────
+
+export type GameCategory = 'selection' | 'ox' | 'unscramble'
+export type SubjectKey = 'math' | 'english'
+
+export interface GameTemplate {
+  code: string              // 'M4_WI_BIN'
+  category: GameCategory
+  subjects: SubjectKey[]    // 사용 가능 과목
+  label: string             // 표시명
+  optionCount: number       // 선지 수 (0 for OX/Unscramble)
+  description?: string      // 레이아웃 설명
+}
 
 // ─────────────────────────────────────────────────────────────
 // 마켓플레이스
