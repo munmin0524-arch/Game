@@ -23,6 +23,7 @@ const SORT_OPTIONS = [
   { value: 'recent', label: '최신순' },
   { value: 'likes', label: '좋아요순' },
   { value: 'downloads', label: '다운로드순' },
+  { value: 'rating', label: '평점순' },
 ]
 
 function SearchContent() {
@@ -32,6 +33,7 @@ function SearchContent() {
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [subject, setSubject] = useState(searchParams.get('subject') ?? '전체')
   const [grade, setGrade] = useState(searchParams.get('grade') ?? '전체')
+  const [questionType, setQuestionType] = useState(searchParams.get('type') ?? '전체')
   const [sort, setSort] = useState(searchParams.get('sort') ?? 'popular')
   const [results, setResults] = useState<SharedSet[]>([])
   const [total, setTotal] = useState(0)
@@ -44,6 +46,7 @@ function SearchContent() {
     if (search) params.set('q', search)
     if (subject && subject !== '전체') params.set('subject', subject)
     if (grade && grade !== '전체') params.set('grade', grade)
+    if (questionType && questionType !== '전체') params.set('type', questionType)
     params.set('sort', sort)
     params.set('page', String(page))
     params.set('limit', '12')
@@ -55,7 +58,7 @@ function SearchContent() {
         setTotal(data.total ?? 0)
       })
       .finally(() => setLoading(false))
-  }, [search, subject, grade, sort, page])
+  }, [search, subject, grade, questionType, sort, page])
 
   useEffect(() => {
     fetchResults()
@@ -91,6 +94,8 @@ function SearchContent() {
             onSubjectChange={(v) => { setSubject(v); setPage(1) }}
             grade={grade}
             onGradeChange={(v) => { setGrade(v); setPage(1) }}
+            questionType={questionType}
+            onTypeChange={(v) => { setQuestionType(v); setPage(1) }}
             onSearch={handleSearch}
           />
         </div>

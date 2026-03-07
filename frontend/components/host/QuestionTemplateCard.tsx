@@ -18,6 +18,7 @@ export const QUESTION_TEMPLATES: QuestionTemplate[] = [
   { id: 'mc4', label: '객관식 4지선다', type: 'multiple_choice', optionCount: 4 },
   { id: 'ox', label: 'OX 퀴즈', type: 'ox', optionCount: 0 },
   { id: 'mc5', label: '객관식 5지선다', type: 'multiple_choice', optionCount: 5 },
+  { id: 'fill', label: '빈칸 채우기', type: 'fill_in_blank', optionCount: 0 },
 ]
 
 // 미니 프리뷰 — 스크린샷 기반 컬러 블록
@@ -87,12 +88,27 @@ function MC5Preview() {
   )
 }
 
+function FillBlankPreview() {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="h-3 rounded-sm bg-green-700" />
+      <div className="flex gap-1 items-center">
+        <div className="h-3 flex-1 rounded-sm bg-gray-300" />
+        <div className="h-4 w-8 rounded-sm bg-blue-400 border-b-2 border-blue-600" />
+        <div className="h-3 flex-1 rounded-sm bg-gray-300" />
+      </div>
+      <div className="h-3 rounded-sm bg-orange-400" />
+    </div>
+  )
+}
+
 const PREVIEW_MAP: Record<string, () => JSX.Element> = {
   mc2: MC2Preview,
   short: ShortAnswerPreview,
   mc4: MC4Preview,
   ox: OXPreview,
   mc5: MC5Preview,
+  fill: FillBlankPreview,
 }
 
 interface QuestionTemplateCardProps {

@@ -142,7 +142,7 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">배포 히스토리</h1>
+      <h1 className="text-2xl font-bold">지난 게임</h1>
 
       {/* 필터 탭 */}
       <div className="flex gap-1">
@@ -168,9 +168,9 @@ export default function HistoryPage() {
       ) : sessions.length === 0 ? (
         <EmptyState
           icon="📊"
-          title="아직 배포한 게임이 없어요"
-          description="세트지를 배포하면 여기서 결과를 확인할 수 있습니다."
-          action={{ label: '세트지 보러가기', onClick: () => router.push('/sets') }}
+          title="아직 진행한 게임이 없어요"
+          description="퀴즈로 게임을 열면 여기서 결과를 확인할 수 있어요."
+          action={{ label: '내 퀴즈 보기', onClick: () => router.push('/sets') }}
         />
       ) : (
         <div className="space-y-3">

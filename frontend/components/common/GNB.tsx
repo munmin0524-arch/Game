@@ -29,12 +29,12 @@ const NAV_ITEMS = [
     match: (p: string) => p.startsWith('/groups'),
   },
   {
-    label: '마켓플레이스',
+    label: '퀴즈 광장',
     href: '/marketplace',
     match: (p: string) => p.startsWith('/marketplace'),
   },
   {
-    label: '히스토리',
+    label: '지난 게임',
     href: '/dashboard/history',
     match: (p: string) =>
       p.startsWith('/dashboard/history') ||

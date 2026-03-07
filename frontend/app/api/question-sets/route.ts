@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const newSet = {
     set_id: `set-${Date.now()}`,
     host_member_id: 'host-1',
-    title: body.title ?? '새 세트지',
+    title: body.title ?? '새 퀴즈',
     subject: null, grade: null, tags: [], is_deleted: false, original_set_id: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

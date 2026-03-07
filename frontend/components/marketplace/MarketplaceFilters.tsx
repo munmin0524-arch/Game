@@ -20,11 +20,19 @@ interface MarketplaceFiltersProps {
   onSubjectChange: (value: string) => void
   grade: string
   onGradeChange: (value: string) => void
+  questionType?: string
+  onTypeChange?: (value: string) => void
   onSearch?: () => void
 }
 
 const SUBJECTS = ['전체', '수학', '영어', '과학', '사회', '국어', '기타']
 const GRADES = ['전체', '초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3']
+const QUESTION_TYPES = [
+  { value: '전체', label: '전체' },
+  { value: 'multiple_choice', label: '객관식' },
+  { value: 'ox', label: 'OX' },
+  { value: 'short_answer', label: '단답형' },
+]
 
 export function MarketplaceFilters({
   search,
@@ -33,6 +41,8 @@ export function MarketplaceFilters({
   onSubjectChange,
   grade,
   onGradeChange,
+  questionType,
+  onTypeChange,
   onSearch,
 }: MarketplaceFiltersProps) {
   return (
@@ -76,6 +86,22 @@ export function MarketplaceFilters({
           ))}
         </SelectContent>
       </Select>
+
+      {/* 문항 유형 필터 */}
+      {onTypeChange && (
+        <Select value={questionType ?? '전체'} onValueChange={onTypeChange}>
+          <SelectTrigger className="w-[120px] rounded-full">
+            <SelectValue placeholder="유형" />
+          </SelectTrigger>
+          <SelectContent>
+            {QUESTION_TYPES.map((t) => (
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   )
 }

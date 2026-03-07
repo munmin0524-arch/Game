@@ -163,7 +163,7 @@ export default function GroupDetailPage() {
         </div>
         {!isAuto && (
           <Button onClick={() => router.push(`/sets/new/deploy?groupId=${groupId}`)}>
-            이 그룹에 배포 →
+            이 그룹에 게임 열기 →
           </Button>
         )}
       </div>
@@ -240,7 +240,7 @@ export default function GroupDetailPage() {
       {/* auto_live 안내 */}
       {isAuto && (
         <div className="rounded-2xl bg-emerald-50 px-5 py-3 text-sm text-emerald-700">
-          QR 배포로 자동 생성된 그룹입니다. 참여자 목록은 읽기 전용입니다.
+          QR 공개로 자동 생성된 그룹입니다. 참여자 목록은 읽기 전용입니다.
         </div>
       )}
 

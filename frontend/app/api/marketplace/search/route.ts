@@ -125,19 +125,37 @@ const MOCK_SHARED_SETS = [
   },
 ]
 
+// Mock: 별점 데이터
+const RATINGS: Record<string, { avg_rating: number; review_count: number }> = {
+  'ss-001': { avg_rating: 4.7, review_count: 3 },
+  'ss-002': { avg_rating: 4.3, review_count: 5 },
+  'ss-003': { avg_rating: 4.0, review_count: 2 },
+  'ss-004': { avg_rating: 3.8, review_count: 1 },
+  'ss-005': { avg_rating: 4.5, review_count: 4 },
+  'ss-006': { avg_rating: 4.2, review_count: 2 },
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q')?.toLowerCase() ?? ''
   const subject = searchParams.get('subject')
   const grade = searchParams.get('grade')
+  const type = searchParams.get('type') // 문항 유형 필터
   const sort = searchParams.get('sort') ?? 'popular'
   const page = parseInt(searchParams.get('page') ?? '1')
   const limit = parseInt(searchParams.get('limit') ?? '12')
 
-  let filtered = MOCK_SHARED_SETS.filter((s) => {
+  // 별점 포함 데이터
+  const setsWithRatings = MOCK_SHARED_SETS.map((s) => ({
+    ...s,
+    ...(RATINGS[s.shared_set_id] ?? { avg_rating: 0, review_count: 0 }),
+  }))
+
+  let filtered = setsWithRatings.filter((s) => {
     if (q && !s.title.toLowerCase().includes(q) && !s.tags.some((t) => t.includes(q))) return false
     if (subject && subject !== '전체' && s.subject !== subject) return false
     if (grade && grade !== '전체' && s.grade !== grade) return false
+    // type 필터는 mock에서 무시 (실제 구현 시 문항 타입 기반 필터링)
     return true
   })
 
@@ -150,6 +168,8 @@ export async function GET(request: NextRequest) {
     filtered.sort((a, b) => b.like_count - a.like_count)
   } else if (sort === 'downloads') {
     filtered.sort((a, b) => b.download_count - a.download_count)
+  } else if (sort === 'rating') {
+    filtered.sort((a, b) => b.avg_rating - a.avg_rating)
   }
 
   const total = filtered.length

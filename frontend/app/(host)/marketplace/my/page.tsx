@@ -48,7 +48,7 @@ export default function MySharedSetsPage() {
       ) : sets.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg font-medium">공유한 퀴즈가 없습니다</p>
-          <p className="text-sm mt-1">세트지 목록에서 &quot;커뮤니티에 공유&quot;를 눌러보세요.</p>
+          <p className="text-sm mt-1">내 퀴즈에서 &quot;퀴즈 광장에 공유&quot;를 눌러보세요.</p>
         </div>
       ) : (
         <div className="space-y-3">

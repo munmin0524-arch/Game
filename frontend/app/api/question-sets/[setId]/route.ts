@@ -35,7 +35,7 @@ export async function GET(_: Request, { params }: { params: { setId: string } })
   if (!set) {
     // 새로 생성된 세트 → 빈 문항
     return NextResponse.json({
-      set: { set_id: params.setId, host_member_id: 'host-1', title: '새 세트지', subject: null, grade: null, tags: [], is_deleted: false, original_set_id: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), question_count: 0 },
+      set: { set_id: params.setId, host_member_id: 'host-1', title: '새 퀴즈', subject: null, grade: null, tags: [], is_deleted: false, original_set_id: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), question_count: 0 },
       questions: [],
     })
   }

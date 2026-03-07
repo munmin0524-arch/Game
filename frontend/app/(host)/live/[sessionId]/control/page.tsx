@@ -74,6 +74,7 @@ const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   multiple_choice: '객관식',
   ox: 'O/X',
   short_answer: '단답형',
+  fill_in_blank: '빈칸 채우기',
 }
 
 // ─────────────────────────────────────────────────────────────

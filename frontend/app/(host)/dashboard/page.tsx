@@ -62,7 +62,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-baseline gap-3">
             <h2 className="text-lg font-bold text-gray-900">내 퀴즈</h2>
-            <span className="text-sm text-gray-400">세트지를 만들고 문항을 편집하세요</span>
+            <span className="text-sm text-gray-400">퀴즈를 만들고 문항을 편집하세요</span>
           </div>
           <Link href="/sets" className="text-sm text-blue-600 hover:underline font-medium">
             전체 보기 →
@@ -104,8 +104,8 @@ export default function DashboardPage() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-baseline gap-3">
-            <h2 className="text-lg font-bold text-gray-900">히스토리</h2>
-            <span className="text-sm text-gray-400">QR 배포 후 진행된 퀴즈 기록과 리포트</span>
+            <h2 className="text-lg font-bold text-gray-900">지난 게임</h2>
+            <span className="text-sm text-gray-400">진행한 게임 기록과 리포트</span>
           </div>
           <Link href="/dashboard/history" className="text-sm text-blue-600 hover:underline font-medium">
             전체 보기 →
@@ -116,8 +116,8 @@ export default function DashboardPage() {
           <RecentDeployBanner session={latestSession} />
         ) : (
           <div className="rounded-2xl bg-white px-6 py-8 shadow-soft text-center">
-            <p className="text-sm text-gray-400">아직 배포한 퀴즈가 없어요.</p>
-            <p className="text-xs text-gray-300 mt-1">세트지를 만들고 QR로 배포하면 여기에 기록됩니다.</p>
+            <p className="text-sm text-gray-400">아직 진행한 게임이 없어요.</p>
+            <p className="text-xs text-gray-300 mt-1">퀴즈를 만들고 게임을 열면 여기에 기록돼요.</p>
           </div>
         )}
       </section>

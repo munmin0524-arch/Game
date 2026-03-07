@@ -89,7 +89,7 @@ export interface GroupMember {
 // 콘텐츠 (세트지·문항)
 // ─────────────────────────────────────────────────────────────
 
-export type QuestionType = 'multiple_choice' | 'ox' | 'short_answer'
+export type QuestionType = 'multiple_choice' | 'ox' | 'short_answer' | 'fill_in_blank'
 
 export interface QuestionOption {
   index: number
@@ -158,10 +158,13 @@ export interface SharedSet {
   achievement_standards: string[] | null
   published_at: Timestamp
   updated_at: Timestamp
+  avg_rating?: number
+  review_count?: number
   // JOIN 필드
   host_nickname?: string
   is_certified?: boolean
   is_liked?: boolean // 현재 사용자의 좋아요 여부
+  is_bookmarked?: boolean
   questions?: Question[] // 상세 조회 시
 }
 
@@ -198,6 +201,67 @@ export interface AchievementStandard {
   grade_band: string
   domain: string
   description: string
+}
+
+export interface Bookmark {
+  bookmark_id: UUID
+  member_id: UUID
+  shared_set_id: UUID
+  created_at: Timestamp
+}
+
+export interface Review {
+  review_id: UUID
+  shared_set_id: UUID
+  member_id: UUID
+  rating: number // 1-5
+  comment: string | null
+  created_at: Timestamp
+  // JOIN 필드
+  nickname?: string
+  is_certified?: boolean
+}
+
+export interface Follow {
+  follow_id: UUID
+  follower_id: UUID
+  following_id: UUID
+  created_at: Timestamp
+}
+
+export interface CreatorProfile {
+  member_id: UUID
+  nickname: string
+  is_certified: boolean
+  bio: string | null
+  shared_count: number
+  total_likes: number
+  total_downloads: number
+  follower_count: number
+  is_following?: boolean
+  created_at: Timestamp
+}
+
+export interface Collection {
+  collection_id: UUID
+  member_id: UUID
+  title: string
+  description: string | null
+  is_public: boolean
+  quiz_count: number
+  like_count: number
+  created_at: Timestamp
+  updated_at: Timestamp
+  // JOIN 필드
+  nickname?: string
+  is_certified?: boolean
+  preview_items?: SharedSet[]
+}
+
+export interface CollectionItem {
+  collection_id: UUID
+  shared_set_id: UUID
+  order: number
 }
 
 // 공유 설정 폼

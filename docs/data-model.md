@@ -1,6 +1,6 @@
 # 데이터 모델 (Data Model)
 
-> 최종 업데이트: 2026-03-03
+> 최종 업데이트: 2026-03-07
 > 미결 정책(P-xx)은 product-spec.md 참고.
 
 ---
@@ -9,14 +9,14 @@
 
 1. [테이블 구조 요약](#1-테이블-구조-요약)
 2. [회원 체계](#2-회원-체계)
-3. [콘텐츠 (세트지·문항)](#3-콘텐츠-세트지문항)
-4. [배포·세션](#4-배포세션)
+3. [콘텐츠 (퀴즈·문항)](#3-콘텐츠-퀴즈문항)
+4. [게임·세션](#4-게임세션)
 5. [플레이·응답](#5-플레이응답)
 6. [로그](#6-로그)
 7. [학습 데이터 항목 & 리포트 활용](#7-학습-데이터-항목--리포트-활용)
 8. [관계 다이어그램 (ERD)](#8-관계-다이어그램-erd)
 9. [주요 쿼리 패턴](#9-주요-쿼리-패턴)
-10. [마켓플레이스](#10-마켓플레이스)
+10. [퀴즈 광장](#10-퀴즈-광장)
 
 ---
 
@@ -29,20 +29,20 @@
 | 2 | `host_profiles` | 교사 프로필 | Host 전용 필드 분리 |
 | 3 | `guests` | 게스트 | 비회원 참여자. 이메일+닉네임 기반 식별 |
 | **그룹** | | | |
-| 4 | `groups` | 그룹 | Host가 생성·관리하는 배포 대상 그룹 |
+| 4 | `groups` | 그룹 | Host가 생성·관리하는 참여 대상 그룹 |
 | 5 | `group_members` | 그룹 멤버 | 그룹 내 Member·Guest 연결 |
 | **콘텐츠** | | | |
-| 6 | `question_sets` | 세트지 | Host가 만든 퀴즈 꾸러미 |
-| 7 | `questions` | 문항 | 세트지 내 개별 문제 |
-| **배포·세션** | | | |
-| 8 | `sessions` | 배포·세션 | 배포 설정 및 게임 세션 (라이브 / 과제) |
+| 6 | `question_sets` | 퀴즈 | Host가 만든 퀴즈 꾸러미 |
+| 7 | `questions` | 문항 | 퀴즈 내 개별 문제 |
+| **게임·세션** | | | |
+| 8 | `sessions` | 게임·세션 | 게임 설정 및 세션 (라이브 / 과제) |
 | **플레이·응답** | | | |
 | 9 | `participant_results` | 참여 결과 | 학생 개인별 플레이 인스턴스 + 최종 결과 |
 | 10 | `response_events` | 응답 이벤트 | 문항별 응답 날것 데이터 (Redis → RDB 이관) |
 | **로그** | | | |
 | 11 | `report_view_logs` | 리포트 조회 로그 | Host의 리포트 열람 기록 |
-| **마켓플레이스** | | | |
-| 12 | `shared_sets` | 공유 세트지 | 커뮤니티에 공유된 세트 메타 |
+| **퀴즈 광장** | | | |
+| 12 | `shared_sets` | 공유 퀴즈 | 퀴즈 광장에 공유된 퀴즈 메타 |
 | 13 | `shared_set_likes` | 좋아요 | 교사의 좋아요 기록 |
 | 14 | `shared_set_downloads` | 다운로드 기록 | 문항 복사 이력 |
 | 15 | `shared_set_reports` | 신고 | 부적절 콘텐츠 신고 |
@@ -134,9 +134,9 @@ INDEX idx_guest_linked_member (linked_member_id)
 
 ---
 
-## 3. 콘텐츠 (세트지·문항)
+## 3. 콘텐츠 (퀴즈·문항)
 
-### 3-1. `question_sets` (세트지)
+### 3-1. `question_sets` (퀴즈)
 
 > Host가 만든 퀴즈 꾸러미.
 
@@ -144,30 +144,30 @@ INDEX idx_guest_linked_member (linked_member_id)
 |------|------|------|------|
 | `set_id` | UUID | PK | |
 | `host_member_id` | UUID | FK → members, NOT NULL | 제작 Host |
-| `title` | VARCHAR(300) | NOT NULL | 세트지명 |
+| `title` | VARCHAR(300) | NOT NULL | 퀴즈명 |
 | `subject` | VARCHAR(100) | NULL | 과목 |
 | `grade` | VARCHAR(50) | NULL | 학년 |
 | `tags` | JSON | NULL | 키워드 태그 배열 `["태그1", "태그2"]` |
-| `is_deleted` | BOOLEAN | DEFAULT false | soft delete. 배포 이력 있으면 실제 삭제 불가 |
-| `is_shared` | BOOLEAN | DEFAULT false | 커뮤니티 마켓플레이스 공유 여부 |
+| `is_deleted` | BOOLEAN | DEFAULT false | soft delete. 게임 이력 있으면 실제 삭제 불가 |
+| `is_shared` | BOOLEAN | DEFAULT false | 퀴즈 광장 공유 여부 |
 | `original_set_id` | UUID | FK → question_sets, NULL | 복제 시 원본 set_id |
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
 **비고**
-- `is_deleted = true` + 배포 이력 있는 경우: UI 비활성 처리, DB 레코드 유지.
+- `is_deleted = true` + 게임 이력 있는 경우: UI 비활성 처리, DB 레코드 유지.
 - 복제 시 `original_set_id` 기록 + 제목에 "(복사본)" suffix 자동 추가.
 
 ---
 
 ### 3-2. `questions` (문항)
 
-> 세트지에 포함된 개별 문제. 정답·힌트·해설 포함.
+> 퀴즈에 포함된 개별 문제. 정답·힌트·해설 포함.
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|
 | `question_id` | UUID | PK | |
-| `set_id` | UUID | FK → question_sets, NOT NULL | 소속 세트지 |
+| `set_id` | UUID | FK → question_sets, NOT NULL | 소속 퀴즈 |
 | `type` | ENUM | NOT NULL | `multiple_choice` / `ox` / `short_answer` |
 | `order_index` | INTEGER | NOT NULL | 문항 순서 (드래그앤드롭 변경 시 업데이트) |
 | `content` | TEXT | NOT NULL | 문제 지문 |
@@ -177,15 +177,22 @@ INDEX idx_guest_linked_member (linked_member_id)
 | `explanation` | TEXT | NULL | 해설 (session.answer_reveal 설정에 따라 결과 화면 노출) |
 | `media_url` | VARCHAR(500) | NULL | 첨부 이미지 URL (추후 개발) |
 | `achievement_standards` | JSON | NULL | 성취기준 코드 배열 `["[9수01-01]", "[9수01-02]"]` |
+| `grade` | VARCHAR(50) | NULL | 문항 뱅크용 학년 (예: `1학년`, `2학년`) |
+| `difficulty` | VARCHAR(20) | NULL | 문항 뱅크용 난이도 (`쉬움` / `보통` / `어려움`) |
+| `unit` | VARCHAR(100) | NULL | 문항 뱅크용 단원명 (예: `1단원`, `2단원`) |
 | `created_at` | TIMESTAMP | NOT NULL | |
+
+**비고**
+- `grade`, `difficulty`, `unit`: 문항 뱅크 검색 및 AI 추천 필터용. 퀴즈(`question_sets`)의 grade/subject와는 별도로, 개별 문항 수준에서 메타데이터를 저장.
+- AI 추천 API(`POST /api/question-bank/ai-recommend`)는 이 세 필드 + `type`을 기준으로 난이도별 문항 수를 조합하여 반환.
 
 ---
 
-## 4. 배포·세션
+## 4. 게임·세션
 
 ### 4-1. `groups` (그룹)
 
-> Host가 배포 대상으로 지정하는 학생 그룹. 라이브 QR 공개 배포 시 자동 생성.
+> Host가 참여 대상으로 지정하는 학생 그룹. 라이브 QR 공개 게임 시 자동 생성.
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|
@@ -220,20 +227,20 @@ INDEX idx_guest_linked_member (linked_member_id)
 
 ---
 
-### 4-3. `sessions` (배포·세션)
+### 4-3. `sessions` (게임·세션)
 
-> 세트지 배포 설정 및 게임 세션 정보.
+> 퀴즈 게임 설정 및 세션 정보.
 > 라이브 1회 = 1 session. 과제 1건 = 1 session.
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|
 | `session_id` | UUID | PK | |
-| `set_id` | UUID | FK → question_sets, NOT NULL | 배포한 세트지 |
-| `host_member_id` | UUID | FK → members, NOT NULL | 배포 Host |
-| `group_id` | UUID | FK → groups, NULL | 배포 대상 그룹 |
+| `set_id` | UUID | FK → question_sets, NOT NULL | 게임에 사용한 퀴즈 |
+| `host_member_id` | UUID | FK → members, NOT NULL | 게임 생성 Host |
+| `group_id` | UUID | FK → groups, NULL | 참여 대상 그룹 |
 | `deploy_type` | ENUM | NOT NULL | `existing_group` / `new_group` / `public_qr` |
 | `session_type` | ENUM | NOT NULL | `live` / `assignment` |
-| `game_mode` | ENUM | NOT NULL | `quiz_battle` (MVP. 추후 확장) |
+| `game_mode` | ENUM | NOT NULL | `tug_of_war` / `boat_racing` / `kickboard_racing` / `balloon_flying` / `marathon` (기본값: `tug_of_war`) |
 | `status` | ENUM | NOT NULL | `waiting` / `in_progress` / `paused` / `completed` / `cancelled` |
 | `time_limit_per_q` | INTEGER | DEFAULT 20 | 문항당 제한 시간 (초). 기본값: **20초** (P-02) |
 | `allow_retry` | BOOLEAN | DEFAULT false | 오답 재도전 허용 |
@@ -408,7 +415,7 @@ achievement_standard_tags (독립 마스터)
 - `participant_results` ← 학생 1명의 1회 플레이. `sessions`에 귀속. Member 또는 Guest 중 하나만.
 - `response_events` ← 모든 응답의 날것 데이터. `participant_results`와 `questions`에 귀속.
 - `guests.linked_member_id` ← 게스트→멤버 전환 시 데이터 연결 브릿지.
-- `shared_sets` ← 마켓플레이스 공유. `question_sets`와 1:1. 좋아요/다운로드/신고 하위 테이블.
+- `shared_sets` ← 퀴즈 광장 공유. `question_sets`와 1:1. 좋아요/다운로드/신고 하위 테이블.
 
 ---
 
@@ -514,11 +521,11 @@ ORDER BY nickname;
 
 ---
 
-## 10. 마켓플레이스
+## 10. 퀴즈 광장
 
-### 10-1. `shared_sets` (공유 세트지)
+### 10-1. `shared_sets` (공유 퀴즈)
 
-> 커뮤니티에 공유된 세트지 메타 정보. `question_sets`와 1:1 관계.
+> 퀴즈 광장에 공유된 퀴즈 메타 정보. `question_sets`와 1:1 관계.
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|

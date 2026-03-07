@@ -126,17 +126,36 @@ const MOCK_SHARED_SETS = [
   },
 ]
 
-// GET: 마켓플레이스 홈 (인기 + 최신)
+// GET: 퀴즈 광장 홈 (맞춤 추천 + 인기 + 최신 + 태그)
 export async function GET() {
-  const popular = [...MOCK_SHARED_SETS]
+  // Mock: 별점/리뷰 추가
+  const RATINGS: Record<string, { avg_rating: number; review_count: number }> = {
+    'ss-001': { avg_rating: 4.7, review_count: 3 },
+    'ss-002': { avg_rating: 4.3, review_count: 5 },
+    'ss-003': { avg_rating: 4.0, review_count: 2 },
+    'ss-004': { avg_rating: 3.8, review_count: 1 },
+    'ss-005': { avg_rating: 4.5, review_count: 4 },
+    'ss-006': { avg_rating: 4.2, review_count: 2 },
+  }
+  const setsWithRatings = MOCK_SHARED_SETS.map((s) => ({
+    ...s,
+    ...(RATINGS[s.shared_set_id] ?? { avg_rating: 0, review_count: 0 }),
+  }))
+
+  const popular = [...setsWithRatings]
     .sort((a, b) => (b.like_count + b.download_count) - (a.like_count + a.download_count))
     .slice(0, 6)
 
-  const recent = [...MOCK_SHARED_SETS]
+  const recent = [...setsWithRatings]
     .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
     .slice(0, 6)
 
-  return NextResponse.json({ popular, recent })
+  // 맞춤 추천 (mock: 수학 과목 기반)
+  const forYou = setsWithRatings.filter((s) => s.subject === '수학').slice(0, 4)
+
+  const popular_tags = ['분수', '영어문법', '소수', '1차방정식', '삼각함수', '영단어', '한국사', '화학반응']
+
+  return NextResponse.json({ popular, recent, forYou, popular_tags })
 }
 
 // POST: 세트 공유 (퍼블리시)

@@ -102,11 +102,11 @@ export default function DeployPage() {
       if (form.session_type === 'live') {
         router.push(`/live/${session.session_id}/waiting`)
       } else {
-        toast({ title: '과제가 배포되었습니다.' })
+        toast({ title: '과제가 생성되었습니다.' })
         router.push('/dashboard')
       }
     } catch {
-      toast({ title: '배포에 실패했습니다.', variant: 'destructive' })
+      toast({ title: '생성에 실패했습니다.', variant: 'destructive' })
     } finally {
       setDeploying(false)
     }
@@ -128,11 +128,11 @@ export default function DeployPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-8">
-      <h1 className="text-2xl font-bold">배포 설정</h1>
+      <h1 className="text-2xl font-bold">게임 설정</h1>
 
       {/* 배포 유형 */}
       <section className="space-y-3">
-        <Label className="text-base font-semibold">배포 유형</Label>
+        <Label className="text-base font-semibold">진행 방식</Label>
         <RadioGroup
           value={form.session_type}
           onValueChange={(v) =>
@@ -254,7 +254,7 @@ export default function DeployPage() {
 
       {/* 배포 대상 */}
       <section className="space-y-4 rounded-lg border p-4">
-        <p className="font-semibold text-sm text-gray-500">배포 대상</p>
+        <p className="font-semibold text-sm text-gray-500">참여 대상</p>
 
         <RadioGroup
           value={form.deploy_type}
@@ -265,7 +265,7 @@ export default function DeployPage() {
         >
           <div className="flex items-center gap-2">
             <RadioGroupItem value="public_qr" id="public_qr" />
-            <Label htmlFor="public_qr">QR 공개 배포 (누구나 입장)</Label>
+            <Label htmlFor="public_qr">QR 공개 (누구나 참여)</Label>
           </div>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="existing_group" id="existing_group" />
@@ -313,7 +313,7 @@ export default function DeployPage() {
         {/* 과제: 게스트 링크 복사 */}
         {isAssignment && (
           <div className="flex items-center justify-between rounded-lg border border-dashed px-3 py-2.5">
-            <p className="text-sm text-gray-600">게스트 초대 링크 (수동 발송용)</p>
+            <p className="text-sm text-gray-600">참여 링크 (직접 공유용)</p>
             <Button variant="outline" size="sm" onClick={handleCopyGuestLink}>
               <Copy className="mr-1 h-3.5 w-3.5" />
               링크 복사
@@ -326,10 +326,10 @@ export default function DeployPage() {
       <Button size="lg" className="w-full" onClick={handleDeploy} disabled={deploying}>
         <Rocket className="mr-2 h-5 w-5" />
         {deploying
-          ? '배포 중...'
+          ? '준비 중...'
           : isAssignment
-          ? '과제 배포하기'
-          : '배포하고 대기화면으로 →'}
+          ? '과제 보내기'
+          : '게임 열기 →'}
       </Button>
     </div>
   )

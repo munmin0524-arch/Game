@@ -8,8 +8,9 @@ import { useParams, useRouter } from 'next/navigation'
 import {
   Save, Eye, Plus, Trash2, Copy,
   ChevronUp, ChevronDown, Shuffle, Library, Search, ArrowLeft, Check,
-  Sparkles, RefreshCw,
+  Sparkles, RefreshCw, GripVertical, PanelBottom,
 } from 'lucide-react'
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { QuestionEditor } from '@/components/host/QuestionEditor'
+import { QuestionPreview } from '@/components/host/QuestionPreview'
 import {
   QuestionTemplateCard,
   QUESTION_TEMPLATES,
@@ -39,6 +41,7 @@ const TYPE_LABELS: Record<QuestionType, string> = {
   multiple_choice: '객관식',
   ox: 'OX',
   short_answer: '단답형',
+  fill_in_blank: '빈칸 채우기',
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -47,7 +50,7 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   '어려움': 'bg-red-50 text-red-600',
 }
 
-type EditorMode = 'edit' | 'template' | 'import' | 'ai'
+type EditorMode = 'edit' | 'template' | 'import' | 'ai' | 'preview'
 
 export default function EditorPage() {
   const { setId } = useParams<{ setId: string }>()
@@ -61,6 +64,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true)
   const [showAnswerError, setShowAnswerError] = useState(false)
   const [mode, setMode] = useState<EditorMode>('edit')
+  const [splitView, setSplitView] = useState(false)
 
   // 문항 불러오기 필터
   const [bankSearch, setBankSearch] = useState('')
@@ -92,7 +96,7 @@ export default function EditorPage() {
   // 세트지 로드
   useEffect(() => {
     if (isNew) {
-      questionSetsApi.create('새 세트지').then((newSet) => {
+      questionSetsApi.create('새 퀴즈').then((newSet) => {
         router.replace(`/sets/${newSet.set_id}/edit`)
       })
       return
@@ -221,6 +225,19 @@ export default function EditorPage() {
         ;[arr[i], arr[j]] = [arr[j], arr[i]]
       }
       return arr
+    })
+  }
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return
+    const from = result.source.index
+    const to = result.destination.index
+    if (from === to) return
+    setQuestions((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
     })
   }
 
@@ -441,6 +458,7 @@ export default function EditorPage() {
                   <SelectItem value="multiple_choice">객관식</SelectItem>
                   <SelectItem value="ox">OX</SelectItem>
                   <SelectItem value="short_answer">단답형</SelectItem>
+                  <SelectItem value="fill_in_blank">빈칸 채우기</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -702,6 +720,7 @@ export default function EditorPage() {
                   { key: 'multiple_choice', label: '객관식' },
                   { key: 'ox', label: 'OX' },
                   { key: 'short_answer', label: '단답형' },
+                  { key: 'fill_in_blank', label: '빈칸 채우기' },
                 ].map(({ key, label }) => (
                   <label key={key} className="flex items-center gap-1.5 cursor-pointer">
                     <div
@@ -877,12 +896,25 @@ export default function EditorPage() {
           value={set?.title ?? ''}
           onChange={(e) => handleTitleChange(e.target.value)}
           className="max-w-xs font-semibold"
-          placeholder="세트지 제목"
+          placeholder="퀴즈 제목"
         />
         <div className="ml-auto flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant={splitView ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSplitView(!splitView)}
+            title="분할 보기"
+          >
+            <PanelBottom className="mr-1 h-4 w-4" />
+            분할
+          </Button>
+          <Button
+            variant={mode === 'preview' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
+          >
             <Eye className="mr-1 h-4 w-4" />
-            미리보기
+            {mode === 'preview' ? '편집으로' : '미리보기'}
           </Button>
           <Button size="sm" onClick={handleSave} disabled={saving}>
             <Save className="mr-1 h-4 w-4" />
@@ -931,85 +963,126 @@ export default function EditorPage() {
           </div>
 
           {/* 문항 카드 목록 */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {questions.length === 0 && mode !== 'template' && (
-              <p className="pt-8 text-center text-sm text-gray-400">
-                첫 문항을 추가해보세요
-              </p>
-            )}
-            {questions.map((q, idx) => (
-              <div
-                key={q.question_id}
-                className={`group flex items-start gap-1.5 rounded-xl border p-2.5 cursor-pointer text-sm transition-colors
-                  ${selectedId === q.question_id
-                    ? 'bg-blue-50 border-blue-300'
-                    : 'bg-white hover:bg-gray-50'}`}
-                onClick={() => { setSelectedId(q.question_id); setMode('edit') }}
-              >
-                {/* 순서 번호 */}
-                <span className="mt-0.5 w-5 shrink-0 text-center text-xs font-medium text-gray-400">
-                  {idx + 1}
-                </span>
-
-                {/* 문항 내용 */}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{q.content || '(내용 없음)'}</p>
-                  <p className="text-xs text-gray-400">{TYPE_LABELS[q.type] ?? q.type}</p>
-                  {!q.answer && showAnswerError && (
-                    <span className="text-xs text-red-400">정답 없음</span>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="question-list">
+              {(provided) => (
+                <div
+                  className="flex-1 overflow-y-auto p-3 space-y-2"
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                >
+                  {questions.length === 0 && mode !== 'template' && (
+                    <p className="pt-8 text-center text-sm text-gray-400">
+                      첫 문항을 추가해보세요
+                    </p>
                   )}
-                </div>
+                  {questions.map((q, idx) => (
+                    <Draggable key={q.question_id} draggableId={q.question_id} index={idx}>
+                      {(dragProvided, snapshot) => (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          className={`group flex items-start gap-1 rounded-xl border p-2.5 cursor-pointer text-sm transition-colors
+                            ${selectedId === q.question_id
+                              ? 'bg-blue-50 border-blue-300'
+                              : 'bg-white hover:bg-gray-50'}
+                            ${snapshot.isDragging ? 'shadow-lg ring-2 ring-blue-300' : ''}`}
+                          onClick={() => { setSelectedId(q.question_id); setMode('edit') }}
+                        >
+                          {/* 드래그 핸들 */}
+                          <div
+                            {...dragProvided.dragHandleProps}
+                            className="mt-0.5 shrink-0 cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </div>
 
-                {/* 액션 버튼들 */}
-                <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          {/* 순서 번호 */}
+                          <span className="mt-0.5 w-5 shrink-0 text-center text-xs font-medium text-gray-400">
+                            {idx + 1}
+                          </span>
+
+                          {/* 문항 내용 */}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">{q.content || '(내용 없음)'}</p>
+                            <p className="text-xs text-gray-400">{TYPE_LABELS[q.type] ?? q.type}</p>
+                            {!q.answer && showAnswerError && (
+                              <span className="text-xs text-red-400">정답 없음</span>
+                            )}
+                          </div>
+
+                          {/* 액션 버튼들 */}
+                          <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            <button
+                              className="rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                              onClick={(e) => { e.stopPropagation(); handleMoveUp(q.question_id) }}
+                              disabled={idx === 0}
+                              title="위로"
+                            >
+                              <ChevronUp className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              className="rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                              onClick={(e) => { e.stopPropagation(); handleMoveDown(q.question_id) }}
+                              disabled={idx === questions.length - 1}
+                              title="아래로"
+                            >
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              className="rounded p-0.5 text-gray-300 hover:bg-blue-50 hover:text-blue-500"
+                              onClick={(e) => { e.stopPropagation(); handleDuplicate(q.question_id) }}
+                              title="복제"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              className="rounded p-0.5 text-gray-300 hover:bg-red-50 hover:text-red-400"
+                              onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.question_id) }}
+                              title="삭제"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+
+                  {/* 문항 추가 버튼 */}
                   <button
-                    className="rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
-                    onClick={(e) => { e.stopPropagation(); handleMoveUp(q.question_id) }}
-                    disabled={idx === 0}
-                    title="위로"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 p-3 text-sm text-gray-400 hover:border-blue-300 hover:text-blue-500 transition-colors"
+                    onClick={() => setMode('template')}
                   >
-                    <ChevronUp className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    className="rounded p-0.5 text-gray-300 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
-                    onClick={(e) => { e.stopPropagation(); handleMoveDown(q.question_id) }}
-                    disabled={idx === questions.length - 1}
-                    title="아래로"
-                  >
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    className="rounded p-0.5 text-gray-300 hover:bg-blue-50 hover:text-blue-500"
-                    onClick={(e) => { e.stopPropagation(); handleDuplicate(q.question_id) }}
-                    title="복제"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    className="rounded p-0.5 text-gray-300 hover:bg-red-50 hover:text-red-400"
-                    onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.question_id) }}
-                    title="삭제"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Plus className="h-4 w-4" />
+                    문항 추가
                   </button>
                 </div>
-              </div>
-            ))}
-
-            {/* 문항 추가 버튼 */}
-            <button
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 p-3 text-sm text-gray-400 hover:border-blue-300 hover:text-blue-500 transition-colors"
-              onClick={() => setMode('template')}
-            >
-              <Plus className="h-4 w-4" />
-              문항 추가
-            </button>
-          </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </aside>
 
         {/* 우: 문항 편집기 또는 템플릿 선택 */}
         <main className="flex-1 overflow-hidden bg-white">
-          {mode === 'template' ? (
+          {mode === 'preview' ? (
+            /* ── 미리보기 모드 ── */
+            selectedQuestion ? (
+              <div className="h-full overflow-y-auto bg-gradient-to-b from-slate-50 to-white">
+                <QuestionPreview
+                  question={selectedQuestion}
+                  questionIndex={questions.findIndex((q) => q.question_id === selectedId)}
+                  totalQuestions={questions.length}
+                />
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center text-gray-300">
+                <p>좌측에서 문항을 선택하세요</p>
+              </div>
+            )
+          ) : mode === 'template' ? (
             /* ── 템플릿 선택 화면 ── */
             <div className="flex h-full flex-col items-center justify-center p-8">
               <h2 className="text-lg font-bold text-gray-800 mb-2">문항 유형을 선택하세요</h2>
@@ -1035,11 +1108,32 @@ export default function EditorPage() {
               </Button>
             </div>
           ) : selectedQuestion ? (
-            <QuestionEditor
-              draft={selectedQuestion}
-              onChange={handleUpdateQuestion}
-              showAnswerError={showAnswerError}
-            />
+            splitView ? (
+              /* ── Split View: 편집기 + 실시간 프리뷰 ── */
+              <div className="flex h-full flex-col">
+                <div className="flex-[6] overflow-hidden border-b">
+                  <QuestionEditor
+                    draft={selectedQuestion}
+                    onChange={handleUpdateQuestion}
+                    showAnswerError={showAnswerError}
+                  />
+                </div>
+                <div className="flex-[4] overflow-y-auto bg-gradient-to-b from-slate-50 to-white">
+                  <QuestionPreview
+                    question={selectedQuestion}
+                    questionIndex={questions.findIndex((q) => q.question_id === selectedId)}
+                    totalQuestions={questions.length}
+                    compact
+                  />
+                </div>
+              </div>
+            ) : (
+              <QuestionEditor
+                draft={selectedQuestion}
+                onChange={handleUpdateQuestion}
+                showAnswerError={showAnswerError}
+              />
+            )
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-gray-300">
               <p>좌측에서 문항을 선택하거나</p>

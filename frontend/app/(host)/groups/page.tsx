@@ -175,7 +175,7 @@ export default function GroupsPage() {
         <EmptyState
           icon="👥"
           title={tab === 'all' ? '아직 만든 그룹이 없어요' : tab === 'manual' ? '직접 만든 그룹이 없어요' : '자동 생성된 그룹이 없어요'}
-          description={tab === 'auto_live' ? 'QR 공개 배포로 세션을 시작하면 자동으로 그룹이 생성됩니다.' : '그룹을 만들면 멤버를 초대하거나 배포 대상으로 지정할 수 있습니다.'}
+          description={tab === 'auto_live' ? 'QR 공개로 게임을 시작하면 자동으로 그룹이 생성됩니다.' : '그룹을 만들면 멤버를 초대하거나 게임 대상으로 지정할 수 있습니다.'}
           action={tab !== 'auto_live' ? { label: '첫 그룹 만들기', onClick: () => setCreateOpen(true) } : undefined}
         />
       ) : (
@@ -244,7 +244,7 @@ export default function GroupsPage() {
                         }
                       >
                         <Zap className="mr-2 h-4 w-4" />
-                        이 그룹에 배포
+                        이 그룹에 게임 열기
                       </DropdownMenuItem>
                     )}
                     {isAuto && group.session_status === 'completed' && group.session_id && (

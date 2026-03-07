@@ -45,7 +45,7 @@ interface FeedbackState {
 
 interface CurrentQuestion {
   question_id: string
-  type: 'multiple_choice' | 'ox' | 'short_answer'
+  type: 'multiple_choice' | 'ox' | 'short_answer' | 'fill_in_blank'
   content: string
   options: QuestionOption[] | null
   hint: string | null

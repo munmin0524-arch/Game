@@ -82,7 +82,7 @@ export default function AssignmentsPage() {
         <EmptyState
           icon="📋"
           title="아직 배정된 과제가 없어요"
-          description="선생님이 과제를 배포하면 여기서 확인할 수 있습니다."
+          description="선생님이 과제를 보내면 여기서 확인할 수 있습니다."
         />
       )}
 

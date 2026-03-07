@@ -72,7 +72,7 @@ export function SetListItem({ questionSet, set, onDuplicate, onDelete }: SetList
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push(`/sets/${qs.set_id}/deploy`)}>
             <Zap className="mr-2 h-4 w-4" />
-            배포하기
+            게임 열기
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

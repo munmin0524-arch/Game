@@ -6,6 +6,9 @@
 import { useRouter } from 'next/navigation'
 import { Heart, Download } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { BookmarkButton } from './BookmarkButton'
+import { CertifiedBadge } from './CertifiedBadge'
+import { StarRating } from './StarRating'
 import type { SharedSet } from '@/types'
 
 interface SharedSetCardProps {
@@ -34,13 +37,16 @@ export function SharedSetCard({ sharedSet }: SharedSetCardProps) {
       onClick={() => router.push(`/marketplace/${sharedSet.shared_set_id}`)}
     >
       {/* 상단 그라데이션 영역 */}
-      <div className={`bg-gradient-to-br ${gradient} px-5 pt-5 pb-8`}>
-        <p className="font-bold text-white text-sm leading-snug line-clamp-2">
+      <div className={`bg-gradient-to-br ${gradient} px-5 pt-5 pb-8 relative`}>
+        <p className="font-bold text-white text-sm leading-snug line-clamp-2 pr-8">
           {sharedSet.title}
         </p>
         <p className="text-white/70 text-xs mt-1">
           {sharedSet.question_count}문항
         </p>
+        <div className="absolute top-2 right-2">
+          <BookmarkButton bookmarked={sharedSet.is_bookmarked ?? false} />
+        </div>
       </div>
 
       {/* 하단 정보 영역 */}
@@ -52,11 +58,24 @@ export function SharedSetCard({ sharedSet }: SharedSetCardProps) {
           <Badge variant="outline" className="rounded-full text-[11px] px-2 py-0">
             {sharedSet.grade}
           </Badge>
+          {sharedSet.avg_rating != null && sharedSet.avg_rating > 0 && (
+            <span className="flex items-center gap-0.5 text-[11px] text-amber-500 font-medium">
+              <StarRating rating={sharedSet.avg_rating} />
+              {sharedSet.avg_rating.toFixed(1)}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400 truncate">
+          <span
+            className="text-xs text-gray-400 truncate hover:text-blue-500 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation()
+              router.push(`/marketplace/creator/${sharedSet.host_member_id}`)
+            }}
+          >
             by {sharedSet.host_nickname ?? '교사'}
+            {sharedSet.is_certified && <> <CertifiedBadge /></>}
           </span>
           <div className="flex items-center gap-3 text-xs text-gray-400">
             <span className="flex items-center gap-0.5">

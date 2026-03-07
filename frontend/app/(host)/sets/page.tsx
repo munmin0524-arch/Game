@@ -43,7 +43,7 @@ export default function SetsPage() {
       })
       setSets(res.data)
     } catch {
-      toast({ title: '세트지 목록을 불러오지 못했습니다.', variant: 'destructive' })
+      toast({ title: '퀴즈 목록을 불러오지 못했습니다.', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
@@ -57,7 +57,7 @@ export default function SetsPage() {
   const handleDuplicate = async (setId: string) => {
     try {
       await questionSetsApi.duplicate(setId)
-      toast({ title: '세트지가 복제되었습니다.' })
+      toast({ title: '퀴즈가 복제되었습니다.' })
       fetchSets()
     } catch {
       toast({ title: '복제에 실패했습니다.', variant: 'destructive' })
@@ -67,14 +67,14 @@ export default function SetsPage() {
   const handleDelete = async (setId: string) => {
     try {
       await questionSetsApi.delete(setId)
-      toast({ title: '세트지가 삭제되었습니다.' })
+      toast({ title: '퀴즈가 삭제되었습니다.' })
       setSets((prev) => prev.filter((s) => s.set_id !== setId))
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : ''
       // 배포 이력 있는 경우 서버에서 409 에러
       toast({
         title: msg.includes('deployed')
-          ? '이미 배포된 세트지는 삭제할 수 없습니다.'
+          ? '게임에 사용된 퀴즈는 삭제할 수 없습니다.'
           : '삭제에 실패했습니다.',
         variant: 'destructive',
       })
@@ -85,11 +85,11 @@ export default function SetsPage() {
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">세트지 목록</h1>
+        <h1 className="text-2xl font-bold">내 퀴즈</h1>
         <Button asChild>
           <Link href="/sets/new/edit">
             <Plus className="mr-2 h-4 w-4" />
-            새 세트지
+            새 퀴즈
           </Link>
         </Button>
       </div>
@@ -99,7 +99,7 @@ export default function SetsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="세트지 검색..."
+            placeholder="퀴즈 검색..."
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -136,8 +136,8 @@ export default function SetsPage() {
         </div>
       ) : sets.length === 0 ? (
         <EmptyState
-          title={search ? '검색 결과가 없어요' : '아직 세트지가 없어요'}
-          description={search ? '다른 키워드로 검색해보세요.' : '첫 번째 세트지를 만들어보세요.'}
+          title={search ? '검색 결과가 없어요' : '아직 퀴즈가 없어요'}
+          description={search ? '다른 키워드로 검색해보세요.' : '첫 번째 퀴즈를 만들어보세요.'}
         />
       ) : (
         <div className="divide-y rounded-lg border bg-white">

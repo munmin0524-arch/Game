@@ -70,7 +70,7 @@ export function QuestionSetCard({ questionSet, set }: QuestionSetCardProps) {
           }}
         >
           <Zap className="mr-1 h-3 w-3" />
-          배포
+          게임 열기
         </Button>
       </div>
     </div>
