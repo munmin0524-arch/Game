@@ -4,30 +4,21 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Search, Bookmark, FolderOpen, Sparkles } from 'lucide-react'
+import { ArrowRight, Search, Bookmark, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 import { SharedSetCard, SharedSetCardSkeleton } from '@/components/marketplace/SharedSetCard'
-import { CertifiedBadge } from '@/components/marketplace/CertifiedBadge'
-import type { SharedSet, Collection } from '@/types'
-
-const SUBJECT_SHORTCUTS = [
-  { label: '수학', emoji: '📐', active: true },
-  { label: '영어', emoji: '🔤', active: true },
-  { label: '과학', emoji: '🔬', active: false },
-  { label: '사회', emoji: '📖', active: false },
-]
-
-const SUBJECTS = ['전체', '수학', '영어', '과학', '사회', '국어', '기타']
-const GRADES = ['전체', '초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3']
+import type { SharedSet } from '@/types'
+import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
 
 export default function MarketplacePage() {
   const router = useRouter()
@@ -38,20 +29,17 @@ export default function MarketplacePage() {
   const [popular, setPopular] = useState<SharedSet[]>([])
   const [recent, setRecent] = useState<SharedSet[]>([])
   const [popularTags, setPopularTags] = useState<string[]>([])
-  const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
 
+  const gradeGroups = getGradeGroups(subject === '전체' ? null : subject)
+
   useEffect(() => {
-    Promise.all([
-      fetch('/api/marketplace').then((r) => r.json()),
-      fetch('/api/marketplace/collections').then((r) => r.json()),
-    ])
-      .then(([mpData, colData]) => {
+    fetch('/api/marketplace').then((r) => r.json())
+      .then((mpData) => {
         setForYou(mpData.forYou ?? [])
         setPopular(mpData.popular ?? [])
         setRecent(mpData.recent ?? [])
         setPopularTags(mpData.popular_tags ?? [])
-        setCollections(colData.collections ?? [])
       })
       .finally(() => setLoading(false))
   }, [])
@@ -67,10 +55,6 @@ export default function MarketplacePage() {
     if (subject !== '전체') params.set('subject', subject)
     if (grade !== '전체') params.set('grade', grade)
     router.push(`/marketplace/search?${params}`)
-  }
-
-  const handleSubjectClick = (sub: string) => {
-    router.push(`/marketplace/search?subject=${encodeURIComponent(sub)}`)
   }
 
   return (
@@ -96,23 +80,32 @@ export default function MarketplacePage() {
 
         {/* 필터바 */}
         <div className="mx-auto max-w-xl flex items-center gap-2">
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger className="w-[110px] rounded-full">
+          <Select value={subject} onValueChange={(v) => { setSubject(v); setGrade('전체') }}>
+            <SelectTrigger className="w-[130px] rounded-full">
               <SelectValue placeholder="과목" />
             </SelectTrigger>
             <SelectContent>
-              {SUBJECTS.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+              <SelectItem value="전체">전체 과목</SelectItem>
+              {SUBJECT_OPTIONS.map((s) => (
+                <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                  {s.value}{!s.enabled && ` (${s.label})`}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={grade} onValueChange={setGrade}>
-            <SelectTrigger className="w-[110px] rounded-full">
-              <SelectValue placeholder="학년" />
+            <SelectTrigger className="w-[200px] rounded-full">
+              <SelectValue placeholder="학년/학기" />
             </SelectTrigger>
             <SelectContent>
-              {GRADES.map((g) => (
-                <SelectItem key={g} value={g}>{g}</SelectItem>
+              <SelectItem value="전체">전체 학년/학기</SelectItem>
+              {gradeGroups.map((group) => (
+                <SelectGroup key={group.group}>
+                  <SelectLabel className="text-xs text-gray-400">{group.group}</SelectLabel>
+                  {group.items.map((item) => (
+                    <SelectItem key={item} value={item}>{item}</SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
@@ -189,46 +182,6 @@ export default function MarketplacePage() {
         </div>
       </section>
 
-      {/* 인기 컬렉션 */}
-      {collections.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 text-violet-500" />
-              <h2 className="text-lg font-bold text-gray-900">인기 컬렉션</h2>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-600 gap-1"
-              onClick={() => router.push('/marketplace/collections')}
-            >
-              전체 보기
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {collections.slice(0, 3).map((col) => (
-              <div
-                key={col.collection_id}
-                className="rounded-2xl border border-gray-100 bg-white p-4 space-y-2 hover:shadow-card transition-shadow cursor-pointer"
-                onClick={() => router.push(`/marketplace/collections/${col.collection_id}`)}
-              >
-                <div className="flex items-start justify-between">
-                  <h3 className="font-bold text-gray-900 text-sm">{col.title}</h3>
-                  <Badge variant="secondary" className="text-xs shrink-0">{col.quiz_count}개</Badge>
-                </div>
-                <p className="text-xs text-gray-500 line-clamp-1">{col.description}</p>
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <span>by {col.nickname ?? '교사'}</span>
-                  {col.is_certified && <CertifiedBadge />}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* 최신 등록 */}
       <section>
         <div className="flex items-center justify-between mb-4">
@@ -252,32 +205,6 @@ export default function MarketplacePage() {
         </div>
       </section>
 
-      {/* 과목별 바로가기 */}
-      <section>
-        <h2 className="text-lg font-bold text-gray-900 mb-4">과목별</h2>
-        <div className="flex flex-wrap gap-3">
-          {SUBJECT_SHORTCUTS.map((sub) => (
-            <button
-              key={sub.label}
-              onClick={() => sub.active && handleSubjectClick(sub.label)}
-              disabled={!sub.active}
-              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-medium transition-all
-                ${sub.active
-                  ? 'bg-white shadow-soft hover:shadow-card cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-            >
-              <span className="text-lg">{sub.emoji}</span>
-              {sub.label}
-              {!sub.active && (
-                <Badge variant="secondary" className="text-[10px] px-1.5">
-                  준비중
-                </Badge>
-              )}
-            </button>
-          ))}
-        </div>
-      </section>
     </div>
   )
 }
