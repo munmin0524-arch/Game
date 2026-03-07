@@ -1,7 +1,6 @@
 'use client'
 
-import { Clock, Lightbulb, LightbulbOff } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
+import { Lightbulb, LightbulbOff } from 'lucide-react'
 import type { WsQuestionShow, QuestionType } from '@/types'
 
 // ─────────────────────────────────────────────────────────────
@@ -31,21 +30,14 @@ const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
 interface QuestionPanelProps {
   question: WsQuestionShow | null
   hintRevealed: boolean
-  timeRemaining: number
   isPaused: boolean
 }
 
 export default function QuestionPanel({
   question,
   hintRevealed,
-  timeRemaining,
   isPaused,
 }: QuestionPanelProps) {
-  const timePct = question
-    ? Math.round((timeRemaining / question.timeLimit) * 100)
-    : 0
-  const isTimeCritical = timeRemaining <= 5
-
   if (!question) {
     return (
       <div className="flex flex-1 items-center justify-center text-gray-400 text-sm p-6">
@@ -134,32 +126,12 @@ export default function QuestionPanel({
         </div>
       )}
 
-      {/* 타이머 */}
-      <div className="mt-auto space-y-2 rounded-lg border bg-gray-50 p-3">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1 text-xs text-gray-600">
-            <Clock className="h-3.5 w-3.5" />
-            남은 시간
-          </span>
-          <span
-            className={`font-mono text-xl font-bold tabular-nums transition-colors ${
-              isTimeCritical ? 'text-red-600 animate-pulse' : 'text-gray-900'
-            }`}
-          >
-            {String(Math.floor(timeRemaining / 60)).padStart(2, '0')}:
-            {String(timeRemaining % 60).padStart(2, '0')}
-          </span>
+      {/* 일시정지 표시 */}
+      {isPaused && (
+        <div className="mt-auto rounded-lg border border-yellow-200 bg-yellow-50 p-2.5 text-center text-xs text-yellow-600 font-medium animate-pulse">
+          일시정지 중
         </div>
-        <Progress
-          value={timePct}
-          className={`h-1.5 transition-all ${isTimeCritical ? '[&>div]:bg-red-500' : '[&>div]:bg-blue-500'}`}
-        />
-        {isPaused && (
-          <p className="text-center text-xs text-yellow-600 font-medium animate-pulse">
-            일시정지 중
-          </p>
-        )}
-      </div>
+      )}
     </div>
   )
 }

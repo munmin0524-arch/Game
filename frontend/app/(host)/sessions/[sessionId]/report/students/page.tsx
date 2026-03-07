@@ -352,15 +352,20 @@ export default function StudentReportPage() {
         >
           ← 히스토리
         </button>
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">
-            {sessionTitle || '리포트'} — 학생별 분석
-          </h1>
+        <h1 className="text-xl font-bold mb-3">
+          {sessionTitle || '리포트'}
+        </h1>
+        <div className="flex border-b">
           <button
-            className="text-sm text-blue-600 hover:underline"
-            onClick={() => router.push(`/sessions/${sessionId}/report/questions`)}
+            className="flex-1 py-2.5 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+            onClick={() => router.replace(`/sessions/${sessionId}/report/questions`)}
           >
-            ← 문항별 분석
+            문항별 분석
+          </button>
+          <button
+            className="flex-1 py-2.5 text-sm font-medium text-center border-b-2 border-blue-600 text-blue-600"
+          >
+            학생별 분석
           </button>
         </div>
       </div>
