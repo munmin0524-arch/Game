@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -20,10 +22,8 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/use-toast'
 import { questionSetsApi } from '@/lib/api'
+import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
 import type { QuestionSet } from '@/types'
-
-const SUBJECTS = ['전체', '국어', '수학', '영어', '과학', '사회']
-const GRADES = ['전체', '1학년', '2학년', '3학년']
 
 export default function SetsPage() {
   const { toast } = useToast()
@@ -32,6 +32,8 @@ export default function SetsPage() {
   const [search, setSearch] = useState('')
   const [subject, setSubject] = useState('전체')
   const [grade, setGrade] = useState('전체')
+
+  const gradeGroups = getGradeGroups(subject === '전체' ? null : subject)
 
   const fetchSets = useCallback(async () => {
     setLoading(true)
@@ -54,6 +56,11 @@ export default function SetsPage() {
     return () => clearTimeout(timer)
   }, [fetchSets])
 
+  const handleSubjectChange = (v: string) => {
+    setSubject(v)
+    setGrade('전체') // 과목 변경 시 학년 초기화
+  }
+
   const handleDuplicate = async (setId: string) => {
     try {
       await questionSetsApi.duplicate(setId)
@@ -71,7 +78,6 @@ export default function SetsPage() {
       setSets((prev) => prev.filter((s) => s.set_id !== setId))
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : ''
-      // 배포 이력 있는 경우 서버에서 409 에러
       toast({
         title: msg.includes('deployed')
           ? '게임에 사용된 퀴즈는 삭제할 수 없습니다.'
@@ -105,23 +111,38 @@ export default function SetsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={subject} onValueChange={setSubject}>
-          <SelectTrigger className="w-28">
-            <SelectValue />
+
+        {/* 과목 */}
+        <Select value={subject} onValueChange={handleSubjectChange}>
+          <SelectTrigger className="w-[130px]">
+            <SelectValue placeholder="과목" />
           </SelectTrigger>
           <SelectContent>
-            {SUBJECTS.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
+            <SelectItem value="전체">전체 과목</SelectItem>
+            {SUBJECT_OPTIONS.map((s) => (
+              <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                {s.value}{!s.enabled && ` (${s.label})`}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        {/* 학년/학기 */}
         <Select value={grade} onValueChange={setGrade}>
-          <SelectTrigger className="w-28">
-            <SelectValue />
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="학년/학기" />
           </SelectTrigger>
           <SelectContent>
-            {GRADES.map((g) => (
-              <SelectItem key={g} value={g}>{g}</SelectItem>
+            <SelectItem value="전체">전체 학년/학기</SelectItem>
+            {gradeGroups.map((group) => (
+              <SelectGroup key={group.group}>
+                <SelectLabel className="text-xs text-gray-400">{group.group}</SelectLabel>
+                {group.items.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))}
           </SelectContent>
         </Select>

@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -18,12 +18,15 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
+import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
 
 interface PublishDialogProps {
   open: boolean
@@ -38,9 +41,6 @@ interface PublishDialogProps {
   }) => void
 }
 
-const SUBJECTS = ['수학', '영어', '과학', '사회', '국어', '기타']
-const GRADES = ['초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3']
-
 export function PublishDialog({
   open,
   onOpenChange,
@@ -53,6 +53,13 @@ export function PublishDialog({
   const [grade, setGrade] = useState('')
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState<string[]>([])
+
+  const gradeGroups = useMemo(() => getGradeGroups(subject || null), [subject])
+
+  const handleSubjectChange = (v: string) => {
+    setSubject(v)
+    setGrade('') // 과목 변경 시 학년 초기화
+  }
 
   const handleAddTag = () => {
     const trimmed = tagInput.trim()
@@ -107,20 +114,20 @@ export function PublishDialog({
             />
           </div>
 
-          {/* 과목 + 학년 */}
+          {/* 과목 + 학년/학기 */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>
                 과목 <span className="text-red-500">*</span>
               </Label>
-              <Select value={subject} onValueChange={setSubject}>
+              <Select value={subject} onValueChange={handleSubjectChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="선택" />
+                  <SelectValue placeholder="과목 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
+                  {SUBJECT_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                      {s.value}{!s.enabled && ` (${s.label})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -128,17 +135,22 @@ export function PublishDialog({
             </div>
             <div className="space-y-1.5">
               <Label>
-                학년 <span className="text-red-500">*</span>
+                학년/학기 <span className="text-red-500">*</span>
               </Label>
               <Select value={grade} onValueChange={setGrade}>
                 <SelectTrigger>
-                  <SelectValue placeholder="선택" />
+                  <SelectValue placeholder="학년/학기 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {GRADES.map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {g}
-                    </SelectItem>
+                  {gradeGroups.map((group) => (
+                    <SelectGroup key={group.group}>
+                      <SelectLabel className="text-xs text-gray-400">{group.group}</SelectLabel>
+                      {group.items.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>

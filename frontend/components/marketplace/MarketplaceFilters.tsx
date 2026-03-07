@@ -3,15 +3,19 @@
 
 'use client'
 
+import { useMemo } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
 
 interface MarketplaceFiltersProps {
   search: string
@@ -25,13 +29,10 @@ interface MarketplaceFiltersProps {
   onSearch?: () => void
 }
 
-const SUBJECTS = ['전체', '수학', '영어', '과학', '사회', '국어', '기타']
-const GRADES = ['전체', '초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3']
 const QUESTION_TYPES = [
   { value: '전체', label: '전체' },
   { value: 'multiple_choice', label: '객관식' },
   { value: 'ox', label: 'OX' },
-  { value: 'short_answer', label: '단답형' },
 ]
 
 export function MarketplaceFilters({
@@ -45,6 +46,16 @@ export function MarketplaceFilters({
   onTypeChange,
   onSearch,
 }: MarketplaceFiltersProps) {
+  const gradeGroups = useMemo(
+    () => getGradeGroups(subject === '전체' ? null : subject),
+    [subject],
+  )
+
+  const handleSubjectChange = (v: string) => {
+    onSubjectChange(v)
+    onGradeChange('전체') // 과목 변경 시 학년 초기화
+  }
+
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       {/* 검색 입력 */}
@@ -60,29 +71,36 @@ export function MarketplaceFilters({
       </div>
 
       {/* 과목 필터 */}
-      <Select value={subject} onValueChange={onSubjectChange}>
-        <SelectTrigger className="w-[120px] rounded-full">
+      <Select value={subject} onValueChange={handleSubjectChange}>
+        <SelectTrigger className="w-[130px] rounded-full">
           <SelectValue placeholder="과목" />
         </SelectTrigger>
         <SelectContent>
-          {SUBJECTS.map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
+          <SelectItem value="전체">전체 과목</SelectItem>
+          {SUBJECT_OPTIONS.map((s) => (
+            <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+              {s.value}{!s.enabled && ` (${s.label})`}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      {/* 학년 필터 */}
+      {/* 학년/학기 필터 */}
       <Select value={grade} onValueChange={onGradeChange}>
-        <SelectTrigger className="w-[120px] rounded-full">
-          <SelectValue placeholder="학년" />
+        <SelectTrigger className="w-[200px] rounded-full">
+          <SelectValue placeholder="학년/학기" />
         </SelectTrigger>
         <SelectContent>
-          {GRADES.map((g) => (
-            <SelectItem key={g} value={g}>
-              {g}
-            </SelectItem>
+          <SelectItem value="전체">전체 학년/학기</SelectItem>
+          {gradeGroups.map((group) => (
+            <SelectGroup key={group.group}>
+              <SelectLabel className="text-xs text-gray-400">{group.group}</SelectLabel>
+              {group.items.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectGroup>
           ))}
         </SelectContent>
       </Select>

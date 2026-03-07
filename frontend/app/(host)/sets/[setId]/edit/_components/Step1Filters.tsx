@@ -1,22 +1,33 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   MATH_HIERARCHY,
   ENGLISH_HIERARCHY,
   DIFFICULTY_OPTIONS,
   SUBJECT_OPTIONS,
+  ENGLISH_ASSESSMENT_AREAS,
   getDepth1Keys,
   getDepth2Keys,
   getDepth3Keys,
   getDepth4Keys,
   type HierarchyTree,
 } from './FilterHierarchyData'
+import { getGradeGroups } from '@/lib/filter-constants'
 
 export interface FilterState {
   subject: string
+  grade: string
   depth1: string[]
   depth2: string[]
   depth3: string[]
@@ -29,6 +40,7 @@ export interface FilterState {
 
 const EMPTY_FILTER: FilterState = {
   subject: '',
+  grade: '',
   depth1: [],
   depth2: [],
   depth3: [],
@@ -44,8 +56,6 @@ const GAME_TYPE_OPTIONS = [
   { value: 'ox', label: 'OX형' },
   { value: 'unscramble', label: 'Unscramble형' },
 ]
-
-const ASSESSMENT_AREAS = ['듣기', '읽기', '문법', '어휘']
 
 interface Step1FiltersProps {
   filters: FilterState
@@ -125,6 +135,8 @@ export function Step1Filters({ filters, onChange }: Step1FiltersProps) {
     ))
   }, [hierarchy, filters.subject, filters.depth1, filters.depth2, filters.depth3])
 
+  const gradeGroups = useMemo(() => getGradeGroups(filters.subject || null), [filters.subject])
+
   const toggleInArray = (arr: string[], value: string): string[] =>
     arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]
 
@@ -138,33 +150,71 @@ export function Step1Filters({ filters, onChange }: Step1FiltersProps) {
 
   const depthLabels = filters.subject === '수학'
     ? ['대영역', '중영역', '소영역', '지식요소']
-    : ['대영역', '중영역', '소영역']
+    : ['대단원', '중단원', '소단원']
 
   return (
     <div className="space-y-3 p-4 bg-white rounded-xl border">
-      {/* 과목 선택 */}
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-medium text-gray-500 w-16 shrink-0">과목</span>
-        <div className="flex gap-2">
-          {SUBJECT_OPTIONS.map(({ value }) => (
-            <button
-              key={value}
-              onClick={() => handleSubjectChange(value)}
-              className={`rounded-full border-2 px-4 py-1.5 text-sm font-bold transition-all
-                ${filters.subject === value
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
-                }`}
-            >
-              {value}
-            </button>
-          ))}
+      {/* 과목 + 학년/학기 */}
+      <div className="flex items-center gap-4 flex-wrap">
+        {/* 과목 선택 */}
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium text-gray-500 w-16 shrink-0">과목</span>
+          <div className="flex gap-2">
+            {SUBJECT_OPTIONS.map(({ value, enabled }) => (
+              <button
+                key={value}
+                onClick={() => enabled && handleSubjectChange(value)}
+                disabled={!enabled}
+                className={`rounded-full border-2 px-4 py-1.5 text-sm font-bold transition-all
+                  ${!enabled
+                    ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                    : filters.subject === value
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  }`}
+              >
+                {value}
+                {!enabled && (
+                  <span className="ml-1 text-[10px] font-normal text-gray-400">준비중</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 학년/학기 드롭다운 */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-500 shrink-0">학년/학기</span>
+          <Select
+            value={filters.grade || '__all__'}
+            onValueChange={(v) => updateFilters({ grade: v === '__all__' ? '' : v })}
+          >
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <SelectValue placeholder="전체" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">전체</SelectItem>
+              {gradeGroups.map((group) => (
+                <SelectGroup key={group.group}>
+                  <SelectLabel className="text-xs text-gray-400">{group.group}</SelectLabel>
+                  {group.items.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* 학습맵 계층 (과목 선택 후) */}
       {hierarchy && (
-        <>
+        <div className="border-t pt-3 space-y-3">
+          <span className="text-xs font-bold text-gray-600">
+            {filters.subject === '영어' ? '학습맵 (대단원/중단원/소단원)' : '학습맵'}
+          </span>
           <PillGroup
             label={depthLabels[0]}
             options={depth1Options}
@@ -198,18 +248,21 @@ export function Step1Filters({ filters, onChange }: Step1FiltersProps) {
               color="red"
             />
           )}
-        </>
+        </div>
       )}
 
-      {/* 영어 평가 영역 */}
+      {/* 영어 평가 영역 — 학습맵과 별도 섹션 */}
       {filters.subject === '영어' && (
-        <PillGroup
-          label="평가 영역"
-          options={ASSESSMENT_AREAS}
-          selected={filters.assessmentArea}
-          onToggle={(v) => updateFilters({ assessmentArea: toggleInArray(filters.assessmentArea, v) })}
-          color="purple"
-        />
+        <div className="border-t pt-3 space-y-3">
+          <span className="text-xs font-bold text-gray-600">평가 영역</span>
+          <PillGroup
+            label="영역"
+            options={[...ENGLISH_ASSESSMENT_AREAS]}
+            selected={filters.assessmentArea}
+            onToggle={(v) => updateFilters({ assessmentArea: toggleInArray(filters.assessmentArea, v) })}
+            color="purple"
+          />
+        </div>
       )}
 
       {/* 공통 필터 */}

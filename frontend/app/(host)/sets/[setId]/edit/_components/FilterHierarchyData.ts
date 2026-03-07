@@ -137,8 +137,10 @@ export const DIFFICULTY_OPTIONS = [
 // ─── 과목 옵션 ───
 
 export const SUBJECT_OPTIONS = [
-  { value: '수학', key: 'math' as const },
-  { value: '영어', key: 'english' as const },
+  { value: '수학', key: 'math' as const, enabled: true },
+  { value: '영어', key: 'english' as const, enabled: true },
+  { value: '사회', key: 'social' as const, enabled: false },
+  { value: '과학', key: 'science' as const, enabled: false },
 ] as const
 
 // ─── Helper: 계층에서 특정 depth의 키 목록 가져오기 ───

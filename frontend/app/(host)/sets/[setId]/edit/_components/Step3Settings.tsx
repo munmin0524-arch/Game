@@ -11,12 +11,15 @@ import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { questionSetsApi, questionsApi } from '@/lib/api'
+import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
 import { useWizard } from './WizardContext'
 import { findTemplate } from './GameTemplateData'
 
@@ -103,35 +106,44 @@ export function Step3Settings() {
             />
           </div>
 
-          {/* 과목 & 학년 */}
+          {/* 과목 & 학년/학기 */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>과목</Label>
               <Select
                 value={setMeta.subject ?? ''}
-                onValueChange={(v) => dispatch({ type: 'UPDATE_META', meta: { subject: v || null } })}
+                onValueChange={(v) => {
+                  dispatch({ type: 'UPDATE_META', meta: { subject: v || null, grade: null } })
+                }}
               >
-                <SelectTrigger><SelectValue placeholder="선택" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="과목 선택" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="수학">수학</SelectItem>
-                  <SelectItem value="영어">영어</SelectItem>
+                  {SUBJECT_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                      {s.value}{!s.enabled && ` (${s.label})`}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>학년</Label>
+              <Label>학년/학기</Label>
               <Select
                 value={setMeta.grade ?? ''}
                 onValueChange={(v) => dispatch({ type: 'UPDATE_META', meta: { grade: v || null } })}
               >
-                <SelectTrigger><SelectValue placeholder="선택" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="학년/학기 선택" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="중1">중1</SelectItem>
-                  <SelectItem value="중2">중2</SelectItem>
-                  <SelectItem value="중3">중3</SelectItem>
-                  <SelectItem value="고1">고1</SelectItem>
-                  <SelectItem value="고2">고2</SelectItem>
-                  <SelectItem value="고3">고3</SelectItem>
+                  {getGradeGroups(setMeta.subject).map((group) => (
+                    <SelectGroup key={group.group}>
+                      <SelectLabel className="text-xs text-gray-400">{group.group}</SelectLabel>
+                      {group.items.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
