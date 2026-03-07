@@ -19,8 +19,6 @@ interface AiBatchPanelProps {
 const TYPES = [
   { value: 'multiple_choice', label: '객관식' },
   { value: 'ox', label: 'OX' },
-  { value: 'short_answer', label: '단답형' },
-  { value: 'fill_in_blank', label: '빈칸 채우기' },
 ]
 
 export function AiBatchPanel({ filters, onResults, onClose }: AiBatchPanelProps) {
@@ -34,7 +32,7 @@ export function AiBatchPanel({ filters, onResults, onClose }: AiBatchPanelProps)
 
   // 유형 선택
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(
-    new Set(['multiple_choice', 'ox', 'short_answer']),
+    new Set(['multiple_choice', 'ox']),
   )
 
   const toggleType = (type: string) => {

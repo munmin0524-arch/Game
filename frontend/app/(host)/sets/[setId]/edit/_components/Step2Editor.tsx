@@ -20,8 +20,6 @@ import type { Question, QuestionDraft, SubjectKey } from '@/types'
 const TYPE_LABELS: Record<string, string> = {
   multiple_choice: '객관식',
   ox: 'OX',
-  short_answer: '단답형',
-  fill_in_blank: '빈칸 채우기',
 }
 
 export function Step2Editor() {
@@ -48,7 +46,7 @@ export function Step2Editor() {
     const newQ: Question = {
       question_id: `new-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       set_id: setId,
-      type: isOx ? 'ox' : isSelection ? 'multiple_choice' : 'short_answer',
+      type: isOx ? 'ox' : 'multiple_choice',
       order_index: questions.length,
       content: '',
       options: isSelection && optionCount > 0

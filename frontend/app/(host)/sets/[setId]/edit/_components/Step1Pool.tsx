@@ -14,8 +14,6 @@ import type { Question } from '@/types'
 const TYPE_LABELS: Record<string, string> = {
   multiple_choice: '객관식',
   ox: 'OX',
-  short_answer: '단답형',
-  fill_in_blank: '빈칸 채우기',
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {

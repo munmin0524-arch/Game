@@ -23,8 +23,6 @@ import { findTemplate } from './GameTemplateData'
 const TYPE_LABELS: Record<string, string> = {
   multiple_choice: '선택형',
   ox: 'OX형',
-  short_answer: '단답형',
-  fill_in_blank: '빈칸 채우기',
 }
 
 export function Step3Settings() {
