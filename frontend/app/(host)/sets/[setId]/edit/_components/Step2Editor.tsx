@@ -120,7 +120,7 @@ export function Step2Editor() {
           <div className="flex items-center justify-between border-b px-3 py-2 shrink-0">
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" onClick={() => setShowTemplates(true)} className="text-xs gap-1">
-                <Plus className="h-3.5 w-3.5" /> 문항 추가
+                <Plus className="h-3.5 w-3.5" /> {questions.length + 1}번 문항 추가
               </Button>
               <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} className="text-xs gap-1">
                 <Search className="h-3.5 w-3.5" /> 검색 추가
@@ -211,7 +211,7 @@ export function Step2Editor() {
                     </Draggable>
                   ))}
                   {provided.placeholder}
-                  {questions.length === 0 && (
+                  {questions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-gray-300 text-sm">
                       <p>문항이 없습니다</p>
                       <Button
@@ -220,9 +220,17 @@ export function Step2Editor() {
                         className="mt-3"
                         onClick={() => setShowTemplates(true)}
                       >
-                        <Plus className="mr-1 h-4 w-4" /> 문항 추가
+                        <Plus className="mr-1 h-4 w-4" /> 첫 번째 문항 추가
                       </Button>
                     </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowTemplates(true)}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 p-2.5 text-xs text-gray-400 hover:text-blue-500 transition-all mt-1"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {questions.length + 1}번 문항 추가
+                    </button>
                   )}
                 </div>
               )}
