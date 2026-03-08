@@ -94,7 +94,7 @@ export function Step2Editor() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* 좌측: 문항 목록 */}
         <aside className="flex w-72 flex-col border-r bg-white shrink-0">
           {/* 툴바 */}
