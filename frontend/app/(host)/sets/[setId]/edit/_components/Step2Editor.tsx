@@ -100,7 +100,12 @@ export function Step2Editor() {
           {/* 툴바 */}
           <div className="flex items-center justify-between border-b px-3 py-2 shrink-0">
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setShowTemplates(true)} className="text-xs gap-1">
+              <Button
+                variant={showTemplates ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => { setShowTemplates(true); dispatch({ type: 'SELECT_QUESTION', id: '' }) }}
+                className="text-xs gap-1"
+              >
                 <Plus className="h-3.5 w-3.5" /> {questions.length + 1}번 문항 추가
               </Button>
               <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'SET_STEP', step: 1 })} className="text-xs gap-1">
@@ -142,7 +147,7 @@ export function Step2Editor() {
                               ? 'bg-blue-50 border-blue-300'
                               : 'bg-white hover:bg-gray-50 border-gray-100'
                             }`}
-                          onClick={() => dispatch({ type: 'SELECT_QUESTION', id: q.question_id })}
+                          onClick={() => { dispatch({ type: 'SELECT_QUESTION', id: q.question_id }); setShowTemplates(false) }}
                         >
                           <div {...drag.dragHandleProps} className="mt-1 shrink-0 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500">
                             <GripVertical className="h-3.5 w-3.5" />
@@ -199,15 +204,19 @@ export function Step2Editor() {
                         variant="outline"
                         size="sm"
                         className="mt-3"
-                        onClick={() => setShowTemplates(true)}
+                        onClick={() => { setShowTemplates(true); dispatch({ type: 'SELECT_QUESTION', id: '' }) }}
                       >
                         <Plus className="mr-1 h-4 w-4" /> 첫 번째 문항 추가
                       </Button>
                     </div>
                   ) : (
                     <button
-                      onClick={() => setShowTemplates(true)}
-                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 p-2.5 text-xs text-gray-400 hover:text-blue-500 transition-all mt-1"
+                      onClick={() => { setShowTemplates(true); dispatch({ type: 'SELECT_QUESTION', id: '' }) }}
+                      className={`w-full flex items-center justify-center gap-1.5 rounded-xl border-2 border-dashed p-2.5 text-xs transition-all mt-1
+                        ${showTemplates
+                          ? 'border-blue-400 bg-blue-50 text-blue-600 ring-2 ring-blue-200'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 text-gray-400 hover:text-blue-500'
+                        }`}
                     >
                       <Plus className="h-3.5 w-3.5" />
                       {questions.length + 1}번 문항 추가
