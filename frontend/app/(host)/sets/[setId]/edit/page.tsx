@@ -50,9 +50,9 @@ function EditorInner() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50/80">
+    <div className="-mx-4 -my-8 flex h-[calc(100vh-4rem)] flex-col bg-slate-50/80">
       <WizardStepper />
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {state.step === 1 && <Step1Pool />}
         {state.step === 2 && <Step2Editor />}
         {state.step === 3 && <Step3Settings />}
