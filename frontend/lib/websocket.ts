@@ -11,9 +11,7 @@ import type {
   WsQuestionEnd,
   WsAnswerCountUpdate,
   UUID,
-  ReactionPayload,
   StudentStatus,
-  ReactionType,
 } from '@/types'
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? ''
@@ -107,10 +105,6 @@ export function forceEndGame(sessionId: UUID): void {
   getSocket()?.emit('game:force-end', { sessionId })
 }
 
-export function sendReaction(payload: ReactionPayload): void {
-  getSocket()?.emit('reaction:send', payload)
-}
-
 export function overrideTimer(sessionId: UUID, newTimeSec: number): void {
   getSocket()?.emit('time:override', { sessionId, newTimeSec })
 }
@@ -142,7 +136,6 @@ type WsEventMap = {
   'game:end': { sessionId: UUID }
   'student:status-update': { participantId: string; status: StudentStatus }
   'student:score-update': { participantId: string; score: number; accuracy: number }
-  'reaction:delivered': { reactionType: ReactionType; targetCount: number }
   'connect': undefined
   'disconnect': { reason: string }
   'connect_error': { message: string }

@@ -15,19 +15,16 @@ import {
   pauseGame,
   resumeGame,
   forceEndGame,
-  sendReaction,
 } from '@/lib/websocket'
 import type {
   Session,
   WsAnswerCountUpdate,
   StudentMonitorData,
-  ReactionPayload,
 } from '@/types'
 
 import HeaderControlBar from '@/components/host/control/HeaderControlBar'
 import StudentGrid from '@/components/host/control/StudentGrid'
 import StudentDetailModal from '@/components/host/control/StudentDetailModal'
-import ReactionBar from '@/components/host/control/ReactionBar'
 import QuestionAnalyticsPanel from '@/components/host/control/QuestionAnalyticsPanel'
 
 import {
@@ -51,8 +48,6 @@ export default function ControlPage() {
   const cleanupRef = useRef<(() => void)[]>([])
 
   const [students] = useState<StudentMonitorData[]>(MOCK_STUDENTS)
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [multiSelectMode, setMultiSelectMode] = useState(false)
   const [detailStudent, setDetailStudent] = useState<StudentMonitorData | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0)
@@ -103,7 +98,6 @@ export default function ControlPage() {
   // ── 핸들러 ──
   const handlePauseResume = () => { isPaused ? resumeGame() : pauseGame() }
   const handleForceEnd = () => forceEndGame(sessionId)
-  const handleSendReaction = (payload: ReactionPayload) => sendReaction(payload)
   const handleSelectStudent = (student: StudentMonitorData) => {
     setDetailStudent(student)
     setDetailOpen(true)
@@ -131,17 +125,6 @@ export default function ControlPage() {
             <StudentGrid
               students={students}
               onSelectStudent={handleSelectStudent}
-              selectedIds={selectedIds}
-              onSelectedIdsChange={setSelectedIds}
-              multiSelectMode={multiSelectMode}
-              onMultiSelectModeChange={setMultiSelectMode}
-            />
-          </div>
-          <div className="border-t bg-white px-5 py-3">
-            <ReactionBar
-              selectedStudentIds={selectedIds}
-              onSendReaction={handleSendReaction}
-              sessionId={sessionId}
             />
           </div>
         </div>

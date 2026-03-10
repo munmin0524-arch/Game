@@ -1,10 +1,59 @@
 'use client'
 
-import { useMemo } from 'react'
-import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Clock, HelpCircle } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  HelpCircle,
+  BarChart3,
+  Users,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { PerQuestionAnalytics, StudentMonitorData } from '@/types'
+
+/* ── 접이식 섹션 ── */
+function Section({
+  title,
+  icon: Icon,
+  defaultOpen = false,
+  badge,
+  children,
+}: {
+  title: string
+  icon: React.ElementType
+  defaultOpen?: boolean
+  badge?: React.ReactNode
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="border-b last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <Icon className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex-1">
+          {title}
+        </span>
+        {badge}
+        <ChevronDown
+          className={cn(
+            'h-3.5 w-3.5 text-gray-400 transition-transform',
+            open && 'rotate-180',
+          )}
+        />
+      </button>
+      {open && <div className="px-4 pb-4">{children}</div>}
+    </div>
+  )
+}
 
 interface QuestionAnalyticsPanelProps {
   questions: PerQuestionAnalytics[]
@@ -55,7 +104,7 @@ export default function QuestionAnalyticsPanel({
   return (
     <div className="flex h-full flex-col">
       {/* ── 문항 네비게이션 ── */}
-      <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+      <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3 flex-shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -80,7 +129,7 @@ export default function QuestionAnalyticsPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {/* ── 문항 내용 ── */}
+        {/* ── 문항 내용 (항상 표시) ── */}
         <div className="border-b px-4 py-4">
           <p className="text-sm font-semibold text-gray-900 leading-relaxed">
             {q.questionContent}
@@ -112,141 +161,147 @@ export default function QuestionAnalyticsPanel({
           </div>
         </div>
 
-        {/* ── 응답 통계 요약 ── */}
-        <div className="border-b px-4 py-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">응답 현황</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-lg bg-green-50 px-3 py-2 text-center">
-              <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span className="text-xs font-semibold">정답</span>
-              </div>
-              <p className="text-lg font-bold text-green-700 tabular-nums">{q.correctCount}</p>
-              <p className="text-xs text-green-600 tabular-nums">{correctPercent}%</p>
+        {/* ── 응답 요약 1줄 (항상 표시) ── */}
+        <div className="border-b px-4 py-3">
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              <span className="font-semibold text-green-700">{q.correctCount}</span>
+              <span className="text-gray-400 text-xs">({correctPercent}%)</span>
             </div>
-            <div className="rounded-lg bg-red-50 px-3 py-2 text-center">
-              <div className="flex items-center justify-center gap-1 text-red-600 mb-1">
-                <XCircle className="h-3.5 w-3.5" />
-                <span className="text-xs font-semibold">오답</span>
-              </div>
-              <p className="text-lg font-bold text-red-700 tabular-nums">{q.incorrectCount}</p>
-              <p className="text-xs text-red-600 tabular-nums">
-                {respondedCount > 0 ? Math.round((q.incorrectCount / respondedCount) * 100) : 0}%
-              </p>
+            <div className="flex items-center gap-1.5">
+              <XCircle className="h-3.5 w-3.5 text-red-400" />
+              <span className="font-semibold text-red-600">{q.incorrectCount}</span>
             </div>
-            <div className="rounded-lg bg-gray-50 px-3 py-2 text-center">
-              <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
-                <HelpCircle className="h-3.5 w-3.5" />
-                <span className="text-xs font-semibold">미응답</span>
-              </div>
-              <p className="text-lg font-bold text-gray-600 tabular-nums">{q.unansweredCount}</p>
-              <p className="text-xs text-gray-500 tabular-nums">
-                {Math.round((q.unansweredCount / q.totalStudents) * 100)}%
-              </p>
+            <div className="flex items-center gap-1.5">
+              <HelpCircle className="h-3.5 w-3.5 text-gray-400" />
+              <span className="font-semibold text-gray-500">{q.unansweredCount}</span>
             </div>
-          </div>
-
-          <div className="mt-3 flex items-center gap-1.5 text-gray-500">
-            <Clock className="h-3.5 w-3.5" />
-            <span className="text-xs">평균 응답시간: <strong className="text-gray-700">{q.avgResponseTimeSec}초</strong></span>
+            <div className="ml-auto flex items-center gap-1 text-gray-400">
+              <Clock className="h-3 w-3" />
+              <span className="text-xs tabular-nums">{q.avgResponseTimeSec}초</span>
+            </div>
           </div>
         </div>
 
-        {/* ── 선택지별 분포 + 학생 목록 ── */}
-        <div className="px-4 py-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">선택 분포</h3>
-          <div className="space-y-3">
+        {/* ── 선택 분포 (접힘) ── */}
+        <Section
+          title="선택 분포"
+          icon={BarChart3}
+          badge={
+            <span className="text-[10px] text-gray-400 tabular-nums">
+              {respondedCount}/{q.totalStudents}명 응답
+            </span>
+          }
+        >
+          <div className="space-y-2">
             {q.options.map((opt) => {
               const count = q.distribution[String(opt.index)] ?? 0
               const percent = totalSelections > 0 ? Math.round((count / totalSelections) * 100) : 0
               const isCorrect = opt.index === q.correctOptionIndex
-              const optStudents = studentsByOption.map[String(opt.index)] ?? []
               return (
-                <div key={opt.index}>
-                  {/* 바 차트 */}
-                  <div className="flex items-center gap-3">
-                    <span className={cn(
-                      'w-5 text-center text-xs font-bold flex-shrink-0',
-                      isCorrect ? 'text-green-600' : 'text-gray-400',
-                    )}>
-                      {opt.index}
-                    </span>
-                    <div className="flex-1 h-6 rounded-full bg-gray-100 overflow-hidden relative">
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition-all',
-                          isCorrect ? 'bg-green-400' : 'bg-gray-300',
-                        )}
-                        style={{ width: `${Math.max(percent, 2)}%` }}
-                      />
-                      <span className="absolute inset-0 flex items-center px-2.5 text-xs font-medium text-gray-700">
-                        {opt.text}
-                      </span>
-                    </div>
-                    <span className={cn(
-                      'w-14 text-right text-xs font-semibold tabular-nums flex-shrink-0',
-                      isCorrect ? 'text-green-600' : 'text-gray-500',
-                    )}>
-                      {count}명 ({percent}%)
+                <div key={opt.index} className="flex items-center gap-3">
+                  <span className={cn(
+                    'w-5 text-center text-xs font-bold flex-shrink-0',
+                    isCorrect ? 'text-green-600' : 'text-gray-400',
+                  )}>
+                    {opt.index}
+                  </span>
+                  <div className="flex-1 h-6 rounded-full bg-gray-100 overflow-hidden relative">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-all',
+                        isCorrect ? 'bg-green-400' : 'bg-gray-300',
+                      )}
+                      style={{ width: `${Math.max(percent, 2)}%` }}
+                    />
+                    <span className="absolute inset-0 flex items-center px-2.5 text-xs font-medium text-gray-700">
+                      {opt.text}
                     </span>
                   </div>
-                  {/* 학생 목록 */}
-                  {optStudents.length > 0 && (
-                    <div className="ml-8 mt-1.5 flex flex-wrap gap-1">
-                      {optStudents.map((s) => (
-                        <span
-                          key={s.participantId}
-                          className={cn(
-                            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
-                            isCorrect
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-red-50 text-red-600',
-                          )}
-                        >
-                          <span className={cn(
-                            'flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white',
-                            s.avatarColor,
-                          )}>
-                            {s.nickname.charAt(0)}
-                          </span>
-                          {s.nickname}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <span className={cn(
+                    'w-14 text-right text-xs font-semibold tabular-nums flex-shrink-0',
+                    isCorrect ? 'text-green-600' : 'text-gray-500',
+                  )}>
+                    {count}명 ({percent}%)
+                  </span>
                 </div>
               )
             })}
           </div>
+        </Section>
 
-          {/* 미응답 학생 */}
-          {studentsByOption.unanswered.length > 0 && (
-            <div className="mt-4 pt-3 border-t">
-              <div className="flex items-center gap-1.5 mb-2">
-                <HelpCircle className="h-3.5 w-3.5 text-gray-400" />
-                <span className="text-xs font-semibold text-gray-500">
-                  미응답 ({studentsByOption.unanswered.length}명)
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {studentsByOption.unanswered.map((s) => (
-                  <span
-                    key={s.participantId}
-                    className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500"
-                  >
+        {/* ── 학생별 응답 (접힘) ── */}
+        <Section title="학생별 응답" icon={Users}>
+          <div className="space-y-3">
+            {q.options.map((opt) => {
+              const isCorrect = opt.index === q.correctOptionIndex
+              const optStudents = studentsByOption.map[String(opt.index)] ?? []
+              if (optStudents.length === 0) return null
+              return (
+                <div key={opt.index}>
+                  <div className="flex items-center gap-1.5 mb-1.5">
                     <span className={cn(
-                      'flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white',
-                      s.avatarColor,
+                      'flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold',
+                      isCorrect ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500',
                     )}>
-                      {s.nickname.charAt(0)}
+                      {opt.index}
                     </span>
-                    {s.nickname}
+                    <span className="text-xs text-gray-500">
+                      {opt.text} ({optStudents.length}명)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {optStudents.map((s) => (
+                      <span
+                        key={s.participantId}
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
+                          isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600',
+                        )}
+                      >
+                        <span className={cn(
+                          'flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white',
+                          s.avatarColor,
+                        )}>
+                          {s.nickname.charAt(0)}
+                        </span>
+                        {s.nickname}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+
+            {studentsByOption.unanswered.length > 0 && (
+              <div className="pt-2 border-t">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <HelpCircle className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-xs font-semibold text-gray-500">
+                    미응답 ({studentsByOption.unanswered.length}명)
                   </span>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {studentsByOption.unanswered.map((s) => (
+                    <span
+                      key={s.participantId}
+                      className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500"
+                    >
+                      <span className={cn(
+                        'flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white',
+                        s.avatarColor,
+                      )}>
+                        {s.nickname.charAt(0)}
+                      </span>
+                      {s.nickname}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </Section>
       </div>
     </div>
   )

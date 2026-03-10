@@ -34,19 +34,24 @@ function getAvatarColor(nickname: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 5개 문항 정의
+// 10개 문항 정의
 // ─────────────────────────────────────────────────────────────
 
 const QUESTION_CONTENTS = [
-  '다음 중 소수가 아닌 것은?',
-  '피타고라스 정리에서 빗변을 구하는 공식은?',
-  '일차방정식 2x + 3 = 7의 해는?',
-  '삼각형의 내각의 합은?',
-  '원의 넓이를 구하는 공식은?',
+  'x² - 5x + 6 = 0의 두 근의 곱은?',
+  '직각삼각형에서 두 변의 길이가 5, 12일 때 빗변의 길이는?',
+  '연립방정식 { 2x + y = 7, x - y = 2 }의 해 (x, y)는?',
+  '반지름이 6cm인 원에서 중심각이 120°인 부채꼴의 넓이는?',
+  '주사위 2개를 동시에 던질 때, 합이 8이 되는 경우의 수는?',
+  '√48 + √12 를 간단히 하면?',
+  '일차함수 y = 2x - 3의 x절편은?',
+  '∠A = 60°, AB = 8, AC = 6인 △ABC의 넓이는?',
+  '등차수열 3, 7, 11, 15, ...의 제20항은?',
+  '이차함수 y = x² - 4x + 7의 꼭짓점 좌표는?',
 ]
 
 // ─────────────────────────────────────────────────────────────
-// 학생별 문항 응답 내역 생성 (5문항)
+// 학생별 문항 응답 내역 생성 (10문항)
 // ─────────────────────────────────────────────────────────────
 
 function makeQuestionResults(
@@ -63,7 +68,7 @@ function makeQuestionResults(
 }
 
 // ─────────────────────────────────────────────────────────────
-// 24명 Mock 학생 (5문항 기준)
+// 10명 Mock 학생 (10문항 기준)
 // ─────────────────────────────────────────────────────────────
 
 interface StudentSeed {
@@ -79,46 +84,30 @@ interface StudentSeed {
   currentQuestionIndex: number
 }
 
-const TOTAL_QUESTIONS = 5
+const TOTAL_QUESTIONS = 10
 
 const STUDENT_SEEDS: StudentSeed[] = [
-  // ── Star 학생 (3명) — 5/5 완료 ──
-  { nickname: '수학천재', status: 'finished', score: 500, correctStreak: 5, accuracy: 100, badges: ['star'], lastResponseTimeSec: 4, correctPattern: [true, true, true, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
-  { nickname: '김민준', status: 'finished', score: 460, correctStreak: 5, accuracy: 92, badges: ['star'], lastResponseTimeSec: 6, correctPattern: [true, true, true, true, false], completedQuestions: 5, currentQuestionIndex: 5 },
-  { nickname: '이서연', status: 'finished', score: 440, correctStreak: 3, accuracy: 88, badges: ['star'], lastResponseTimeSec: 5, correctPattern: [true, true, false, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
+  // ── Star 학생 (2명) — 10/10 완료 ──
+  { nickname: '수학천재', status: 'finished', score: 980, correctStreak: 6, accuracy: 90, badges: ['star'], lastResponseTimeSec: 5, correctPattern: [true, true, true, true, true, false, true, true, true, true], completedQuestions: 10, currentQuestionIndex: 10 },
+  { nickname: '김민준', status: 'finished', score: 920, correctStreak: 4, accuracy: 80, badges: ['star'], lastResponseTimeSec: 7, correctPattern: [true, true, false, true, true, true, true, false, true, true], completedQuestions: 10, currentQuestionIndex: 10 },
 
-  // ── Struggling 학생 (3명) — 2~3/5 진행 ──
-  { nickname: '박지훈', status: 'answering', score: 50, correctStreak: 0, accuracy: 0, badges: ['struggling'], lastResponseTimeSec: 18, correctPattern: [false, false, false, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
-  { nickname: '최유나', status: 'answering', score: 80, correctStreak: 0, accuracy: 25, badges: ['struggling'], lastResponseTimeSec: 15, correctPattern: [false, false, true, false, null], completedQuestions: 4, currentQuestionIndex: 5 },
-  { nickname: '정하은', status: 'answering', score: 30, correctStreak: 0, accuracy: 0, badges: ['struggling'], lastResponseTimeSec: null, correctPattern: [false, false, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
+  // ── Struggling 학생 (2명) ──
+  { nickname: '박지훈', status: 'answering', score: 120, correctStreak: 0, accuracy: 17, badges: ['struggling'], lastResponseTimeSec: 22, correctPattern: [false, false, true, false, false, false, null, null, null, null], completedQuestions: 6, currentQuestionIndex: 7 },
+  { nickname: '최유나', status: 'answering', score: 180, correctStreak: 0, accuracy: 29, badges: ['struggling'], lastResponseTimeSec: 18, correctPattern: [false, true, false, false, true, false, false, null, null, null], completedQuestions: 7, currentQuestionIndex: 8 },
 
-  // ── Guessing 학생 (2명) — 4~5/5 진행 ──
-  { nickname: '한도윤', status: 'answering', score: 180, correctStreak: 1, accuracy: 50, badges: ['guessing'], lastResponseTimeSec: 1, correctPattern: [true, false, true, false, null], completedQuestions: 4, currentQuestionIndex: 5 },
-  { nickname: '강서준', status: 'finished', score: 200, correctStreak: 0, accuracy: 40, badges: ['guessing'], lastResponseTimeSec: 2, correctPattern: [false, true, false, true, false], completedQuestions: 5, currentQuestionIndex: 5 },
+  // ── Guessing 학생 (1명) ──
+  { nickname: '한도윤', status: 'answering', score: 240, correctStreak: 0, accuracy: 30, badges: ['guessing'], lastResponseTimeSec: 2, correctPattern: [true, false, false, false, true, false, false, false, null, null], completedQuestions: 8, currentQuestionIndex: 9 },
 
-  // ── Slow 학생 (2명) — 1~2/5 진행 (절반 미만) ──
-  { nickname: '윤지아', status: 'answering', score: 100, correctStreak: 0, accuracy: 50, badges: ['slow'], lastResponseTimeSec: null, correctPattern: [true, null, null, null, null], completedQuestions: 1, currentQuestionIndex: 2 },
-  { nickname: '임서현', status: 'answering', score: 80, correctStreak: 0, accuracy: 50, badges: ['slow'], lastResponseTimeSec: null, correctPattern: [false, true, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
+  // ── Slow 학생 (1명) ──
+  { nickname: '윤지아', status: 'answering', score: 200, correctStreak: 1, accuracy: 67, badges: ['slow'], lastResponseTimeSec: null, correctPattern: [true, true, false, null, null, null, null, null, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
 
-  // ── Disconnected (2명) ──
-  { nickname: '오현우', status: 'disconnected', score: 100, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: null, correctPattern: [true, false, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
-  { nickname: '장예린', status: 'disconnected', score: 60, correctStreak: 0, accuracy: 33, badges: [], lastResponseTimeSec: null, correctPattern: [false, true, false, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
+  // ── 일반 학생 (3명) ──
+  { nickname: '송지호', status: 'finished', score: 760, correctStreak: 2, accuracy: 70, badges: [], lastResponseTimeSec: 9, correctPattern: [true, true, false, true, false, true, true, false, true, true], completedQuestions: 10, currentQuestionIndex: 10 },
+  { nickname: '노은서', status: 'answering', score: 540, correctStreak: 0, accuracy: 63, badges: [], lastResponseTimeSec: 11, correctPattern: [true, false, true, true, false, true, true, false, null, null], completedQuestions: 8, currentQuestionIndex: 9 },
+  { nickname: '황시우', status: 'answering', score: 460, correctStreak: 2, accuracy: 57, badges: [], lastResponseTimeSec: 8, correctPattern: [false, true, true, false, true, false, true, null, null, null], completedQuestions: 7, currentQuestionIndex: 8 },
 
-  // ── Idle (2명) ──
-  { nickname: '배준서', status: 'idle', score: 0, correctStreak: 0, accuracy: 0, badges: [], lastResponseTimeSec: null, correctPattern: [null, null, null, null, null], completedQuestions: 0, currentQuestionIndex: 1 },
-  { nickname: '신하윤', status: 'idle', score: 0, correctStreak: 0, accuracy: 0, badges: [], lastResponseTimeSec: null, correctPattern: [null, null, null, null, null], completedQuestions: 0, currentQuestionIndex: 1 },
-
-  // ── 일반 학생 (10명) — 3~5/5 진행 ──
-  { nickname: '송지호', status: 'finished', score: 380, correctStreak: 2, accuracy: 80, badges: [], lastResponseTimeSec: 8, correctPattern: [true, true, false, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
-  { nickname: '노은서', status: 'finished', score: 360, correctStreak: 1, accuracy: 80, badges: [], lastResponseTimeSec: 10, correctPattern: [true, false, true, true, true], completedQuestions: 5, currentQuestionIndex: 5 },
-  { nickname: '황시우', status: 'answering', score: 300, correctStreak: 2, accuracy: 75, badges: [], lastResponseTimeSec: 7, correctPattern: [true, true, false, true, null], completedQuestions: 4, currentQuestionIndex: 5 },
-  { nickname: '전소율', status: 'answering', score: 280, correctStreak: 1, accuracy: 75, badges: [], lastResponseTimeSec: 9, correctPattern: [false, true, true, true, null], completedQuestions: 4, currentQuestionIndex: 5 },
-  { nickname: '권도현', status: 'finished', score: 320, correctStreak: 0, accuracy: 60, badges: [], lastResponseTimeSec: 11, correctPattern: [true, true, false, false, true], completedQuestions: 5, currentQuestionIndex: 5 },
-  { nickname: '유하린', status: 'answering', score: 240, correctStreak: 1, accuracy: 67, badges: [], lastResponseTimeSec: 12, correctPattern: [true, false, true, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
-  { nickname: '문태윤', status: 'answering', score: 220, correctStreak: 0, accuracy: 67, badges: [], lastResponseTimeSec: 14, correctPattern: [false, true, true, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
-  { nickname: '안채원', status: 'answering', score: 200, correctStreak: 1, accuracy: 67, badges: [], lastResponseTimeSec: 13, correctPattern: [true, false, true, null, null], completedQuestions: 3, currentQuestionIndex: 4 },
-  { nickname: '고윤호', status: 'answering', score: 180, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: 15, correctPattern: [true, false, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
-  { nickname: '백수빈', status: 'answering', score: 160, correctStreak: 0, accuracy: 50, badges: [], lastResponseTimeSec: 16, correctPattern: [false, true, null, null, null], completedQuestions: 2, currentQuestionIndex: 3 },
+  // ── Disconnected (1명) ──
+  { nickname: '오현우', status: 'disconnected', score: 300, correctStreak: 0, accuracy: 40, badges: [], lastResponseTimeSec: null, correctPattern: [true, false, true, false, false, null, null, null, null, null], completedQuestions: 5, currentQuestionIndex: 6 },
 ]
 
 export const MOCK_STUDENTS: StudentMonitorData[] = STUDENT_SEEDS.map(
@@ -141,99 +130,191 @@ export const MOCK_STUDENTS: StudentMonitorData[] = STUDENT_SEEDS.map(
 )
 
 // ─────────────────────────────────────────────────────────────
-// 문항별 분석 데이터 (5문항)
+// 문항별 분석 데이터 (10문항)
 // ─────────────────────────────────────────────────────────────
+
+const TOTAL_MOCK_STUDENTS = 10
 
 export const MOCK_QUESTION_ANALYTICS: PerQuestionAnalytics[] = [
   {
     questionIndex: 1,
-    questionContent: '다음 중 소수가 아닌 것은?',
+    questionContent: 'x² - 5x + 6 = 0의 두 근의 곱은?',
     questionType: 'multiple_choice',
     options: [
-      { index: 1, text: '2' },
-      { index: 2, text: '3' },
-      { index: 3, text: '4' },
-      { index: 4, text: '7' },
+      { index: 1, text: '5' },
+      { index: 2, text: '6' },
+      { index: 3, text: '-6' },
+      { index: 4, text: '-5' },
     ],
-    correctOptionIndex: 3,
-    distribution: { '1': 2, '2': 3, '3': 14, '4': 1 },
-    correctCount: 14,
-    incorrectCount: 6,
-    unansweredCount: 4,
-    totalStudents: 24,
-    avgResponseTimeSec: 7.2,
+    correctOptionIndex: 2,
+    distribution: { '1': 2, '2': 7, '3': 1, '4': 0 },
+    correctCount: 7,
+    incorrectCount: 3,
+    unansweredCount: 0,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 12.5,
   },
   {
     questionIndex: 2,
-    questionContent: '피타고라스 정리에서 빗변을 구하는 공식은?',
+    questionContent: '직각삼각형에서 두 변의 길이가 5, 12일 때 빗변의 길이는?',
     questionType: 'multiple_choice',
     options: [
-      { index: 1, text: 'c = a + b' },
-      { index: 2, text: 'c² = a² + b²' },
-      { index: 3, text: 'c = a × b' },
-      { index: 4, text: 'c² = a² - b²' },
+      { index: 1, text: '13' },
+      { index: 2, text: '15' },
+      { index: 3, text: '17' },
+      { index: 4, text: '√119' },
     ],
-    correctOptionIndex: 2,
-    distribution: { '1': 3, '2': 12, '3': 2, '4': 3 },
-    correctCount: 12,
-    incorrectCount: 8,
-    unansweredCount: 4,
-    totalStudents: 24,
-    avgResponseTimeSec: 10.5,
+    correctOptionIndex: 1,
+    distribution: { '1': 6, '2': 2, '3': 1, '4': 1 },
+    correctCount: 6,
+    incorrectCount: 4,
+    unansweredCount: 0,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 15.2,
   },
   {
     questionIndex: 3,
-    questionContent: '일차방정식 2x + 3 = 7의 해는?',
+    questionContent: '연립방정식 { 2x + y = 7, x - y = 2 }의 해 (x, y)는?',
     questionType: 'multiple_choice',
     options: [
-      { index: 1, text: 'x = 1' },
-      { index: 2, text: 'x = 2' },
-      { index: 3, text: 'x = 3' },
-      { index: 4, text: 'x = 4' },
+      { index: 1, text: '(2, 3)' },
+      { index: 2, text: '(3, 1)' },
+      { index: 3, text: '(4, -1)' },
+      { index: 4, text: '(1, 5)' },
     ],
     correctOptionIndex: 2,
-    distribution: { '1': 2, '2': 9, '3': 4, '4': 1 },
-    correctCount: 9,
-    incorrectCount: 7,
-    unansweredCount: 8,
-    totalStudents: 24,
-    avgResponseTimeSec: 12.3,
+    distribution: { '1': 2, '2': 6, '3': 1, '4': 1 },
+    correctCount: 6,
+    incorrectCount: 4,
+    unansweredCount: 0,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 20.1,
   },
   {
     questionIndex: 4,
-    questionContent: '삼각형의 내각의 합은?',
+    questionContent: '반지름이 6cm인 원에서 중심각이 120°인 부채꼴의 넓이는?',
     questionType: 'multiple_choice',
     options: [
-      { index: 1, text: '90°' },
-      { index: 2, text: '180°' },
-      { index: 3, text: '270°' },
-      { index: 4, text: '360°' },
+      { index: 1, text: '6π cm²' },
+      { index: 2, text: '12π cm²' },
+      { index: 3, text: '24π cm²' },
+      { index: 4, text: '36π cm²' },
     ],
     correctOptionIndex: 2,
-    distribution: { '1': 1, '2': 8, '3': 1, '4': 2 },
-    correctCount: 8,
-    incorrectCount: 4,
-    unansweredCount: 12,
-    totalStudents: 24,
-    avgResponseTimeSec: 6.8,
+    distribution: { '1': 2, '2': 4, '3': 2, '4': 1 },
+    correctCount: 4,
+    incorrectCount: 5,
+    unansweredCount: 1,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 22.8,
   },
   {
     questionIndex: 5,
-    questionContent: '원의 넓이를 구하는 공식은?',
+    questionContent: '주사위 2개를 동시에 던질 때, 합이 8이 되는 경우의 수는?',
     questionType: 'multiple_choice',
     options: [
-      { index: 1, text: 'πr' },
-      { index: 2, text: 'πr²' },
-      { index: 3, text: '2πr' },
-      { index: 4, text: '2πr²' },
+      { index: 1, text: '3가지' },
+      { index: 2, text: '4가지' },
+      { index: 3, text: '5가지' },
+      { index: 4, text: '6가지' },
     ],
-    correctOptionIndex: 2,
-    distribution: { '1': 0, '2': 6, '3': 2, '4': 0 },
-    correctCount: 6,
+    correctOptionIndex: 3,
+    distribution: { '1': 1, '2': 2, '3': 5, '4': 1 },
+    correctCount: 5,
+    incorrectCount: 4,
+    unansweredCount: 1,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 18.4,
+  },
+  {
+    questionIndex: 6,
+    questionContent: '√48 + √12 를 간단히 하면?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '6√3' },
+      { index: 2, text: '4√3' },
+      { index: 3, text: '√60' },
+      { index: 4, text: '5√3' },
+    ],
+    correctOptionIndex: 1,
+    distribution: { '1': 4, '2': 2, '3': 1, '4': 1 },
+    correctCount: 4,
+    incorrectCount: 4,
+    unansweredCount: 2,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 16.9,
+  },
+  {
+    questionIndex: 7,
+    questionContent: '일차함수 y = 2x - 3의 x절편은?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '3/2' },
+      { index: 2, text: '-3' },
+      { index: 3, text: '2' },
+      { index: 4, text: '-3/2' },
+    ],
+    correctOptionIndex: 1,
+    distribution: { '1': 5, '2': 1, '3': 1, '4': 1 },
+    correctCount: 5,
+    incorrectCount: 3,
+    unansweredCount: 2,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 14.1,
+  },
+  {
+    questionIndex: 8,
+    questionContent: '∠A = 60°, AB = 8, AC = 6인 △ABC의 넓이는?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '12√3' },
+      { index: 2, text: '24' },
+      { index: 3, text: '24√3' },
+      { index: 4, text: '12' },
+    ],
+    correctOptionIndex: 1,
+    distribution: { '1': 3, '2': 2, '3': 1, '4': 1 },
+    correctCount: 3,
+    incorrectCount: 4,
+    unansweredCount: 3,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 26.3,
+  },
+  {
+    questionIndex: 9,
+    questionContent: '등차수열 3, 7, 11, 15, ...의 제20항은?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '79' },
+      { index: 2, text: '83' },
+      { index: 3, text: '77' },
+      { index: 4, text: '75' },
+    ],
+    correctOptionIndex: 1,
+    distribution: { '1': 3, '2': 1, '3': 1, '4': 0 },
+    correctCount: 3,
     incorrectCount: 2,
-    unansweredCount: 16,
-    totalStudents: 24,
-    avgResponseTimeSec: 8.1,
+    unansweredCount: 5,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 19.7,
+  },
+  {
+    questionIndex: 10,
+    questionContent: '이차함수 y = x² - 4x + 7의 꼭짓점 좌표는?',
+    questionType: 'multiple_choice',
+    options: [
+      { index: 1, text: '(2, 3)' },
+      { index: 2, text: '(-2, 3)' },
+      { index: 3, text: '(4, 7)' },
+      { index: 4, text: '(2, 7)' },
+    ],
+    correctOptionIndex: 1,
+    distribution: { '1': 2, '2': 1, '3': 0, '4': 0 },
+    correctCount: 2,
+    incorrectCount: 1,
+    unansweredCount: 7,
+    totalStudents: TOTAL_MOCK_STUDENTS,
+    avgResponseTimeSec: 23.5,
   },
 ]
 
@@ -273,9 +354,9 @@ export const MOCK_LEADERBOARD: LeaderboardEntry[] = [...MOCK_STUDENTS]
 // ─────────────────────────────────────────────────────────────
 
 export const MOCK_ANALYTICS: LiveAnalyticsData = {
-  distribution: { '1': 5, '2': 4, '3': 7, '4': 2 },
-  answered: 18,
-  total: 24,
+  distribution: { '1': 2, '2': 3, '3': 4, '4': 1 },
+  answered: 8,
+  total: 10,
   accuracyTrend: MOCK_ACCURACY_TREND,
   currentQuestionDifficulty: 'hard',
   isConfusing: true,
@@ -289,16 +370,16 @@ export const MOCK_QUESTION: WsQuestionShow = {
   question: {
     question_id: 'q-3',
     type: 'multiple_choice',
-    content: '일차방정식 2x + 3 = 7의 해는?',
+    content: '연립방정식 { 2x + y = 7, x - y = 2 }의 해 (x, y)는?',
     options: [
-      { index: 1, text: 'x = 1' },
-      { index: 2, text: 'x = 2' },
-      { index: 3, text: 'x = 3' },
-      { index: 4, text: 'x = 4' },
+      { index: 1, text: '(2, 3)' },
+      { index: 2, text: '(3, 1)' },
+      { index: 3, text: '(4, -1)' },
+      { index: 4, text: '(1, 5)' },
     ],
-    hint: 'x에 대해 정리하면 2x = 4가 됩니다.',
+    hint: '두 식을 더하면 3x = 9가 됩니다.',
   },
   questionIndex: 3,
-  totalQuestions: 5,
-  timeLimit: 20,
+  totalQuestions: 10,
+  timeLimit: 30,
 }

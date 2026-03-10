@@ -8,7 +8,6 @@ import {
   Users,
   LayoutDashboard,
   X,
-  CheckCircle2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -72,18 +71,15 @@ export default function HeaderControlBar({
 
       <div className="h-6 w-px bg-gray-200" />
 
-      {/* 참여자 + 완료 현황 */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="flex items-center gap-1.5 text-gray-600">
-          <Users className="h-4 w-4" />
-          <span className="text-sm font-semibold tabular-nums whitespace-nowrap">{totalStudents}명</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-gray-600">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm font-semibold tabular-nums whitespace-nowrap">
-            완료 {finishedCount}/{totalStudents}
-          </span>
-        </div>
+      {/* 참여자 현황 */}
+      <div className="flex items-center gap-1.5 text-gray-600 flex-shrink-0">
+        <Users className="h-4 w-4" />
+        <span className="text-sm font-semibold tabular-nums whitespace-nowrap">
+          {totalStudents}명
+        </span>
+        <span className="text-xs text-gray-400">
+          (완료 {finishedCount})
+        </span>
       </div>
 
       <div className="h-6 w-px bg-gray-200" />

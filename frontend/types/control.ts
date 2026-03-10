@@ -37,18 +37,6 @@ export interface StudentMonitorData {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 리액션 (코칭)
-// ─────────────────────────────────────────────────────────────
-
-export type ReactionType = 'praise' | 'encouragement' | 'warning' | 'speed_up'
-
-export interface ReactionPayload {
-  type: ReactionType
-  targetIds: string[] // 빈 배열 = 전체 브로드캐스트
-  sessionId: string
-}
-
-// ─────────────────────────────────────────────────────────────
 // 문항별 분석 (v3)
 // ─────────────────────────────────────────────────────────────
 
