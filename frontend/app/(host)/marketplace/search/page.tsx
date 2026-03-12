@@ -1,4 +1,4 @@
-// S-M02: 마켓플레이스 검색 결과
+// S-M02: 마켓플레이스 검색 결과 — 단원 필터 + QuizCard 적용
 // /marketplace/search
 
 'use client'
@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters'
-import { SharedSetCard, SharedSetCardSkeleton } from '@/components/marketplace/SharedSetCard'
+import { QuizCard, QuizCardSkeleton } from '@/components/common/QuizCard'
 import type { SharedSet } from '@/types'
 
 const SORT_OPTIONS = [
@@ -33,7 +33,7 @@ function SearchContent() {
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [subject, setSubject] = useState(searchParams.get('subject') ?? '전체')
   const [grade, setGrade] = useState(searchParams.get('grade') ?? '전체')
-  const [questionType, setQuestionType] = useState(searchParams.get('type') ?? '전체')
+  const [unit, setUnit] = useState(searchParams.get('unit') ?? '전체')
   const [sort, setSort] = useState(searchParams.get('sort') ?? 'popular')
   const [results, setResults] = useState<SharedSet[]>([])
   const [total, setTotal] = useState(0)
@@ -46,7 +46,7 @@ function SearchContent() {
     if (search) params.set('q', search)
     if (subject && subject !== '전체') params.set('subject', subject)
     if (grade && grade !== '전체') params.set('grade', grade)
-    if (questionType && questionType !== '전체') params.set('type', questionType)
+    if (unit && unit !== '전체') params.set('unit', unit)
     params.set('sort', sort)
     params.set('page', String(page))
     params.set('limit', '12')
@@ -57,8 +57,9 @@ function SearchContent() {
         setResults(data.data ?? [])
         setTotal(data.total ?? 0)
       })
+      .catch(() => { setResults([]); setTotal(0) })
       .finally(() => setLoading(false))
-  }, [search, subject, grade, questionType, sort, page])
+  }, [search, subject, grade, unit, sort, page])
 
   useEffect(() => {
     fetchResults()
@@ -91,11 +92,11 @@ function SearchContent() {
             search={search}
             onSearchChange={setSearch}
             subject={subject}
-            onSubjectChange={(v) => { setSubject(v); setPage(1) }}
+            onSubjectChange={(v) => { setSubject(v); setUnit('전체'); setPage(1) }}
             grade={grade}
-            onGradeChange={(v) => { setGrade(v); setPage(1) }}
-            questionType={questionType}
-            onTypeChange={(v) => { setQuestionType(v); setPage(1) }}
+            onGradeChange={(v) => { setGrade(v); setUnit('전체'); setPage(1) }}
+            unit={unit}
+            onUnitChange={(v) => { setUnit(v); setPage(1) }}
             onSearch={handleSearch}
           />
         </div>
@@ -116,9 +117,23 @@ function SearchContent() {
       {/* 결과 그리드 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {loading
-          ? Array.from({ length: 8 }).map((_, i) => <SharedSetCardSkeleton key={i} />)
+          ? Array.from({ length: 8 }).map((_, i) => <QuizCardSkeleton key={i} />)
           : results.map((s) => (
-              <SharedSetCard key={s.shared_set_id} sharedSet={s} />
+              <QuizCard
+                key={s.shared_set_id}
+                id={s.shared_set_id}
+                title={s.title}
+                questionCount={s.question_count}
+                subject={s.subject}
+                grade={s.grade}
+                avgRating={s.avg_rating}
+                likeCount={s.like_count}
+                downloadCount={s.download_count}
+                hostNickname={s.host_nickname ?? '교사'}
+                isCertified={s.is_certified}
+                isBookmarked={s.is_bookmarked}
+                onClick={() => router.push(`/marketplace/${s.shared_set_id}`)}
+              />
             ))}
       </div>
 

@@ -155,9 +155,11 @@ function DashboardSummary({
 function GameCard({
   session,
   onReport,
+  onRedeploy,
 }: {
   session: Session & { participant_count?: number; completion_rate?: number }
   onReport: () => void
+  onRedeploy: () => void
 }) {
   const isInProgress = session.status === 'in_progress' || session.status === 'waiting'
   const isCompleted = session.status === 'completed'
@@ -191,12 +193,18 @@ function GameCard({
         </div>
       )}
 
-      {/* 완료 → 리포트 버튼 */}
+      {/* 완료 → 리포트 + 재출제 버튼 */}
       {isCompleted && (
-        <Button variant="outline" size="sm" onClick={onReport} className="gap-1">
-          <BarChart2 className="h-4 w-4" />
-          리포트 보기
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={onReport} className="gap-1">
+            <BarChart2 className="h-4 w-4" />
+            리포트 보기
+          </Button>
+          <Button variant="outline" size="sm" onClick={onRedeploy} className="gap-1 text-blue-600 border-blue-200 hover:bg-blue-50">
+            <Play className="h-4 w-4" />
+            다시 출제
+          </Button>
+        </div>
       )}
     </div>
   )
@@ -217,6 +225,7 @@ function GamesTab({ sessions }: { sessions: Session[] }) {
           key={session.session_id}
           session={session}
           onReport={() => router.push(`/sessions/${session.session_id}/report/questions`)}
+          onRedeploy={() => router.push(`/sets/${session.set_id}/deploy`)}
         />
       ))}
     </div>

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Users, MoreHorizontal, Plus, Zap } from 'lucide-react'
+import { Users, MoreHorizontal, Plus, Zap, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -37,10 +37,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/use-toast'
 import { EmptyState } from '@/components/common/EmptyState'
-import { groupsApi } from '@/lib/api'
-import type { Group, GroupType } from '@/types'
+import { groupsApi, questionSetsApi } from '@/lib/api'
+import type { Group, GroupType, QuestionSet } from '@/types'
 
 type TabFilter = 'all' | GroupType
 
@@ -64,6 +65,12 @@ export default function GroupsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Group | null>(null)
   const [tab, setTab] = useState<TabFilter>('all')
 
+  // 세트 선택 Dialog
+  const [selectSetGroupId, setSelectSetGroupId] = useState<string | null>(null)
+  const [sets, setSets] = useState<QuestionSet[]>([])
+  const [setsLoading, setSetsLoading] = useState(false)
+  const [setSearch, setSetSearch] = useState('')
+
   useEffect(() => {
     groupsApi
       .list()
@@ -71,6 +78,21 @@ export default function GroupsPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  // 세트 선택 Dialog 열릴 때 세트 목록 로드
+  useEffect(() => {
+    if (!selectSetGroupId) return
+    setSetsLoading(true)
+    questionSetsApi
+      .list({ limit: 50, sort: 'updated_at' })
+      .then((res) => setSets(res.data))
+      .catch(console.error)
+      .finally(() => setSetsLoading(false))
+  }, [selectSetGroupId])
+
+  const filteredSets = setSearch.trim()
+    ? sets.filter((s) => s.title.toLowerCase().includes(setSearch.toLowerCase()))
+    : sets
 
   const filteredGroups = tab === 'all' ? groups : groups.filter((g) => g.type === tab)
 
@@ -239,9 +261,7 @@ export default function GroupsPage() {
                     </DropdownMenuItem>
                     {!isAuto && (
                       <DropdownMenuItem
-                        onClick={() =>
-                          router.push(`/sets/new/deploy?groupId=${group.group_id}`)
-                        }
+                        onClick={() => setSelectSetGroupId(group.group_id)}
                       >
                         <Zap className="mr-2 h-4 w-4" />
                         이 그룹에 게임 열기
@@ -274,6 +294,57 @@ export default function GroupsPage() {
           })}
         </div>
       )}
+
+      {/* 세트 선택 Dialog */}
+      <Dialog open={!!selectSetGroupId} onOpenChange={(o) => { if (!o) { setSelectSetGroupId(null); setSetSearch('') } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>퀴즈 세트 선택</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="세트 검색..."
+                value={setSearch}
+                onChange={(e) => setSetSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {setsLoading ? (
+                [...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 rounded-lg" />
+                ))
+              ) : filteredSets.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-6">세트가 없습니다.</p>
+              ) : (
+                filteredSets.map((s) => (
+                  <button
+                    key={s.set_id}
+                    className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-gray-50 transition-colors"
+                    onClick={() => {
+                      router.push(`/sets/${s.set_id}/deploy?groupId=${selectSetGroupId}`)
+                      setSelectSetGroupId(null)
+                      setSetSearch('')
+                    }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">{s.title}</p>
+                      <p className="text-xs text-gray-400">
+                        {s.question_count ?? 0}문항
+                        {s.subject && ` · ${s.subject}`}
+                        {s.grade && ` · ${s.grade}`}
+                      </p>
+                    </div>
+                    <Zap className="h-4 w-4 text-gray-300 shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 삭제 확인 Dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

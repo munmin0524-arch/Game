@@ -5,7 +5,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Rocket, Copy, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -22,12 +22,39 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { groupsApi, sessionsApi } from '@/lib/api'
-import type { Group, DeployFormValues, AnswerReveal } from '@/types'
+import type { Group, DeployFormValues, AnswerReveal, GameMode } from '@/types'
+
+// ─── 게임 유형 정의 ───
+
+interface GameModeOption {
+  value: GameMode
+  label: string
+  type: 'TEAM' | 'SINGLE' | 'SURVIVAL'
+  desc: string
+}
+
+const GAME_MODES: GameModeOption[] = [
+  { value: 'tug_of_war', label: '줄다리기', type: 'TEAM', desc: '청팀 홍팀 2팀 경쟁' },
+  { value: 'kickboard_racing', label: '킥보드 레이싱', type: 'SINGLE', desc: '개인 경쟁, 먼저 풀면 승리' },
+  { value: 'boat_racing', label: '보트 레이싱', type: 'TEAM', desc: '여러팀 경쟁, 최대 6명/보트' },
+  { value: 'balloon_flying', label: '풍선 타고 오르기', type: 'SURVIVAL', desc: '서바이벌, 5문제 틀리면 탈락' },
+  { value: 'marathon', label: '마라톤', type: 'SINGLE', desc: '개인 경쟁, 먼저 풀면 승리' },
+  { value: 'audition', label: '오디션', type: 'TEAM', desc: '최대 3명/팀, 댄스 경쟁' },
+]
+
+const MODE_TYPE_COLORS: Record<string, string> = {
+  TEAM: 'bg-blue-100 text-blue-700',
+  SINGLE: 'bg-green-100 text-green-700',
+  SURVIVAL: 'bg-orange-100 text-orange-700',
+}
 
 export default function DeployPage() {
   const { setId } = useParams<{ setId: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
+
+  const presetGroupId = searchParams.get('groupId') ?? undefined
 
   const [groups, setGroups] = useState<Group[]>([])
   const [deploying, setDeploying] = useState(false)
@@ -36,11 +63,11 @@ export default function DeployPage() {
   const [form, setForm] = useState<DeployFormValues>({
     session_type: 'live',
     game_mode: 'tug_of_war',
-    deploy_type: 'public_qr',
+    deploy_type: presetGroupId ? 'existing_group' : 'public_qr',
     time_limit_per_q: 20,
     allow_retry: false,
     allow_hint: false,
-    group_id: undefined,
+    group_id: presetGroupId,
     new_group_name: '',
     // 과제 전용
     open_at: undefined,
@@ -128,7 +155,7 @@ export default function DeployPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-8">
-      <h1 className="text-2xl font-bold">게임 설정</h1>
+      <h1 className="text-2xl font-bold">게임 배포하기</h1>
 
       {/* 배포 유형 */}
       <section className="space-y-3">
@@ -151,38 +178,34 @@ export default function DeployPage() {
         </RadioGroup>
       </section>
 
-      {/* 게임 설정 */}
+      {/* 게임 유형 선택 */}
       <section className="space-y-4 rounded-lg border p-4">
-        <p className="font-semibold text-sm text-gray-500">게임 설정</p>
-
-        <div className="flex items-center justify-between">
-          <Label>문항당 제한 시간 (초)</Label>
-          <Input
-            type="number"
-            min={1}
-            max={300}
-            className="w-24 text-right"
-            value={form.time_limit_per_q}
-            onChange={(e) =>
-              setForm({ ...form, time_limit_per_q: Number(e.target.value) })
-            }
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Label>오답 재도전 허용</Label>
-          <Switch
-            checked={form.allow_retry}
-            onCheckedChange={(v) => setForm({ ...form, allow_retry: v })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Label>힌트 사용 허용</Label>
-          <Switch
-            checked={form.allow_hint}
-            onCheckedChange={(v) => setForm({ ...form, allow_hint: v })}
-          />
+        <p className="font-semibold text-sm text-gray-500">게임 유형</p>
+        <div className="grid grid-cols-2 gap-2">
+          {GAME_MODES.map((mode) => {
+            const isSelected = form.game_mode === mode.value
+            return (
+              <button
+                key={mode.value}
+                onClick={() => setForm({ ...form, game_mode: mode.value })}
+                className={`flex flex-col items-start gap-1.5 rounded-xl border-2 p-3 text-left transition-all
+                  ${isSelected
+                    ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+              >
+                <div className="flex items-center gap-2 w-full">
+                  <span className={`text-sm font-bold ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                    {mode.label}
+                  </span>
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${MODE_TYPE_COLORS[mode.type]}`}>
+                    {mode.type}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500">{mode.desc}</span>
+              </button>
+            )
+          })}
         </div>
       </section>
 
@@ -225,30 +248,6 @@ export default function DeployPage() {
             </div>
           </div>
 
-          {/* 정답 공개 시점 */}
-          <div className="space-y-2">
-            <Label>정답 공개 시점</Label>
-            <RadioGroup
-              value={form.answer_reveal ?? 'on_submit'}
-              onValueChange={(v) =>
-                setForm({ ...form, answer_reveal: v as AnswerReveal })
-              }
-              className="space-y-2"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="on_submit" id="reveal_on_submit" />
-                <Label htmlFor="reveal_on_submit">제출 즉시</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="after_close" id="reveal_after_close" />
-                <Label htmlFor="reveal_after_close">마감 후</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="never" id="reveal_never" />
-                <Label htmlFor="reveal_never">비공개</Label>
-              </div>
-            </RadioGroup>
-          </div>
         </section>
       )}
 
@@ -287,18 +286,6 @@ export default function DeployPage() {
                 ))}
               </SelectContent>
             </Select>
-          )}
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="new_group" id="new_group" />
-            <Label htmlFor="new_group">신규 그룹 생성</Label>
-          </div>
-          {form.deploy_type === 'new_group' && (
-            <Input
-              className="ml-6"
-              placeholder="그룹 이름 입력..."
-              value={form.new_group_name}
-              onChange={(e) => setForm({ ...form, new_group_name: e.target.value })}
-            />
           )}
         </RadioGroup>
 

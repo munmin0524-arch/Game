@@ -1,138 +1,5 @@
-// 학습맵 계층 데이터 (수학/영어)
+// 교과과정 기반 필터 데이터 (수학/영어)
 // 실제 서비스에서는 API로 로드하지만, MVP에서는 정적 데이터 사용
-
-export type HierarchyTree = Record<string, Record<string, Record<string, string[]>>>
-
-// ─── 수학 학습맵 (4-depth) ───
-// 대영역 → 중영역 → 소영역 → 지식요소
-
-export const MATH_HIERARCHY: HierarchyTree = {
-  '수와 연산': {
-    '자연수의 성질': {
-      '소인수분해': ['소수와 합성수', '소인수분해', '최대공약수', '최소공배수'],
-      '정수와 유리수의 개념': ['양수와 음수', '정수', '유리수'],
-    },
-    '정수와 유리수의 계산': {
-      '정수의 사칙연산': ['덧셈과 뺄셈', '곱셈과 나눗셈', '혼합 계산'],
-      '유리수의 사칙연산': ['유리수의 덧셈', '유리수의 뺄셈', '유리수의 곱셈', '유리수의 나눗셈'],
-    },
-    '실수': {
-      '제곱근과 실수': ['제곱근', '무리수', '실수의 대소관계'],
-      '근호를 포함한 식': ['제곱근의 성질', '제곱근의 덧셈과 뺄셈', '제곱근의 곱셈과 나눗셈'],
-    },
-  },
-  '문자와 식': {
-    '문자의 사용과 식': {
-      '문자와 식': ['문자의 사용', '식의 값', '일차식의 계산'],
-      '일차방정식': ['등식의 성질', '일차방정식 풀이', '일차방정식 활용'],
-    },
-    '식의 계산': {
-      '단항식과 다항식': ['지수법칙', '단항식의 곱셈과 나눗셈', '다항식의 덧셈과 뺄셈'],
-      '다항식의 곱셈': ['곱셈 공식', '곱셈 공식의 활용'],
-      '인수분해': ['공통인수', '인수분해 공식', '인수분해 활용'],
-    },
-    '방정식과 부등식': {
-      '연립방정식': ['연립방정식 풀이', '연립방정식 활용'],
-      '이차방정식': ['이차방정식 풀이', '근의 공식', '이차방정식 활용'],
-      '일차부등식': ['부등식의 성질', '일차부등식 풀이', '연립부등식'],
-    },
-  },
-  '함수': {
-    '함수의 개념': {
-      '함수와 그래프': ['함수의 뜻', '순서쌍과 좌표', '함수의 그래프'],
-      '일차함수': ['일차함수의 뜻', '일차함수의 그래프', '기울기와 y절편'],
-    },
-    '함수의 활용': {
-      '일차함수와 방정식': ['일차함수와 일차방정식', '연립방정식의 해와 그래프'],
-      '이차함수': ['이차함수의 뜻', '이차함수의 그래프', '이차함수의 최댓값과 최솟값'],
-    },
-  },
-  '기하': {
-    '기본 도형': {
-      '점, 선, 면': ['점과 직선', '각', '평행선의 성질'],
-      '작도와 합동': ['삼각형의 작도', '삼각형의 합동 조건'],
-    },
-    '평면도형': {
-      '다각형의 성질': ['삼각형의 성질', '사각형의 성질', '다각형의 내각과 외각'],
-      '원의 성질': ['원과 직선', '원주각', '원의 접선'],
-    },
-    '입체도형': {
-      '다면체와 회전체': ['다면체', '회전체', '겉넓이와 부피'],
-    },
-    '도형의 닮음': {
-      '닮음의 뜻과 성질': ['닮은 도형', '삼각형의 닮음 조건', '닮음의 활용'],
-      '피타고라스 정리': ['피타고라스 정리', '피타고라스 정리의 활용'],
-    },
-  },
-  '확률과 통계': {
-    '자료의 정리와 해석': {
-      '도수분포와 그래프': ['줄기와 잎 그림', '도수분포표', '히스토그램', '도수분포다각형'],
-      '상대도수': ['상대도수의 뜻', '상대도수의 분포'],
-    },
-    '확률': {
-      '경우의 수': ['사건과 경우의 수', '여러 가지 경우의 수'],
-      '확률의 뜻과 계산': ['확률의 뜻', '확률의 계산', '확률의 성질'],
-    },
-    '통계': {
-      '대푯값과 산포도': ['평균', '중앙값', '최빈값', '분산과 표준편차'],
-      '상관관계': ['산점도', '상관관계'],
-    },
-  },
-}
-
-// ─── 영어 학습맵 (3-depth) ───
-// 대영역 → 중영역 → 소영역
-
-export const ENGLISH_HIERARCHY: HierarchyTree = {
-  'Listening': {
-    '듣기 이해': {
-      '세부 정보 파악': ['핵심어 듣기', '수치/시간 듣기', '장소/인물 파악'],
-      '주제 및 요지 파악': ['주제 파악', '요지 파악', '목적 파악'],
-      '추론': ['화자의 의도 추론', '화자의 심정 추론', '다음에 할 일 추론'],
-    },
-  },
-  'Reading': {
-    '읽기 이해': {
-      '세부 정보 파악': ['사실적 이해', '일치/불일치', '도표 이해'],
-      '주제 및 요지 파악': ['주제문 찾기', '제목 추론', '요약문 완성'],
-      '글의 구조': ['글의 순서', '문장 삽입', '문단 요약'],
-    },
-    '어휘와 독해': {
-      '문맥 속 어휘': ['동의어 추론', '빈칸 추론'],
-    },
-  },
-  'Grammar': {
-    '문장 구조': {
-      '시제': ['현재시제', '과거시제', '미래시제', '완료시제'],
-      '문장 종류': ['평서문', '의문문', '명령문', '감탄문'],
-      '문장 성분': ['주어와 동사', '목적어와 보어', '수식어'],
-    },
-    '품사': {
-      '명사와 대명사': ['가산/불가산 명사', '인칭대명사', '관계대명사'],
-      '동사': ['조동사', '수동태', '부정사', '동명사'],
-      '형용사와 부사': ['비교급', '최상급', '부사의 위치'],
-    },
-  },
-  'Vocabulary': {
-    '어휘': {
-      '기본 어휘': ['일상생활', '학교생활', '사회/문화'],
-      '숙어와 관용표현': ['동사 숙어', '전치사 관용표현'],
-    },
-  },
-}
-
-// ─── 영어 평가 영역 ───
-
-export const ENGLISH_ASSESSMENT_AREAS = ['듣기', '읽기', '문법', '어휘'] as const
-export type EnglishAssessmentArea = (typeof ENGLISH_ASSESSMENT_AREAS)[number]
-
-// ─── 난이도 옵션 ───
-
-export const DIFFICULTY_OPTIONS = [
-  { value: '상', label: '상', color: 'bg-red-50 text-red-600 border-red-200' },
-  { value: '중', label: '중', color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
-  { value: '하', label: '하', color: 'bg-green-50 text-green-600 border-green-200' },
-] as const
 
 // ─── 과목 옵션 ───
 
@@ -143,20 +10,92 @@ export const SUBJECT_OPTIONS = [
   { value: '과학', key: 'science' as const, enabled: false },
 ] as const
 
-// ─── Helper: 계층에서 특정 depth의 키 목록 가져오기 ───
+// ─── 난이도 옵션 ───
 
-export function getDepth1Keys(hierarchy: HierarchyTree): string[] {
-  return Object.keys(hierarchy)
+export const DIFFICULTY_OPTIONS = [
+  { value: '상', label: '상', color: 'bg-red-50 text-red-600 border-red-200' },
+  { value: '중', label: '중', color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
+  { value: '하', label: '하', color: 'bg-green-50 text-green-600 border-green-200' },
+] as const
+
+// ─── 수학 대단원 (학년별) ───
+
+export const MATH_UNITS: Record<string, string[]> = {
+  '중등 수학 수학1': [
+    'I. 수와 연산',
+    'II. 문자와 식',
+    'III. 좌표평면과 그래프',
+    'IV. 기본 도형',
+    'V. 평면도형과 입체도형',
+    'VI. 통계',
+  ],
+  '중등 수학 수학2': [
+    'I. 유리수의 표현과 식의 계산',
+    'II. 부등식과 연립방정식',
+    'III. 일차함수',
+    'IV. 삼각형과 사각형의 성질',
+    'V. 도형의 닮음과 피타고라스 정리',
+    'VI. 확률',
+  ],
 }
 
-export function getDepth2Keys(hierarchy: HierarchyTree, depth1: string): string[] {
-  return Object.keys(hierarchy[depth1] ?? {})
+// ─── 영어 단원 (학년별) — 목업 Lesson 1~8 고정 ───
+
+export const ENGLISH_LESSONS: Record<string, string[]> = {
+  '중등 영어 영어1': [
+    'Lesson 1. Ready for a New Start',
+    'Lesson 2. Happy with My Family',
+    'Lesson 3. Love All Life',
+    'Lesson 4. Everyday Art',
+    'Lesson 5. Meet the New World',
+    'Lesson 6. Walk Around the World',
+    'Lesson 7. Greener, Greater',
+    'Lesson 8. For a Better Tomorrow',
+  ],
+  '중등 영어 영어2': [
+    'Lesson 1',
+    'Lesson 2',
+    'Lesson 3',
+    'Lesson 4',
+    'Lesson 5',
+    'Lesson 6',
+    'Lesson 7',
+    'Lesson 8',
+  ],
 }
 
-export function getDepth3Keys(hierarchy: HierarchyTree, depth1: string, depth2: string): string[] {
-  return Object.keys(hierarchy[depth1]?.[depth2] ?? {})
+// ─── 영어 콘텐츠 유형 ───
+
+export type EnglishContentType = '어휘' | '문법'
+
+export const ENGLISH_CONTENT_TYPES: EnglishContentType[] = ['어휘', '문법']
+
+// ─── 영어 세부 유형 ───
+
+export const ENGLISH_SUB_TYPES: Record<EnglishContentType, string[]> = {
+  '어휘': [
+    '잘못 연결된 단어와 뜻 고르기',
+    '진짜 단어 찾기',
+    '단어 완성하기',
+    '알맞은 단어, 뜻 고르기',
+  ],
+  '문법': [
+    '문법 도전하기 1',
+    '문법 도전하기 2',
+  ],
 }
 
-export function getDepth4Keys(hierarchy: HierarchyTree, depth1: string, depth2: string, depth3: string): string[] {
-  return hierarchy[depth1]?.[depth2]?.[depth3] ?? []
+// ─── 헬퍼 ───
+
+export function getMathUnits(grade: string): string[] {
+  return MATH_UNITS[grade] ?? []
+}
+
+export function getEnglishLessons(grade: string): string[] {
+  return ENGLISH_LESSONS[grade] ?? []
+}
+
+export function getEnglishSubTypes(contentType: EnglishContentType | ''): string[] {
+  if (!contentType) return []
+  return ENGLISH_SUB_TYPES[contentType] ?? []
 }

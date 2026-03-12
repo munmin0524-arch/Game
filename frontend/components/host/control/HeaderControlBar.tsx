@@ -8,6 +8,7 @@ import {
   Users,
   LayoutDashboard,
   X,
+  BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,8 +29,10 @@ interface HeaderControlBarProps {
   elapsedTime: number
   totalStudents: number
   finishedCount: number
+  isGameEnded?: boolean
   onPauseResume: () => void
   onForceEnd: () => void
+  onViewReport?: () => void
   onClose: () => void
 }
 
@@ -38,8 +41,10 @@ export default function HeaderControlBar({
   elapsedTime,
   totalStudents,
   finishedCount,
+  isGameEnded,
   onPauseResume,
   onForceEnd,
+  onViewReport,
   onClose,
 }: HeaderControlBarProps) {
   const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0')
@@ -86,53 +91,75 @@ export default function HeaderControlBar({
 
       {/* 제어 버튼 */}
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
-        <Button
-          variant={isPaused ? 'default' : 'outline'}
-          size="sm"
-          className="h-8 text-xs gap-1.5"
-          onClick={onPauseResume}
-        >
-          {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
-          {isPaused ? '재개' : '일시정지'}
-        </Button>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant={allFinished ? 'default' : 'ghost'}
-              size="sm"
-              className={
-                allFinished
-                  ? 'h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700'
-                  : 'h-8 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 gap-1.5'
-              }
-            >
-              <XCircle className="h-3.5 w-3.5" />
-              {allFinished ? '게임 종료' : '강제 종료'}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {allFinished ? '게임을 종료할까요?' : '게임을 강제 종료할까요?'}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {allFinished
-                  ? '모든 학생이 완료했습니다. 결과 화면으로 이동합니다.'
-                  : '지금 종료하면 현재까지의 결과로 랭킹이 집계됩니다.'}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={onForceEnd}
-                className={allFinished ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}
+        {isGameEnded ? (
+          /* 게임 종료 후: 리포트 보기 버튼 */
+          <>
+            <Badge className="bg-gray-100 text-gray-600 border border-gray-200 text-xs">
+              종료됨
+            </Badge>
+            {onViewReport && (
+              <Button
+                size="sm"
+                className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700"
+                onClick={onViewReport}
               >
-                {allFinished ? '종료' : '강제 종료'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <BarChart2 className="h-3.5 w-3.5" />
+                리포트 보기
+              </Button>
+            )}
+          </>
+        ) : (
+          /* 게임 진행 중: 일시정지 + 종료 */
+          <>
+            <Button
+              variant={isPaused ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 text-xs gap-1.5"
+              onClick={onPauseResume}
+            >
+              {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+              {isPaused ? '재개' : '일시정지'}
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant={allFinished ? 'default' : 'ghost'}
+                  size="sm"
+                  className={
+                    allFinished
+                      ? 'h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700'
+                      : 'h-8 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 gap-1.5'
+                  }
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  {allFinished ? '게임 종료' : '강제 종료'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {allFinished ? '게임을 종료할까요?' : '게임을 강제 종료할까요?'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {allFinished
+                      ? '모든 학생이 완료했습니다. 결과 화면으로 이동합니다.'
+                      : '지금 종료하면 현재까지의 결과로 랭킹이 집계됩니다.'}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onForceEnd}
+                    className={allFinished ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}
+                  >
+                    {allFinished ? '종료' : '강제 종료'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
       </div>
 
       {/* 나가기 */}

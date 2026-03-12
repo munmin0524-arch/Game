@@ -1,10 +1,11 @@
-// S-02 세트지 목록
+// S-02 세트지 목록 — 탭 분류 + 카드 그리드 + 공유
 // 스펙: docs/screens/phase1-live-core.md#s-02
 
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,21 +18,91 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { SetListItem } from '@/components/host/SetListItem'
+import { QuizCard, QuizCardSkeleton } from '@/components/common/QuizCard'
+import { PublishDialog } from '@/components/marketplace/PublishDialog'
 import { EmptyState } from '@/components/common/EmptyState'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/use-toast'
 import { questionSetsApi } from '@/lib/api'
 import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
 import type { QuestionSet } from '@/types'
 
+// ─── Mock 데이터 (백엔드 연결 전 폴백) ───
+
+const MOCK_SETS: QuestionSet[] = [
+  {
+    set_id: 'mock-s-01', host_member_id: 'me', title: '중1 정수와 유리수 단원평가',
+    subject: '수학', grade: '중1-1학기', tags: ['정수', '유리수'], is_deleted: false,
+    is_shared: false, original_set_id: null, question_count: 15,
+    created_at: '2026-03-01T10:00:00Z', updated_at: '2026-03-10T14:30:00Z',
+  },
+  {
+    set_id: 'mock-s-02', host_member_id: 'me', title: '영어 Lesson 2 어휘 퀴즈',
+    subject: '영어', grade: '중1-1학기', tags: ['어휘'], is_deleted: false,
+    is_shared: true, original_set_id: null, question_count: 20,
+    created_at: '2026-02-28T09:00:00Z', updated_at: '2026-03-08T11:00:00Z',
+  },
+  {
+    set_id: 'mock-s-03', host_member_id: 'me', title: '중2 연립방정식 기초 연습',
+    subject: '수학', grade: '중2-1학기', tags: ['연립방정식'], is_deleted: false,
+    is_shared: false, original_set_id: null, question_count: 12,
+    created_at: '2026-02-20T08:00:00Z', updated_at: '2026-03-05T16:00:00Z',
+  },
+  {
+    set_id: 'mock-s-04', host_member_id: 'me', title: '영어 문법 OX 퀴즈 (비교급/최상급)',
+    subject: '영어', grade: '중2-1학기', tags: ['문법', 'OX'], is_deleted: false,
+    is_shared: false, original_set_id: null, question_count: 10,
+    created_at: '2026-02-15T13:00:00Z', updated_at: '2026-03-02T10:00:00Z',
+  },
+  {
+    set_id: 'mock-s-05', host_member_id: 'me', title: '중3 이차방정식의 풀이',
+    subject: '수학', grade: '중3-1학기', tags: ['이차방정식'], is_deleted: false,
+    is_shared: true, original_set_id: null, question_count: 18,
+    created_at: '2026-02-10T11:00:00Z', updated_at: '2026-02-28T09:30:00Z',
+  },
+  {
+    set_id: 'mock-s-06', host_member_id: 'me', title: '영어 독해 실전 문제 (Lesson 4)',
+    subject: '영어', grade: '중2-2학기', tags: ['독해', '읽기'], is_deleted: false,
+    is_shared: false, original_set_id: null, question_count: 8,
+    created_at: '2026-01-25T14:00:00Z', updated_at: '2026-02-20T17:00:00Z',
+  },
+  {
+    set_id: 'mock-s-07', host_member_id: 'me', title: '중1 기본 도형 개념 확인',
+    subject: '수학', grade: '중1-2학기', tags: ['도형'], is_deleted: false,
+    is_shared: false, original_set_id: null, question_count: 14,
+    created_at: '2026-01-18T10:00:00Z', updated_at: '2026-02-15T12:00:00Z',
+  },
+  {
+    set_id: 'mock-s-08', host_member_id: 'me', title: '영어 듣기 표현 정리 (중1)',
+    subject: '영어', grade: '중1-2학기', tags: ['듣기', '표현'], is_deleted: false,
+    is_shared: false, original_set_id: null, question_count: 16,
+    created_at: '2026-01-10T09:00:00Z', updated_at: '2026-02-10T15:00:00Z',
+  },
+]
+
+// ─── 탭 정의 ───
+
+type TabKey = 'mine' | 'shared' | 'quiz_party'
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'mine', label: '내가 만든' },
+  { key: 'shared', label: '선생님 공유 퀴즈' },
+  { key: 'quiz_party', label: '퀴즈파티 퀴즈' },
+]
+
 export default function SetsPage() {
+  const router = useRouter()
   const { toast } = useToast()
+
+  const [activeTab, setActiveTab] = useState<TabKey>('mine')
   const [sets, setSets] = useState<QuestionSet[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [subject, setSubject] = useState('전체')
   const [grade, setGrade] = useState('전체')
+
+  // 공유 다이얼로그
+  const [publishOpen, setPublishOpen] = useState(false)
+  const [publishTarget, setPublishTarget] = useState<QuestionSet | null>(null)
 
   const gradeGroups = getGradeGroups(subject === '전체' ? null : subject)
 
@@ -42,23 +113,24 @@ export default function SetsPage() {
         search: search || undefined,
         subject: subject === '전체' ? undefined : subject,
         grade: grade === '전체' ? undefined : grade,
+        source: activeTab === 'mine' ? undefined : activeTab,
       })
       setSets(res.data)
     } catch {
-      toast({ title: '퀴즈 목록을 불러오지 못했습니다.', variant: 'destructive' })
+      setSets(MOCK_SETS)
     } finally {
       setLoading(false)
     }
-  }, [search, subject, grade, toast])
+  }, [search, subject, grade, activeTab, toast])
 
   useEffect(() => {
-    const timer = setTimeout(fetchSets, 300) // 검색 디바운스
+    const timer = setTimeout(fetchSets, 300)
     return () => clearTimeout(timer)
   }, [fetchSets])
 
   const handleSubjectChange = (v: string) => {
     setSubject(v)
-    setGrade('전체') // 과목 변경 시 학년 초기화
+    setGrade('전체')
   }
 
   const handleDuplicate = async (setId: string) => {
@@ -87,6 +159,20 @@ export default function SetsPage() {
     }
   }
 
+  const handleShare = (qs: QuestionSet) => {
+    setPublishTarget(qs)
+    setPublishOpen(true)
+  }
+
+  const handlePublish = (_form: { title: string; description: string; subject: string; grade: string; tags: string[] }) => {
+    // TODO: marketplaceApi.publish(publishTarget.set_id, form)
+    toast({ title: '퀴즈 광장에 공유되었습니다.' })
+    setPublishOpen(false)
+    setPublishTarget(null)
+  }
+
+  const isMine = activeTab === 'mine'
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -100,6 +186,26 @@ export default function SetsPage() {
         </Button>
       </div>
 
+      {/* 탭 */}
+      <div className="flex gap-1 border-b">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative
+              ${activeTab === tab.key
+                ? 'text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+              }`}
+          >
+            {tab.label}
+            {activeTab === tab.key && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+            )}
+          </button>
+        ))}
+      </div>
+
       {/* 검색 + 필터 */}
       <div className="flex gap-3">
         <div className="relative flex-1">
@@ -111,8 +217,6 @@ export default function SetsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        {/* 과목 */}
         <Select value={subject} onValueChange={handleSubjectChange}>
           <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="과목" />
@@ -126,8 +230,6 @@ export default function SetsPage() {
             ))}
           </SelectContent>
         </Select>
-
-        {/* 학년/학기 */}
         <Select value={grade} onValueChange={setGrade}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="학년/학기" />
@@ -148,30 +250,53 @@ export default function SetsPage() {
         </Select>
       </div>
 
-      {/* 목록 */}
+      {/* 카드 그리드 */}
       {loading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <QuizCardSkeleton key={i} />
           ))}
         </div>
       ) : sets.length === 0 ? (
         <EmptyState
           title={search ? '검색 결과가 없어요' : '아직 퀴즈가 없어요'}
-          description={search ? '다른 키워드로 검색해보세요.' : '첫 번째 퀴즈를 만들어보세요.'}
+          description={
+            search
+              ? '다른 키워드로 검색해보세요.'
+              : isMine
+                ? '첫 번째 퀴즈를 만들어보세요.'
+                : '아직 이 카테고리에 퀴즈가 없습니다.'
+          }
         />
       ) : (
-        <div className="divide-y rounded-lg border bg-white">
-          {sets.map((set) => (
-            <SetListItem
-              key={set.set_id}
-              set={set}
-              onDuplicate={() => handleDuplicate(set.set_id)}
-              onDelete={() => handleDelete(set.set_id)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {sets.map((qs) => (
+            <QuizCard
+              key={qs.set_id}
+              id={qs.set_id}
+              title={qs.title}
+              questionCount={qs.question_count ?? 0}
+              subject={qs.subject}
+              grade={qs.grade}
+              showActions={isMine}
+              onClick={() => router.push(`/sets/${qs.set_id}/edit`)}
+              onEdit={() => router.push(`/sets/${qs.set_id}/edit`)}
+              onDuplicate={() => handleDuplicate(qs.set_id)}
+              onGameOpen={() => router.push(`/sets/${qs.set_id}/deploy`)}
+              onShare={isMine ? () => handleShare(qs) : undefined}
+              onDelete={isMine ? () => handleDelete(qs.set_id) : undefined}
             />
           ))}
         </div>
       )}
+
+      {/* 공유 다이얼로그 */}
+      <PublishDialog
+        open={publishOpen}
+        onOpenChange={setPublishOpen}
+        defaultTitle={publishTarget?.title ?? ''}
+        onPublish={handlePublish}
+      />
     </div>
   )
 }

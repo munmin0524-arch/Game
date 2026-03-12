@@ -97,7 +97,15 @@ export default function ControlPage() {
 
   // ── 핸들러 ──
   const handlePauseResume = () => { isPaused ? resumeGame() : pauseGame() }
-  const handleForceEnd = () => forceEndGame(sessionId)
+  const [isGameEnded, setIsGameEnded] = useState(false)
+
+  const handleForceEnd = () => {
+    forceEndGame(sessionId)
+    setIsGameEnded(true)
+    if (timerRef.current) clearInterval(timerRef.current)
+    toast({ title: '게임이 종료되었습니다.' })
+  }
+  const handleViewReport = () => router.push(`/sessions/${sessionId}/report/questions`)
   const handleSelectStudent = (student: StudentMonitorData) => {
     setDetailStudent(student)
     setDetailOpen(true)
@@ -112,8 +120,10 @@ export default function ControlPage() {
         elapsedTime={elapsedTime}
         totalStudents={students.length}
         finishedCount={finishedCount}
+        isGameEnded={isGameEnded}
         onPauseResume={handlePauseResume}
         onForceEnd={handleForceEnd}
+        onViewReport={handleViewReport}
         onClose={handleClose}
       />
 

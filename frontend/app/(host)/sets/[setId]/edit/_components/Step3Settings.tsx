@@ -235,7 +235,7 @@ export function Step3Settings() {
             onClick={() => handleSave(true)}
             className="gap-1"
           >
-            <Rocket className="h-4 w-4" /> 저장 후 배포
+            <Rocket className="h-4 w-4" /> 저장 후 게임 출제
           </Button>
         </div>
       </div>

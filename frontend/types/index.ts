@@ -310,7 +310,7 @@ export interface PublishFormValues {
 // ─────────────────────────────────────────────────────────────
 
 export type SessionType = 'live' | 'assignment'
-export type GameMode = 'tug_of_war' | 'boat_racing' | 'kickboard_racing' | 'balloon_flying' | 'marathon'
+export type GameMode = 'tug_of_war' | 'boat_racing' | 'kickboard_racing' | 'balloon_flying' | 'marathon' | 'audition'
 export type DeployType = 'existing_group' | 'new_group' | 'public_qr'
 export type SessionStatus = 'waiting' | 'in_progress' | 'paused' | 'completed' | 'cancelled'
 export type ScorePolicy = 'first_attempt' | 'last_attempt' | 'best_attempt'

@@ -53,6 +53,7 @@ const GAME_MODES: Record<GameMode, GameModeInfo> = {
   kickboard_racing: { label: '킥보드 레이싱',  type: 'SINGLE', color: 'bg-green-500',  emoji: '🛴' },
   balloon_flying:   { label: '풍선으로 날기',  type: 'SINGLE', color: 'bg-pink-500',   emoji: '🎈' },
   marathon:         { label: '마라톤',         type: 'SINGLE', color: 'bg-orange-500', emoji: '🏃' },
+  audition:         { label: '오디션',         type: 'TEAM',   color: 'bg-purple-500', emoji: '🎤' },
 }
 
 // ─── 캐릭터 목록 ──────────────────────────────────────────

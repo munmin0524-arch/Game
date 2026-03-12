@@ -1,4 +1,4 @@
-// MarketplaceFilters — 마켓플레이스 필터바
+// MarketplaceFilters — 마켓플레이스 필터바 (단원 필터 포함)
 // S-M01 홈, S-M02 검색 결과에서 사용
 
 'use client'
@@ -16,6 +16,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SUBJECT_OPTIONS, getGradeGroups } from '@/lib/filter-constants'
+import {
+  getMathUnits,
+  getEnglishLessons,
+} from '@/app/(host)/sets/[setId]/edit/_components/FilterHierarchyData'
 
 interface MarketplaceFiltersProps {
   search: string
@@ -24,16 +28,10 @@ interface MarketplaceFiltersProps {
   onSubjectChange: (value: string) => void
   grade: string
   onGradeChange: (value: string) => void
-  questionType?: string
-  onTypeChange?: (value: string) => void
+  unit?: string
+  onUnitChange?: (value: string) => void
   onSearch?: () => void
 }
-
-const QUESTION_TYPES = [
-  { value: '전체', label: '전체' },
-  { value: 'multiple_choice', label: '객관식' },
-  { value: 'ox', label: 'OX' },
-]
 
 export function MarketplaceFilters({
   search,
@@ -42,8 +40,8 @@ export function MarketplaceFilters({
   onSubjectChange,
   grade,
   onGradeChange,
-  questionType,
-  onTypeChange,
+  unit,
+  onUnitChange,
   onSearch,
 }: MarketplaceFiltersProps) {
   const gradeGroups = useMemo(
@@ -51,9 +49,23 @@ export function MarketplaceFilters({
     [subject],
   )
 
+  // 단원 목록: 과목+학년에 따라 동적 생성
+  const unitOptions = useMemo(() => {
+    if (grade === '전체' || !grade) return []
+    if (subject === '수학') return getMathUnits(grade)
+    if (subject === '영어') return getEnglishLessons(grade)
+    return []
+  }, [subject, grade])
+
   const handleSubjectChange = (v: string) => {
     onSubjectChange(v)
-    onGradeChange('전체') // 과목 변경 시 학년 초기화
+    onGradeChange('전체')
+    onUnitChange?.('전체')
+  }
+
+  const handleGradeChange = (v: string) => {
+    onGradeChange(v)
+    onUnitChange?.('전체')
   }
 
   return (
@@ -86,7 +98,7 @@ export function MarketplaceFilters({
       </Select>
 
       {/* 학년/학기 필터 */}
-      <Select value={grade} onValueChange={onGradeChange}>
+      <Select value={grade} onValueChange={handleGradeChange}>
         <SelectTrigger className="w-[200px] rounded-full">
           <SelectValue placeholder="학년/학기" />
         </SelectTrigger>
@@ -105,16 +117,17 @@ export function MarketplaceFilters({
         </SelectContent>
       </Select>
 
-      {/* 문항 유형 필터 */}
-      {onTypeChange && (
-        <Select value={questionType ?? '전체'} onValueChange={onTypeChange}>
-          <SelectTrigger className="w-[120px] rounded-full">
-            <SelectValue placeholder="유형" />
+      {/* 단원 필터 (과목+학년 선택 후 활성화) */}
+      {onUnitChange && unitOptions.length > 0 && (
+        <Select value={unit ?? '전체'} onValueChange={onUnitChange}>
+          <SelectTrigger className="w-[220px] rounded-full">
+            <SelectValue placeholder="단원" />
           </SelectTrigger>
           <SelectContent>
-            {QUESTION_TYPES.map((t) => (
-              <SelectItem key={t.value} value={t.value}>
-                {t.label}
+            <SelectItem value="전체">전체 단원</SelectItem>
+            {unitOptions.map((u) => (
+              <SelectItem key={u} value={u}>
+                {u}
               </SelectItem>
             ))}
           </SelectContent>

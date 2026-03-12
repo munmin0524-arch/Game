@@ -3,9 +3,9 @@
 
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Flag, Copy, CheckSquare, Square } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ArrowLeft, Flag, Copy, CheckSquare, Square, Play, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -18,7 +18,7 @@ import { QuestionPreview } from '@/components/host/QuestionPreview'
 import type { SharedSet, Question } from '@/types'
 
 interface PageProps {
-  params: Promise<{ sharedSetId: string }>
+  params: { sharedSetId: string }
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -27,11 +27,52 @@ const TYPE_LABELS: Record<string, string> = {
   unscramble: '단어 배열',
 }
 
+// ─── Mock 상세 데이터 (백엔드 연결 전 폴백) ───
+
+function getMockDetail(sharedSetId: string): SharedSet {
+  const mockQuestions: Question[] = [
+    { question_id: 'mq-01', set_id: '', type: 'multiple_choice', content: '(-3) + (+7)의 값은?', options: ['-4', '4', '10', '-10'], answer: '4', order_index: 0, difficulty: '하', unit: 'I. 수와 연산' },
+    { question_id: 'mq-02', set_id: '', type: 'multiple_choice', content: '(-12) ÷ (+4) × (-2)의 값을 구하시오.', options: ['6', '-6', '8', '-8'], answer: '6', order_index: 1, difficulty: '중', unit: 'I. 수와 연산' },
+    { question_id: 'mq-03', set_id: '', type: 'ox', content: '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', options: ['O', 'X'], answer: 'O', order_index: 2, difficulty: '하', unit: 'I. 수와 연산' },
+    { question_id: 'mq-04', set_id: '', type: 'multiple_choice', content: '절댓값이 5인 정수를 모두 구하면?', options: ['5', '-5', '5와 -5', '0과 5'], answer: '5와 -5', order_index: 3, difficulty: '중', unit: 'I. 수와 연산' },
+    { question_id: 'mq-05', set_id: '', type: 'multiple_choice', content: '(-2)³의 값은?', options: ['-8', '8', '-6', '6'], answer: '-8', order_index: 4, difficulty: '상', unit: 'I. 수와 연산' },
+  ]
+
+  return {
+    shared_set_id: sharedSetId,
+    set_id: 's-mock',
+    host_member_id: 'h-01',
+    status: 'published',
+    title: '중1 수학 정수와 연산 총정리',
+    description: '중학교 1학년 수학 정수와 연산 단원의 핵심 문제를 모았습니다.',
+    subject: '수학',
+    grade: '중1-1학기',
+    tags: ['정수', '연산'],
+    question_count: mockQuestions.length,
+    like_count: 42,
+    download_count: 128,
+    achievement_standards: ['[9수01-01]', '[9수01-02]'],
+    published_at: '2026-02-10T09:00:00Z',
+    updated_at: '2026-02-10T09:00:00Z',
+    avg_rating: 4.7,
+    review_count: 12,
+    host_nickname: '수학쌤',
+    is_certified: true,
+    is_bookmarked: false,
+    is_liked: false,
+    questions: mockQuestions,
+  }
+}
+
 export default function SharedSetDetailPage({ params }: PageProps) {
-  const { sharedSetId } = use(params)
+  const { sharedSetId } = params
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isQuizParty = searchParams.get('source') === 'quiz_party'
+
   const [detail, setDetail] = useState<SharedSet | null>(null)
   const [loading, setLoading] = useState(true)
+  const [copying, setCopying] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
@@ -39,10 +80,20 @@ export default function SharedSetDetailPage({ params }: PageProps) {
 
   useEffect(() => {
     fetch(`/api/marketplace/${sharedSetId}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('not found')
+        return res.json()
+      })
       .then((data) => {
         setDetail(data)
         const qs = (data.questions ?? []) as Question[]
+        if (qs.length > 0) setSelectedQuestionId(qs[0].question_id)
+      })
+      .catch(() => {
+        // Mock 폴백
+        const mock = getMockDetail(sharedSetId)
+        setDetail(mock)
+        const qs = (mock.questions ?? []) as Question[]
         if (qs.length > 0) setSelectedQuestionId(qs[0].question_id)
       })
       .finally(() => setLoading(false))
@@ -96,6 +147,27 @@ export default function SharedSetDetailPage({ params }: PageProps) {
     alert('전체 세트를 복사합니다. (TODO: 새 세트 생성)')
   }
 
+  // ─── 레디메이드 세트 복사 → 내 퀴즈 저장 ───
+
+  const copySetToMyQuiz = async (): Promise<string> => {
+    // TODO: 백엔드 연결 시 POST /api/sets/copy-from-shared { sharedSetId }
+    const newSetId = `copied-${Date.now()}`
+    await new Promise((r) => setTimeout(r, 400)) // mock delay
+    return newSetId
+  }
+
+  const handlePreviewInEditor = async () => {
+    setCopying(true)
+    const newSetId = await copySetToMyQuiz()
+    router.push(`/sets/${newSetId}/edit`)
+  }
+
+  const handleStartQuiz = async () => {
+    setCopying(true)
+    const newSetId = await copySetToMyQuiz()
+    router.push(`/sets/${newSetId}/deploy`)
+  }
+
   return (
     <div className="flex h-screen flex-col">
       {/* 상단 바 */}
@@ -144,17 +216,28 @@ export default function SharedSetDetailPage({ params }: PageProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* 좌: 문항 목록 */}
         <aside className="flex w-72 flex-col border-r bg-slate-50/80 shrink-0">
-          {/* 전체 선택 바 */}
-          <div className="flex items-center justify-between border-b bg-white px-3 py-2 shrink-0">
-            <Button variant="ghost" size="sm" onClick={toggleAll} className="text-xs gap-1">
-              {selectedIds.size === questions.length ? (
-                <><CheckSquare className="h-3.5 w-3.5" /> 전체 해제</>
-              ) : (
-                <><Square className="h-3.5 w-3.5" /> 전체 선택</>
-              )}
-            </Button>
-            <span className="text-xs text-gray-400">{questions.length}개</span>
-          </div>
+          {/* 세트 요약 (퀴즈파티) / 전체 선택 바 (커뮤니티) */}
+          {isQuizParty ? (
+            <div className="border-b bg-white px-4 py-3 shrink-0 space-y-1">
+              <p className="text-sm font-bold text-gray-900 truncate">{detail.title}</p>
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 rounded-full">{detail.subject}</Badge>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded-full">{detail.grade}</Badge>
+                <span>· {questions.length}문항</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between border-b bg-white px-3 py-2 shrink-0">
+              <Button variant="ghost" size="sm" onClick={toggleAll} className="text-xs gap-1">
+                {selectedIds.size === questions.length ? (
+                  <><CheckSquare className="h-3.5 w-3.5" /> 전체 해제</>
+                ) : (
+                  <><Square className="h-3.5 w-3.5" /> 전체 선택</>
+                )}
+              </Button>
+              <span className="text-xs text-gray-400">{questions.length}개</span>
+            </div>
+          )}
 
           {/* 문항 카드 목록 */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -167,12 +250,14 @@ export default function SharedSetDetailPage({ params }: PageProps) {
                     : 'bg-white hover:bg-gray-50 border-gray-100'}`}
                 onClick={() => setSelectedQuestionId(q.question_id)}
               >
-                <Checkbox
-                  checked={selectedIds.has(q.question_id)}
-                  className="mt-0.5 shrink-0"
-                  onClick={(e) => e.stopPropagation()}
-                  onCheckedChange={() => toggleQuestion(q.question_id)}
-                />
+                {!isQuizParty && (
+                  <Checkbox
+                    checked={selectedIds.has(q.question_id)}
+                    className="mt-0.5 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                    onCheckedChange={() => toggleQuestion(q.question_id)}
+                  />
+                )}
                 <span className="mt-0.5 w-5 shrink-0 text-center text-xs font-medium text-gray-400">
                   {idx + 1}
                 </span>
@@ -258,25 +343,56 @@ export default function SharedSetDetailPage({ params }: PageProps) {
 
       {/* 하단 고정 바 */}
       <div className="shrink-0 bg-white/90 backdrop-blur border-t px-6 py-3 flex items-center justify-between">
-        <span className="text-sm text-gray-500">
-          {selectedIds.size > 0 ? `${selectedIds.size}개 선택` : '문항을 선택하세요'}
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={selectedIds.size === 0}
-            onClick={handleCopySelected}
-            className="gap-1"
-          >
-            <Copy className="h-4 w-4" />
-            선택 문항 내 세트에 추가
-          </Button>
-          <Button size="sm" onClick={handleCopyAll} className="gap-1">
-            <Copy className="h-4 w-4" />
-            전체 세트 복사
-          </Button>
-        </div>
+        {isQuizParty ? (
+          <>
+            <span className="text-sm text-gray-500">
+              {detail.question_count}문항 · {detail.subject} · {detail.grade}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={copying}
+                onClick={handlePreviewInEditor}
+                className="gap-1.5"
+              >
+                <Eye className="h-4 w-4" />
+                에디터 미리보기로 보기
+              </Button>
+              <Button
+                size="sm"
+                disabled={copying}
+                onClick={handleStartQuiz}
+                className="gap-1.5"
+              >
+                <Play className="h-4 w-4" />
+                {copying ? '저장 중...' : '바로 퀴즈 시작'}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="text-sm text-gray-500">
+              {selectedIds.size > 0 ? `${selectedIds.size}개 선택` : '문항을 선택하세요'}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selectedIds.size === 0}
+                onClick={handleCopySelected}
+                className="gap-1"
+              >
+                <Copy className="h-4 w-4" />
+                선택 문항 내 세트에 추가
+              </Button>
+              <Button size="sm" onClick={handleCopyAll} className="gap-1">
+                <Copy className="h-4 w-4" />
+                전체 세트 복사
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* 신고 다이얼로그 */}
