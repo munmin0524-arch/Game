@@ -24,26 +24,32 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 
 // ─── Mock 문항 뱅크 (백엔드 연결 전 폴백) ───
 
+const opts = (...texts: string[]) => texts.map((t, i) => ({ index: i + 1, text: t }))
+const mq = (id: string, type: Question['type'], content: string, options: Question['options'], answer: string, idx: number, diff: string, unit: string): Question => ({
+  question_id: id, set_id: '', type, content, options, answer, order_index: idx,
+  hint: null, explanation: null, media_url: null, created_at: '', difficulty: diff, unit,
+})
+
 const MOCK_QUESTIONS: Record<string, Question[]> = {
   '수학': [
-    { question_id: 'mock-q-m01', set_id: '', type: 'multiple_choice', content: '(-3) + (+7)의 값은?', options: ['-4', '4', '10', '-10'], answer: '4', order_index: 0, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m02', set_id: '', type: 'multiple_choice', content: '(-12) ÷ (+4) × (-2)의 값을 구하시오.', options: ['6', '-6', '8', '-8'], answer: '6', order_index: 1, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m03', set_id: '', type: 'ox', content: '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', options: ['O', 'X'], answer: 'O', order_index: 2, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m04', set_id: '', type: 'multiple_choice', content: '절댓값이 5인 정수를 모두 구하면?', options: ['5', '-5', '5와 -5', '0과 5'], answer: '5와 -5', order_index: 3, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m05', set_id: '', type: 'multiple_choice', content: '(-2)³의 값은?', options: ['-8', '8', '-6', '6'], answer: '-8', order_index: 4, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m06', set_id: '', type: 'ox', content: '0은 양의 정수도 음의 정수도 아니다.', options: ['O', 'X'], answer: 'O', order_index: 5, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m07', set_id: '', type: 'multiple_choice', content: '다음 중 가장 작은 수는? -3, 0, -7, 2, -1', options: ['-3', '-7', '-1', '0'], answer: '-7', order_index: 6, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m08', set_id: '', type: 'multiple_choice', content: '(-5) × (-4) + (-10) ÷ 2의 값은?', options: ['15', '25', '-15', '10'], answer: '15', order_index: 7, difficulty: '상', unit: 'I. 수와 연산' },
-    { question_id: 'mock-q-m09', set_id: '', type: 'multiple_choice', content: '문자와 식에서 2a + 3b, a=2, b=-1일 때 값은?', options: ['1', '7', '3', '-1'], answer: '1', order_index: 0, difficulty: '중', unit: 'II. 문자와 식' },
-    { question_id: 'mock-q-m10', set_id: '', type: 'multiple_choice', content: '일차방정식 2x + 6 = 0의 해는?', options: ['3', '-3', '6', '-6'], answer: '-3', order_index: 1, difficulty: '중', unit: 'II. 문자와 식' },
+    mq('mock-q-m01', 'multiple_choice', '(-3) + (+7)의 값은?', opts('-4', '4', '10', '-10'), '4', 0, '하', 'I. 수와 연산'),
+    mq('mock-q-m02', 'multiple_choice', '(-12) ÷ (+4) × (-2)의 값을 구하시오.', opts('6', '-6', '8', '-8'), '6', 1, '중', 'I. 수와 연산'),
+    mq('mock-q-m03', 'ox', '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', opts('O', 'X'), 'O', 2, '하', 'I. 수와 연산'),
+    mq('mock-q-m04', 'multiple_choice', '절댓값이 5인 정수를 모두 구하면?', opts('5', '-5', '5와 -5', '0과 5'), '5와 -5', 3, '중', 'I. 수와 연산'),
+    mq('mock-q-m05', 'multiple_choice', '(-2)³의 값은?', opts('-8', '8', '-6', '6'), '-8', 4, '중', 'I. 수와 연산'),
+    mq('mock-q-m06', 'ox', '0은 양의 정수도 음의 정수도 아니다.', opts('O', 'X'), 'O', 5, '하', 'I. 수와 연산'),
+    mq('mock-q-m07', 'multiple_choice', '다음 중 가장 작은 수는? -3, 0, -7, 2, -1', opts('-3', '-7', '-1', '0'), '-7', 6, '하', 'I. 수와 연산'),
+    mq('mock-q-m08', 'multiple_choice', '(-5) × (-4) + (-10) ÷ 2의 값은?', opts('15', '25', '-15', '10'), '15', 7, '상', 'I. 수와 연산'),
+    mq('mock-q-m09', 'multiple_choice', '문자와 식에서 2a + 3b, a=2, b=-1일 때 값은?', opts('1', '7', '3', '-1'), '1', 0, '중', 'II. 문자와 식'),
+    mq('mock-q-m10', 'multiple_choice', '일차방정식 2x + 6 = 0의 해는?', opts('3', '-3', '6', '-6'), '-3', 1, '중', 'II. 문자와 식'),
   ],
   '영어': [
-    { question_id: 'mock-q-e01', set_id: '', type: 'multiple_choice', content: '"apple"의 뜻으로 알맞은 것은?', options: ['바나나', '사과', '포도', '딸기'], answer: '사과', order_index: 0, difficulty: '하', unit: 'Lesson 1. Ready for a New Start' },
-    { question_id: 'mock-q-e02', set_id: '', type: 'multiple_choice', content: '"She ___ to school every day." 빈칸에 알맞은 것은?', options: ['go', 'goes', 'going', 'went'], answer: 'goes', order_index: 1, difficulty: '중', unit: 'Lesson 1. Ready for a New Start' },
-    { question_id: 'mock-q-e03', set_id: '', type: 'ox', content: '"I am a student."는 올바른 문장이다.', options: ['O', 'X'], answer: 'O', order_index: 2, difficulty: '하', unit: 'Lesson 1. Ready for a New Start' },
-    { question_id: 'mock-q-e04', set_id: '', type: 'multiple_choice', content: '다음 중 "행복한"을 뜻하는 영어 단어는?', options: ['sad', 'happy', 'angry', 'tired'], answer: 'happy', order_index: 3, difficulty: '하', unit: 'Lesson 2. Happy with My Family' },
-    { question_id: 'mock-q-e05', set_id: '', type: 'multiple_choice', content: '"He can ___ very fast." 빈칸에 알맞은 것은?', options: ['runs', 'run', 'running', 'ran'], answer: 'run', order_index: 4, difficulty: '중', unit: 'Lesson 2. Happy with My Family' },
-    { question_id: 'mock-q-e06', set_id: '', type: 'unscramble', content: '다음 단어를 올바른 순서로 배열하시오: "is / my / This / book"', options: [], answer: 'This is my book', order_index: 5, difficulty: '중', unit: 'Lesson 2. Happy with My Family' },
+    mq('mock-q-e01', 'multiple_choice', '"apple"의 뜻으로 알맞은 것은?', opts('바나나', '사과', '포도', '딸기'), '사과', 0, '하', 'Lesson 1. Ready for a New Start'),
+    mq('mock-q-e02', 'multiple_choice', '"She ___ to school every day." 빈칸에 알맞은 것은?', opts('go', 'goes', 'going', 'went'), 'goes', 1, '중', 'Lesson 1. Ready for a New Start'),
+    mq('mock-q-e03', 'ox', '"I am a student."는 올바른 문장이다.', opts('O', 'X'), 'O', 2, '하', 'Lesson 1. Ready for a New Start'),
+    mq('mock-q-e04', 'multiple_choice', '다음 중 "행복한"을 뜻하는 영어 단어는?', opts('sad', 'happy', 'angry', 'tired'), 'happy', 3, '하', 'Lesson 2. Happy with My Family'),
+    mq('mock-q-e05', 'multiple_choice', '"He can ___ very fast." 빈칸에 알맞은 것은?', opts('runs', 'run', 'running', 'ran'), 'run', 4, '중', 'Lesson 2. Happy with My Family'),
+    mq('mock-q-e06', 'unscramble', '다음 단어를 올바른 순서로 배열하시오: "is / my / This / book"', [], 'This is my book', 5, '중', 'Lesson 2. Happy with My Family'),
   ],
 }
 

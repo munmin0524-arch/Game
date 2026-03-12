@@ -18,20 +18,26 @@ import type { Question } from '@/types'
 
 // ─── 마켓플레이스 세트 Mock (백엔드 연결 전) ───
 
+const opts = (...texts: string[]) => texts.map((t, i) => ({ index: i + 1, text: t }))
+const mq = (id: string, type: Question['type'], content: string, options: Question['options'], answer: string, idx: number, diff: string, unit: string): Question => ({
+  question_id: id, set_id: '', type, content, options, answer, order_index: idx,
+  hint: null, explanation: null, media_url: null, created_at: '', difficulty: diff, unit,
+})
+
 function getMarketplaceMockQuestions(): Question[] {
   return [
-    { question_id: 'mp-01', set_id: '', type: 'multiple_choice', content: '(-3) + (+7)의 값은?', options: ['-4', '4', '10', '-10'], answer: '4', order_index: 0, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mp-02', set_id: '', type: 'multiple_choice', content: '(-12) ÷ (+4) × (-2)의 값을 구하시오.', options: ['6', '-6', '8', '-8'], answer: '6', order_index: 1, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mp-03', set_id: '', type: 'ox', content: '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', options: ['O', 'X'], answer: 'O', order_index: 2, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mp-04', set_id: '', type: 'multiple_choice', content: '절댓값이 5인 정수를 모두 구하면?', options: ['5', '-5', '5와 -5', '0과 5'], answer: '5와 -5', order_index: 3, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mp-05', set_id: '', type: 'multiple_choice', content: '(-2)³의 값은?', options: ['-8', '8', '-6', '6'], answer: '-8', order_index: 4, difficulty: '상', unit: 'I. 수와 연산' },
-    { question_id: 'mp-06', set_id: '', type: 'ox', content: '0은 양의 정수도 음의 정수도 아니다.', options: ['O', 'X'], answer: 'O', order_index: 5, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mp-07', set_id: '', type: 'multiple_choice', content: '다음 중 가장 작은 수는? -3, 0, -7, 2, -1', options: ['-3', '-7', '-1', '0'], answer: '-7', order_index: 6, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mp-08', set_id: '', type: 'multiple_choice', content: '(-5) × (-4) + (-10) ÷ 2의 값은?', options: ['15', '25', '-15', '10'], answer: '15', order_index: 7, difficulty: '상', unit: 'I. 수와 연산' },
-    { question_id: 'mp-09', set_id: '', type: 'multiple_choice', content: '문자와 식에서 2a + 3b, a=2, b=-1일 때 값은?', options: ['1', '7', '3', '-1'], answer: '1', order_index: 8, difficulty: '중', unit: 'II. 문자와 식' },
-    { question_id: 'mp-10', set_id: '', type: 'multiple_choice', content: '일차방정식 2x + 6 = 0의 해는?', options: ['3', '-3', '6', '-6'], answer: '-3', order_index: 9, difficulty: '중', unit: 'II. 문자와 식' },
-    { question_id: 'mp-11', set_id: '', type: 'multiple_choice', content: '소수(Prime number)가 아닌 것은?', options: ['2', '9', '11', '13'], answer: '9', order_index: 10, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mp-12', set_id: '', type: 'ox', content: '1은 소수도 합성수도 아니다.', options: ['O', 'X'], answer: 'O', order_index: 11, difficulty: '중', unit: 'I. 수와 연산' },
+    mq('mp-01', 'multiple_choice', '(-3) + (+7)의 값은?', opts('-4', '4', '10', '-10'), '4', 0, '하', 'I. 수와 연산'),
+    mq('mp-02', 'multiple_choice', '(-12) ÷ (+4) × (-2)의 값을 구하시오.', opts('6', '-6', '8', '-8'), '6', 1, '중', 'I. 수와 연산'),
+    mq('mp-03', 'ox', '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', opts('O', 'X'), 'O', 2, '하', 'I. 수와 연산'),
+    mq('mp-04', 'multiple_choice', '절댓값이 5인 정수를 모두 구하면?', opts('5', '-5', '5와 -5', '0과 5'), '5와 -5', 3, '중', 'I. 수와 연산'),
+    mq('mp-05', 'multiple_choice', '(-2)³의 값은?', opts('-8', '8', '-6', '6'), '-8', 4, '상', 'I. 수와 연산'),
+    mq('mp-06', 'ox', '0은 양의 정수도 음의 정수도 아니다.', opts('O', 'X'), 'O', 5, '하', 'I. 수와 연산'),
+    mq('mp-07', 'multiple_choice', '다음 중 가장 작은 수는? -3, 0, -7, 2, -1', opts('-3', '-7', '-1', '0'), '-7', 6, '하', 'I. 수와 연산'),
+    mq('mp-08', 'multiple_choice', '(-5) × (-4) + (-10) ÷ 2의 값은?', opts('15', '25', '-15', '10'), '15', 7, '상', 'I. 수와 연산'),
+    mq('mp-09', 'multiple_choice', '문자와 식에서 2a + 3b, a=2, b=-1일 때 값은?', opts('1', '7', '3', '-1'), '1', 8, '중', 'II. 문자와 식'),
+    mq('mp-10', 'multiple_choice', '일차방정식 2x + 6 = 0의 해는?', opts('3', '-3', '6', '-6'), '-3', 9, '중', 'II. 문자와 식'),
+    mq('mp-11', 'multiple_choice', '소수(Prime number)가 아닌 것은?', opts('2', '9', '11', '13'), '9', 10, '하', 'I. 수와 연산'),
+    mq('mp-12', 'ox', '1은 소수도 합성수도 아니다.', opts('O', 'X'), 'O', 11, '중', 'I. 수와 연산'),
   ]
 }
 
@@ -78,6 +84,8 @@ function EditorInner() {
           is_deleted: false,
           is_shared: false,
           original_set_id: null,
+          created_at: '',
+          updated_at: '',
         },
         questions: mockQs,
       })

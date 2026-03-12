@@ -30,12 +30,16 @@ const TYPE_LABELS: Record<string, string> = {
 // ─── Mock 상세 데이터 (백엔드 연결 전 폴백) ───
 
 function getMockDetail(sharedSetId: string): SharedSet {
+  const q = (id: string, type: Question['type'], content: string, options: Question['options'], answer: string, idx: number, diff: string): Question => ({
+    question_id: id, set_id: '', type, content, options, answer, order_index: idx,
+    hint: null, explanation: null, media_url: null, created_at: '', difficulty: diff, unit: 'I. 수와 연산',
+  })
   const mockQuestions: Question[] = [
-    { question_id: 'mq-01', set_id: '', type: 'multiple_choice', content: '(-3) + (+7)의 값은?', options: ['-4', '4', '10', '-10'], answer: '4', order_index: 0, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mq-02', set_id: '', type: 'multiple_choice', content: '(-12) ÷ (+4) × (-2)의 값을 구하시오.', options: ['6', '-6', '8', '-8'], answer: '6', order_index: 1, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mq-03', set_id: '', type: 'ox', content: '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', options: ['O', 'X'], answer: 'O', order_index: 2, difficulty: '하', unit: 'I. 수와 연산' },
-    { question_id: 'mq-04', set_id: '', type: 'multiple_choice', content: '절댓값이 5인 정수를 모두 구하면?', options: ['5', '-5', '5와 -5', '0과 5'], answer: '5와 -5', order_index: 3, difficulty: '중', unit: 'I. 수와 연산' },
-    { question_id: 'mq-05', set_id: '', type: 'multiple_choice', content: '(-2)³의 값은?', options: ['-8', '8', '-6', '6'], answer: '-8', order_index: 4, difficulty: '상', unit: 'I. 수와 연산' },
+    q('mq-01', 'multiple_choice', '(-3) + (+7)의 값은?', [{ index: 1, text: '-4' }, { index: 2, text: '4' }, { index: 3, text: '10' }, { index: 4, text: '-10' }], '4', 0, '하'),
+    q('mq-02', 'multiple_choice', '(-12) ÷ (+4) × (-2)의 값을 구하시오.', [{ index: 1, text: '6' }, { index: 2, text: '-6' }, { index: 3, text: '8' }, { index: 4, text: '-8' }], '6', 1, '중'),
+    q('mq-03', 'ox', '두 정수의 곱이 음수이면, 두 수의 부호는 서로 다르다.', [{ index: 1, text: 'O' }, { index: 2, text: 'X' }], 'O', 2, '하'),
+    q('mq-04', 'multiple_choice', '절댓값이 5인 정수를 모두 구하면?', [{ index: 1, text: '5' }, { index: 2, text: '-5' }, { index: 3, text: '5와 -5' }, { index: 4, text: '0과 5' }], '5와 -5', 3, '중'),
+    q('mq-05', 'multiple_choice', '(-2)³의 값은?', [{ index: 1, text: '-8' }, { index: 2, text: '8' }, { index: 3, text: '-6' }, { index: 4, text: '6' }], '-8', 4, '상'),
   ]
 
   return {
