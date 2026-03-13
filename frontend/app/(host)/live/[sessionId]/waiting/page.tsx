@@ -185,7 +185,7 @@ export default function WaitingPage() {
 
   const handleStart = async () => {
     setStarting(true)
-    startGame(sessionId)
+    try { startGame(sessionId) } catch { /* mock 환경에서 무시 */ }
     // 임시: 바로 컨트롤 패널로 이동
     router.push(`/live/${sessionId}/control`)
   }
