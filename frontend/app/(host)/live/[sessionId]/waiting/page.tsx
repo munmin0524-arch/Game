@@ -186,6 +186,8 @@ export default function WaitingPage() {
   const handleStart = async () => {
     setStarting(true)
     startGame(sessionId)
+    // 임시: 바로 컨트롤 패널로 이동
+    router.push(`/live/${sessionId}/control`)
   }
 
   const handleRegenQr = async () => {
