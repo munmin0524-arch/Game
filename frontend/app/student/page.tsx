@@ -1,196 +1,171 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Home,
   Gamepad2,
-  Brain,
   BookOpen,
-  ChevronRight,
-  Target,
-  Percent,
+  Lightbulb,
   Flame,
-  Trophy,
+  ChevronRight,
+  Candy,
+  Check,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import UnitSelector from '@/components/student/UnitSelector'
 
 // TODO: API에서 일일 데이터 로드
-const MOCK_DAILY = {
+const MOCK = {
   nickname: '김학생',
   jellyBalance: 24,
   questionsSolved: 24,
   questionsTarget: 60,
-  accuracy: 75,
-  streakDays: 7,
-  goalsAchieved: 2,
-  goalsTotal: 5,
   todayReviewCount: 5,
+  recommendCount: 2,
+  streakDays: 7,
+  recommendedUnit: '과학 > 마찰력',
+  recommendedReason: '취약',
+  maxJellyPerGame: 5,
+  missions: [
+    { label: '출석', done: true },
+    { label: '10문제', done: false },
+    { label: '게임승리', done: false },
+    { label: '80%↑', done: false },
+    { label: '오답복습', done: false },
+  ],
 }
 
-const MOCK_RECOMMENDATIONS = [
-  { icon: '💡', label: '미학습 단원: 탄성력' },
-  { icon: '📊', label: '취약 단원: 마찰력 (정답률 30%)' },
-]
+const progressPct = Math.round((MOCK.questionsSolved / MOCK.questionsTarget) * 100)
+const missionsDone = MOCK.missions.filter((m) => m.done).length
 
 export default function StudentHomePage() {
   const router = useRouter()
-  const [unitSelection, setUnitSelection] = useState<{
-    subject: string
-    unit: string
-    subUnit: string
-  } | null>(null)
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-6">
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">
-          안녕, {MOCK_DAILY.nickname}!
-        </h1>
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700">
-          🍬 곰젤리 {MOCK_DAILY.jellyBalance}
-        </span>
-      </div>
-
-      <p className="text-sm text-gray-500">오늘도 열심히 공부해볼까요?</p>
-
-      {/* ── Mission 1: 게임 시작하기 ── */}
-      <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-5 text-white shadow-card">
-        <div className="flex items-center gap-2 text-blue-100">
-          <Gamepad2 className="h-4 w-4" />
-          <span className="text-xs font-medium">Mission 1</span>
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            안녕, {MOCK.nickname}!
+          </h1>
+          <p className="mt-0.5 text-sm text-gray-400">오늘도 열심히 해볼까요?</p>
         </div>
-        <h2 className="mt-2 text-lg font-bold">게임 시작하기</h2>
-
-        {/* Unit Selector */}
-        <div className="mt-3">
-          <UnitSelector compact onSelect={setUnitSelection} />
-        </div>
-
-        <p className="mt-2 text-xs text-blue-100">10문제 (문항풀에서 출제)</p>
-
-        <Button
-          className="mt-3 w-full rounded-xl bg-white text-blue-600 hover:bg-blue-50 font-semibold"
-          onClick={() => router.push('/student/learn')}
+        <Link
+          href="/student/rewards"
+          className="flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-sm font-bold text-amber-600 hover:bg-amber-100 transition"
         >
-          게임 시작하기 <ChevronRight className="ml-1 h-4 w-4" />
-        </Button>
+          <Candy className="h-3.5 w-3.5" />
+          {MOCK.jellyBalance}
+        </Link>
       </div>
 
-      {/* ── Mission 2: 추천 학습 ── */}
-      <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 p-5 text-white shadow-card">
-        <div className="flex items-center gap-2 text-violet-100">
-          <Brain className="h-4 w-4" />
-          <span className="text-xs font-medium">Mission 2</span>
+      {/* ── 큰 CTA: 바로 시작하기 ── */}
+      <button
+        onClick={() => router.push('/student/learn')}
+        className="group w-full rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-5 text-left text-white shadow-lg hover:shadow-xl transition-shadow"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+              <Gamepad2 className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-lg font-bold">바로 시작하기</p>
+              <p className="mt-0.5 text-sm text-blue-100">
+                추천: {MOCK.recommendedUnit} ({MOCK.recommendedReason})
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-blue-200 group-hover:translate-x-1 transition-transform" />
         </div>
-        <h2 className="mt-2 text-lg font-bold">추천 학습</h2>
-
-        <ul className="mt-3 space-y-2">
-          {MOCK_RECOMMENDATIONS.map((rec, i) => (
-            <li
-              key={i}
-              className="rounded-lg bg-white/15 px-3 py-2 text-sm"
-            >
-              {rec.icon} {rec.label}
-            </li>
-          ))}
-        </ul>
-
-        <Button
-          className="mt-3 w-full rounded-xl bg-white text-violet-600 hover:bg-violet-50 font-semibold"
-          onClick={() => router.push('/student/learn')}
-        >
-          추천 학습 시작 <ChevronRight className="ml-1 h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* ── Mission 3: 오답노트 복습 ── */}
-      <div className="rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 p-5 text-white shadow-card">
-        <div className="flex items-center gap-2 text-amber-100">
-          <BookOpen className="h-4 w-4" />
-          <span className="text-xs font-medium">Mission 3</span>
+        <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs text-blue-100">
+          <Candy className="h-3 w-3" />
+          완료 시 최대 <span className="font-bold text-white">+{MOCK.maxJellyPerGame}</span> 젤리 획득
         </div>
-        <h2 className="mt-2 text-lg font-bold">오답노트 복습</h2>
+      </button>
 
-        <p className="mt-2 rounded-lg bg-white/15 px-3 py-2 text-sm">
-          📖 오늘 복습할 문제 {MOCK_DAILY.todayReviewCount}개
-        </p>
-
-        <Button
-          className="mt-3 w-full rounded-xl bg-white text-amber-600 hover:bg-amber-50 font-semibold"
+      {/* ── 퀵 액션 3칩 ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <button
           onClick={() => router.push('/student/wrong-notes')}
+          className="flex flex-col items-center gap-1.5 rounded-2xl bg-amber-50 border border-amber-100 p-4 hover:bg-amber-100 transition"
         >
-          오답노트 풀기 <ChevronRight className="ml-1 h-4 w-4" />
-        </Button>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+            <BookOpen className="h-5 w-5 text-amber-600" />
+          </div>
+          <span className="text-xl font-bold text-amber-700">{MOCK.todayReviewCount}</span>
+          <span className="text-[11px] font-medium text-amber-600">오답 복습</span>
+        </button>
+
+        <button
+          onClick={() => router.push('/student/learn')}
+          className="flex flex-col items-center gap-1.5 rounded-2xl bg-violet-50 border border-violet-100 p-4 hover:bg-violet-100 transition"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100">
+            <Lightbulb className="h-5 w-5 text-violet-600" />
+          </div>
+          <span className="text-xl font-bold text-violet-700">{MOCK.recommendCount}</span>
+          <span className="text-[11px] font-medium text-violet-600">추천 학습</span>
+        </button>
+
+        <div className="flex flex-col items-center gap-1.5 rounded-2xl bg-orange-50 border border-orange-100 p-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+            <Flame className="h-5 w-5 text-orange-500" />
+          </div>
+          <span className="text-xl font-bold text-orange-600">{MOCK.streakDays}</span>
+          <span className="text-[11px] font-medium text-orange-500">출석 연속</span>
+        </div>
       </div>
 
-      {/* ── 오늘의 요약 ── */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold text-gray-700">오늘의 요약</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {/* 풀은 문제 */}
-          <div className="rounded-xl bg-white p-4 shadow-soft">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Target className="h-4 w-4" />
-              <span className="text-xs font-medium">풀은 문제</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-gray-900">
-              {MOCK_DAILY.questionsSolved}
-              <span className="text-sm font-normal text-gray-400">
-                /{MOCK_DAILY.questionsTarget}
-              </span>
-            </p>
-          </div>
+      {/* ── 오늘의 진도 ── */}
+      <div className="rounded-2xl bg-white border border-gray-100 p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-gray-700">오늘의 진도</span>
+          <span className="text-xs text-gray-400">
+            {MOCK.questionsSolved}/{MOCK.questionsTarget} 문제
+          </span>
+        </div>
+        <div className="relative h-3 overflow-hidden rounded-full bg-gray-100">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <p className="mt-1.5 text-right text-xs font-semibold text-blue-600">{progressPct}%</p>
+      </div>
 
-          {/* 정답률 */}
-          <div className="rounded-xl bg-white p-4 shadow-soft">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Percent className="h-4 w-4" />
-              <span className="text-xs font-medium">정답률</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-gray-900">
-              {MOCK_DAILY.accuracy}
-              <span className="text-sm font-normal text-gray-400">%</span>
-            </p>
-          </div>
-
-          {/* 출석 연속 */}
-          <div className="rounded-xl bg-white p-4 shadow-soft">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Flame className="h-4 w-4" />
-              <span className="text-xs font-medium">출석 연속</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-gray-900">
-              {MOCK_DAILY.streakDays}
-              <span className="text-sm font-normal text-gray-400">일</span>
-            </p>
-          </div>
-
-          {/* 달성 목표 */}
-          <div className="rounded-xl bg-white p-4 shadow-soft">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Trophy className="h-4 w-4" />
-              <span className="text-xs font-medium">달성 목표</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-gray-900">
-              {MOCK_DAILY.goalsAchieved}
-              <span className="text-sm font-normal text-gray-400">
-                /{MOCK_DAILY.goalsTotal}
-              </span>
-            </p>
-          </div>
+      {/* ── 미션 달성 ── */}
+      <div className="rounded-2xl bg-white border border-gray-100 p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold text-gray-700">미션 달성</span>
+          <span className="text-xs font-bold text-blue-600">
+            {missionsDone}/{MOCK.missions.length}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {MOCK.missions.map((m) => (
+            <span
+              key={m.label}
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                m.done
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-400'
+              }`}
+            >
+              {m.done && <Check className="h-3 w-3" />}
+              {m.label}
+            </span>
+          ))}
         </div>
       </div>
 
       {/* ── 젤리 CTA ── */}
       <Link
         href="/student/rewards"
-        className="flex items-center justify-center gap-1 rounded-xl bg-amber-50 py-3 text-sm font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
+        className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 py-3 text-sm font-semibold text-amber-700 hover:bg-amber-100 transition"
       >
-        🍬 젤리 더 받으러가기 <ChevronRight className="h-4 w-4" />
+        <Candy className="h-4 w-4" />
+        젤리 더 받기
+        <ChevronRight className="h-4 w-4" />
       </Link>
     </div>
   )
