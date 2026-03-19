@@ -537,3 +537,128 @@ export interface PaginatedResponse<T> {
 // ─────────────────────────────────────────────────────────────
 
 export * from './control'
+
+// ─────────────────────────────────────────────────────────────
+// 학생 복습 시스템
+// ─────────────────────────────────────────────────────────────
+
+/** 단원별 숙련도 레벨 (내부용, 학생에게 레벨명 노출하지 않음) */
+export type MasteryLevel = 'beginner' | 'developing' | 'proficient' | 'mastered'
+
+/** 학생 단원별 숙련도 캐시 */
+export interface StudentUnitMastery {
+  mastery_id: UUID
+  member_id: UUID
+  subject: string
+  unit: string
+  total_attempts: number
+  correct_count: number
+  recent_correct_rate: number
+  level: MasteryLevel
+  last_played_at: Timestamp | null
+  updated_at: Timestamp
+}
+
+/** 오답노트 항목 (간격반복 상태 포함) */
+export interface WrongNoteItem {
+  wrong_note_id: UUID
+  member_id: UUID
+  question_id: UUID
+  source_session_id: UUID
+  sr_stage: number             // 0~5, 현재 간격반복 단계
+  sr_next_review_at: Timestamp
+  sr_last_reviewed_at: Timestamp | null
+  sr_consecutive_correct: number
+  is_graduated: boolean
+  created_at: Timestamp
+  updated_at: Timestamp
+  // JOIN 필드
+  question?: Question
+}
+
+/** 오답노트 복습 이력 */
+export interface WrongNoteReview {
+  review_id: UUID
+  wrong_note_id: UUID
+  is_correct: boolean
+  response_time_sec: number | null
+  reviewed_at: Timestamp
+}
+
+/** 곰젤리 잔액 */
+export interface JellyBalance {
+  balance_id: UUID
+  member_id: UUID
+  current_balance: number
+  total_earned: number
+  total_spent: number
+  updated_at: Timestamp
+}
+
+/** 곰젤리 거래 유형 */
+export type JellyTransactionType =
+  | 'game_complete'
+  | 'game_win'
+  | 'daily_goal'
+  | 'daily_goal_full'
+  | 'wrong_note_complete'
+  | 'streak_3'
+  | 'streak_7'
+  | 'streak_30'
+  | 'badge_earn'
+  | 'questions_10'
+  | 'questions_30'
+  | 'questions_60'
+  | 'accuracy_80'
+  | 'accuracy_100'
+  | 'game_types_all'
+  | 'attendance'
+  | 'wrong_note_graduate'
+  | 'character_invite'
+  | 'character_item'
+
+/** 곰젤리 거래 내역 */
+export interface JellyTransaction {
+  transaction_id: UUID
+  member_id: UUID
+  amount: number              // 양수=획득, 음수=소비
+  type: JellyTransactionType
+  reference_id: UUID | null
+  description: string
+  created_at: Timestamp
+}
+
+/** 학생 출석 기록 */
+export interface StudentAttendance {
+  attendance_id: UUID
+  member_id: UUID
+  attended_date: string       // YYYY-MM-DD
+  created_at: Timestamp
+}
+
+/** 학생 뱃지 */
+export interface StudentBadge {
+  badge_id: UUID
+  member_id: UUID
+  badge_code: string
+  earned_at: Timestamp
+}
+
+/** 학생 캐릭터 */
+export interface StudentCharacter {
+  character_id: UUID
+  member_id: UUID
+  character_code: string
+  is_active: boolean
+  invited_at: Timestamp
+}
+
+/** 세션 유형 태그 (복습용) */
+export type ReviewSessionType = 'game' | 'recommended' | 'wrong_note'
+
+/** 숙련도별 학생 표시 정보 */
+export interface MasteryDisplay {
+  color: string               // tailwind 색상 키 (green/blue/yellow/red)
+  emoji: string               // 🟢🔵🟡🔴⚪
+  message: string             // 격려 메시지
+}

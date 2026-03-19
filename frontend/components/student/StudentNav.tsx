@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Gamepad2, Star, PawPrint, BarChart3, ChevronDown, LogOut, User } from 'lucide-react'
+import { Home, Gamepad2, Star, BarChart3, ClipboardList, ChevronDown, LogOut, User } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,36 +20,38 @@ const NAV_ITEMS = [
     match: (p: string) => p === '/student',
   },
   {
-    label: '게임하기',
-    href: '/student/games',
+    label: '학습',
+    href: '/student/learn',
     icon: Gamepad2,
     match: (p: string) =>
-      p.startsWith('/student/games') ||
+      p.startsWith('/student/learn') ||
       p.startsWith('/student/game-play') ||
       p.startsWith('/student/game-adaptive') ||
-      p.startsWith('/student/select'),
+      p.startsWith('/student/game-result') ||
+      p.startsWith('/student/wrong-notes'),
   },
   {
-    label: '학습보상',
+    label: '보상·꾸미기',
     href: '/student/rewards',
     icon: Star,
     match: (p: string) =>
       p.startsWith('/student/rewards') ||
-      p.startsWith('/student/wrong-notes'),
+      p.startsWith('/student/characters'),
   },
   {
-    label: '캐릭터',
-    href: '/student/characters',
-    icon: PawPrint,
-    match: (p: string) => p.startsWith('/student/characters'),
+    label: '학습이력',
+    href: '/student/history',
+    icon: ClipboardList,
+    match: (p: string) =>
+      p.startsWith('/student/history') ||
+      p.startsWith('/student/lms'),
   },
   {
-    label: '내 결과',
+    label: '분석결과',
     href: '/student/my-result',
     icon: BarChart3,
     match: (p: string) =>
-      p.startsWith('/student/my-result') ||
-      p.startsWith('/student/lms'),
+      p.startsWith('/student/my-result'),
   },
 ] as const
 
@@ -108,8 +110,8 @@ export function StudentNav() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40 rounded-xl">
-          <DropdownMenuItem onClick={() => router.push('/student/my-result')}>
-            내 결과
+          <DropdownMenuItem onClick={() => router.push('/student/history')}>
+            학습이력
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-red-600 focus:text-red-600">
