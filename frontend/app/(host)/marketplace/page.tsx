@@ -399,11 +399,9 @@ export default function MarketplacePage() {
               hostNickname={activeTab === 'quiz_party' ? '퀴즈파티' : (s.host_nickname ?? '교사')}
               isCertified={activeTab === 'quiz_party' ? false : s.is_certified}
               isBookmarked={s.is_bookmarked ?? (s as unknown as Record<string, unknown>).is_liked as boolean}
-              onQuickDeploy={activeTab === 'quiz_party' ? () => copyAndNavigate(s.shared_set_id, 'deploy') : undefined}
-              onClick={activeTab === 'quiz_party'
-                ? () => copyAndNavigate(s.shared_set_id, 'edit')
-                : () => router.push(`/marketplace/${s.shared_set_id}?source=${activeTab}`)
-              }
+              onPreview={() => router.push(`/select/${s.set_id}/preview`)}
+              onQuickStart={() => router.push(`/select/${s.set_id}/settings`)}
+              onClick={() => router.push(`/marketplace/${s.shared_set_id}?source=${activeTab}`)}
             />
           ))}
         </div>

@@ -55,6 +55,8 @@ export interface QuizCardProps {
   onGameOpen?: () => void
   // 마켓플레이스 퀵 액션
   onQuickDeploy?: () => void
+  onPreview?: () => void
+  onQuickStart?: () => void
   // 공통
   onClick?: () => void
 }
@@ -79,6 +81,8 @@ export function QuizCard({
   onDelete,
   onGameOpen,
   onQuickDeploy,
+  onPreview,
+  onQuickStart,
   onClick,
 }: QuizCardProps) {
   const gradient = getGradient(id)
@@ -192,6 +196,32 @@ export function QuizCard({
                 </span>
               )}
             </div>
+          </div>
+        )}
+
+        {/* 마켓플레이스: 미리보기 + 바로 시작 */}
+        {(onPreview || onQuickStart) && (
+          <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+            {onPreview && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 text-xs rounded-full"
+                onClick={onPreview}
+              >
+                미리보기
+              </Button>
+            )}
+            {onQuickStart && (
+              <Button
+                size="sm"
+                className="flex-1 h-8 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={onQuickStart}
+              >
+                <Play className="mr-1 h-3 w-3" />
+                바로시작
+              </Button>
+            )}
           </div>
         )}
 
