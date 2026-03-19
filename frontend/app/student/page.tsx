@@ -105,12 +105,18 @@ export default function StudentHomePage() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2.5 rounded-2xl bg-orange-50 border border-orange-100 px-4 py-3">
-          <Flame className="h-4.5 w-4.5 text-orange-500" />
-          <span className="text-sm font-semibold text-orange-600">
-            출석 {MOCK.streakDays}일 연속
-          </span>
-        </div>
+        <Link
+          href="/student/history"
+          className="flex items-center justify-between rounded-2xl bg-orange-50 border border-orange-100 px-4 py-3 hover:bg-orange-100 transition"
+        >
+          <div className="flex items-center gap-2.5">
+            <Flame className="h-4.5 w-4.5 text-orange-500" />
+            <span className="text-sm font-semibold text-orange-600">
+              출석 {MOCK.streakDays}일 연속
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-orange-400" />
+        </Link>
       </div>
 
       {/* ── 4. Progress bar ── */}

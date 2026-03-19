@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { QuestionSetCard } from '@/components/host/QuestionSetCard'
 import { RecentDeployBanner } from '@/components/host/RecentDeployBanner'
@@ -34,26 +34,32 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-10">
-      {/* 웰컴 배너 */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-blue-700 px-8 py-8 text-white shadow-card">
+      {/* 관리 센터 배너 */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 px-8 py-8 text-white shadow-card">
         <div className="relative z-10">
           <h1 className="text-2xl font-bold">
-            환영합니다, 홍길동 선생님!
+            관리 센터
           </h1>
-          <p className="mt-2 text-blue-100 text-sm leading-relaxed">
-            퀴즈를 만들고 QR 하나로 학생들과 실시간 퀴즈 배틀을 시작하세요.
+          <p className="mt-2 text-slate-300 text-sm leading-relaxed">
+            퀴즈를 관리하고, 게임 기록을 확인하세요.
           </p>
           <div className="mt-5 flex gap-3">
-            <Button size="lg" asChild className="bg-white text-blue-600 hover:bg-blue-50 shadow-md">
+            <Button size="lg" asChild className="bg-blue-600 text-white hover:bg-blue-700 shadow-md">
+              <Link href="/select">
+                <Rocket className="mr-2 h-4 w-4" />
+                퀴즈 시작하기
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild className="border-white/30 text-white hover:bg-white/10">
               <Link href="/sets/new/edit">
                 <Plus className="mr-2 h-4 w-4" />
-                새로 만들기
+                새 퀴즈 만들기
               </Link>
             </Button>
           </div>
         </div>
         {/* 데코 원형 */}
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
         <div className="absolute -right-4 top-16 h-24 w-24 rounded-full bg-white/5" />
       </div>
 

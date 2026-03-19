@@ -59,7 +59,7 @@ export function GNB() {
       <div className="flex items-center gap-8">
 
         {/* QUIZ PARTY 로고 */}
-        <Link href="/dashboard" className="flex flex-col items-center leading-none select-none">
+        <Link href="/" className="flex flex-col items-center leading-none select-none">
           <span className="text-[11px] font-black tracking-[0.35em] text-blue-300 uppercase">
             QUIZ
           </span>
