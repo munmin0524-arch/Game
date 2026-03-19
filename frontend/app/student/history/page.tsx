@@ -3,15 +3,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-  BarChart3,
+  Award,
   Calendar,
   Clock,
-  Award,
   ChevronRight,
   Gamepad2,
-  Brain,
+  Lightbulb,
   BookOpen,
   Trophy,
+  BarChart3,
+  Check,
+  Lock,
+  TrendingDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -42,11 +45,23 @@ interface DayHistory {
 /* ---------- mock data ---------- */
 
 const MOCK_STATS = [
-  { label: '총 문제', value: '142', icon: BarChart3, color: 'bg-blue-100 text-blue-600' },
-  { label: '정답률', value: '72%', icon: Trophy, color: 'bg-green-100 text-green-600' },
-  { label: '출석', value: '15일', icon: Calendar, color: 'bg-purple-100 text-purple-600' },
-  { label: '학습시간', value: '8h', icon: Clock, color: 'bg-amber-100 text-amber-600' },
+  { label: '총문제', value: '142' },
+  { label: '정답률', value: '72%' },
+  { label: '출석', value: '15일' },
+  { label: '학습시간', value: '8h' },
 ]
+
+const MOCK_BADGES = [
+  { emoji: '🏆', name: '첫 승리', earned: true, color: 'bg-yellow-100' },
+  { emoji: '🎯', name: '정답왕', earned: true, color: 'bg-blue-100' },
+  { emoji: '🔥', name: '연속 출석', earned: true, color: 'bg-red-100' },
+  { emoji: '💎', name: '전과목 마스터', earned: false, color: 'bg-gray-100' },
+  { emoji: '🚀', name: '스피드 퀴즈', earned: false, color: 'bg-gray-100' },
+  { emoji: '🌟', name: '올클리어', earned: false, color: 'bg-gray-100' },
+]
+
+// March 2026 attendance days
+const ATTENDED_DAYS = new Set([1, 2, 3, 5, 6, 7, 10, 11, 12, 14, 15, 17, 18, 19])
 
 const MOCK_HISTORY: DayHistory[] = [
   {
@@ -54,7 +69,7 @@ const MOCK_HISTORY: DayHistory[] = [
     sessions: [
       {
         id: 's1',
-        type: 'game' as const,
+        type: 'game',
         gameMode: 'tug_of_war',
         gameEmoji: '🪢',
         gameName: '줄다리기',
@@ -68,7 +83,7 @@ const MOCK_HISTORY: DayHistory[] = [
       },
       {
         id: 's2',
-        type: 'recommended' as const,
+        type: 'recommended',
         gameMode: null,
         gameEmoji: null,
         gameName: '혼자풀기',
@@ -82,7 +97,7 @@ const MOCK_HISTORY: DayHistory[] = [
       },
       {
         id: 's3',
-        type: 'wrong_note' as const,
+        type: 'wrong_note',
         gameMode: null,
         gameEmoji: null,
         gameName: '오답복습',
@@ -101,7 +116,7 @@ const MOCK_HISTORY: DayHistory[] = [
     sessions: [
       {
         id: 's4',
-        type: 'game' as const,
+        type: 'game',
         gameMode: 'boat_racing',
         gameEmoji: '🚤',
         gameName: '보트레이싱',
@@ -117,36 +132,29 @@ const MOCK_HISTORY: DayHistory[] = [
   },
 ]
 
-const MOCK_LEARNING_MAP = [
-  { unit: '마찰력', mastery: 40, color: 'bg-yellow-400', emoji: '🟡', message: '조금만 더!' },
-  {
-    unit: '탄성력',
-    mastery: 0,
-    color: 'bg-gray-300',
-    emoji: '⚪',
-    message: '아직 안 배웠어요',
-    unlearned: true,
-  },
-  { unit: '중력', mastery: 92, color: 'bg-green-500', emoji: '🟢', message: '잘하고 있어요!' },
-]
-
-const MOCK_BADGES = [
-  { emoji: '🏆', name: '첫 승리', earned: true },
-  { emoji: '🎯', name: '정답왕', earned: true },
-  { emoji: '🔥', name: '연속 출석', earned: true },
-  { emoji: '💎', name: '전과목 마스터', earned: false },
-  { emoji: '🚀', name: '스피드 퀴즈', earned: false },
-  { emoji: '🌟', name: '올클리어', earned: false },
-]
+const MOCK_LEARNING_MAP: Record<
+  string,
+  { unit: string; mastery: number | null; message: string }[]
+> = {
+  과학: [
+    { unit: '마찰력', mastery: 40, message: '조금만 더 해보자!' },
+    { unit: '탄성력', mastery: null, message: '아직 안 배웠어요' },
+    { unit: '중력', mastery: 92, message: '잘하고 있어요!' },
+    { unit: '부력', mastery: 35, message: '복습이 필요해요' },
+  ],
+  수학: [
+    { unit: '일차방정식', mastery: 68, message: '꾸준히 하고 있어요' },
+    { unit: '부등식', mastery: 45, message: '조금만 더!' },
+    { unit: '함수', mastery: null, message: '아직 안 배웠어요' },
+  ],
+}
 
 const FILTER_OPTIONS = [
-  { key: 'all', label: '전체', icon: null },
-  { key: 'game', label: '🎮일반', icon: null },
-  { key: 'recommended', label: '💡추천', icon: null },
-  { key: 'wrong_note', label: '📖오답', icon: null },
+  { key: 'all', label: '전체' },
+  { key: 'game', label: '🎮일반' },
+  { key: 'recommended', label: '💡추천' },
+  { key: 'wrong_note', label: '📖오답' },
 ]
-
-const PERIOD_OPTIONS = ['이번 달', '지난 달', '최근 3개월']
 
 /* ---------- helpers ---------- */
 
@@ -154,10 +162,8 @@ function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
   const today = new Date('2026-03-19')
   const yesterday = new Date('2026-03-18')
-
   const month = d.getMonth() + 1
   const day = d.getDate()
-
   if (d.toDateString() === today.toDateString()) return `${month}월 ${day}일 (오늘)`
   if (d.toDateString() === yesterday.toDateString()) return `${month}월 ${day}일 (어제)`
   return `${month}월 ${day}일`
@@ -185,11 +191,52 @@ function resultLabel(result: string) {
   }
 }
 
+function getMasteryColor(mastery: number | null): string {
+  if (mastery === null) return 'bg-gray-300'
+  if (mastery >= 85) return 'bg-green-500'
+  if (mastery >= 65) return 'bg-blue-500'
+  if (mastery >= 40) return 'bg-yellow-400'
+  return 'bg-red-400'
+}
+
+function getMasteryEmoji(mastery: number | null): string {
+  if (mastery === null) return '🆕'
+  if (mastery >= 85) return '🟢'
+  if (mastery >= 65) return '🔵'
+  if (mastery >= 40) return '🟡'
+  return '🔴'
+}
+
+/* ---------- calendar helper ---------- */
+
+function getMarchCalendar() {
+  // March 2026 starts on Sunday (day 0)
+  const firstDayOfWeek = new Date(2026, 2, 1).getDay() // 0=Sun
+  const daysInMonth = 31
+  const weeks: (number | null)[][] = []
+  let currentWeek: (number | null)[] = Array(firstDayOfWeek).fill(null)
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    currentWeek.push(day)
+    if (currentWeek.length === 7) {
+      weeks.push(currentWeek)
+      currentWeek = []
+    }
+  }
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) currentWeek.push(null)
+    weeks.push(currentWeek)
+  }
+  return weeks
+}
+
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+
 /* ---------- component ---------- */
 
 export default function HistoryPage() {
   const [activeFilter, setActiveFilter] = useState('all')
-  const [period, setPeriod] = useState('이번 달')
+  const [activeSubject, setActiveSubject] = useState('과학')
 
   const filteredHistory = MOCK_HISTORY.map((day) => ({
     ...day,
@@ -199,39 +246,147 @@ export default function HistoryPage() {
         : day.sessions.filter((s) => s.type === activeFilter),
   })).filter((day) => day.sessions.length > 0)
 
+  const calendarWeeks = getMarchCalendar()
+  const today = 19
+
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
       <h1 className="text-xl font-bold text-gray-900">학습이력</h1>
 
-      {/* 요약 통계 */}
-      <div className="grid grid-cols-2 gap-3">
-        {MOCK_STATS.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <div
-              key={stat.label}
-              className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"
-            >
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full ${stat.color}`}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{stat.label}</p>
-                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-              </div>
+      {/* ===== 1. Medal + Stats Bar ===== */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        {/* Medal row */}
+        <div className="flex items-end justify-center gap-6 mb-4">
+          <div className="flex flex-col items-center">
+            <span className="text-3xl opacity-60">🥉</span>
+            <span className="mt-1 text-xs text-gray-400">브론즈</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="rounded-full ring-4 ring-blue-300 p-1 scale-125">
+              <span className="text-4xl">🥈</span>
             </div>
-          )
-        })}
+            <span className="mt-2 text-xs font-bold text-blue-600">실버</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-3xl opacity-40">🥇</span>
+            <span className="mt-1 text-xs text-gray-400">골드</span>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-4 divide-x divide-gray-200">
+          {MOCK_STATS.map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center py-2">
+              <span className="text-lg font-bold text-gray-900">{stat.value}</span>
+              <span className="text-[11px] text-gray-500">{stat.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* 게임 이력 */}
+      {/* ===== 2. 업적 뱃지 ===== */}
       <section>
-        <h2 className="mb-3 text-lg font-bold text-gray-900">게임 이력</h2>
+        <h2 className="mb-3 text-lg font-bold text-gray-900">🏅 업적 뱃지</h2>
+        <div className="overflow-x-auto pb-1">
+          <div className="flex gap-2">
+            {MOCK_BADGES.map((badge) => (
+              <div
+                key={badge.name}
+                className={`relative flex w-[70px] h-20 flex-shrink-0 flex-col items-center justify-center rounded-xl ${
+                  badge.earned ? badge.color : 'bg-gray-100'
+                }`}
+              >
+                {!badge.earned && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-gray-200/50">
+                    <Lock className="h-4 w-4 text-gray-400" />
+                  </div>
+                )}
+                <span className={`text-2xl ${badge.earned ? '' : 'grayscale opacity-40'}`}>
+                  {badge.emoji}
+                </span>
+                <span
+                  className={`mt-1 text-[10px] font-medium leading-tight text-center ${
+                    badge.earned ? 'text-gray-800' : 'text-gray-400'
+                  }`}
+                >
+                  {badge.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        {/* 필터 */}
+      {/* ===== 3. 출석 캘린더 ===== */}
+      <section>
+        <h2 className="mb-3 text-lg font-bold text-gray-900">📅 출석 캘린더</h2>
+        <div className="rounded-2xl bg-white p-4 shadow-sm">
+          <p className="mb-3 text-center text-sm font-semibold text-gray-700">2026년 3월</p>
+
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {WEEKDAYS.map((wd, i) => (
+              <div
+                key={wd}
+                className={`text-center text-[11px] font-medium ${
+                  i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'
+                }`}
+              >
+                {wd}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="space-y-1">
+            {calendarWeeks.map((week, wi) => (
+              <div key={wi} className="grid grid-cols-7 gap-1">
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    className={`relative flex h-9 items-center justify-center rounded-lg text-sm ${
+                      day === null
+                        ? ''
+                        : day === today
+                        ? 'bg-blue-600 text-white font-bold'
+                        : ATTENDED_DAYS.has(day)
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    {day !== null && (
+                      <>
+                        {day}
+                        {ATTENDED_DAYS.has(day) && day !== today && (
+                          <span className="absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-blue-400" />
+                        )}
+                        {day === today && (
+                          <span className="absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-white" />
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Attendance button */}
+          <button
+            disabled
+            className="mt-3 w-full rounded-xl bg-green-100 py-2.5 text-sm font-semibold text-green-700 cursor-not-allowed"
+          >
+            오늘 출석하기 ✅ 완료
+          </button>
+        </div>
+      </section>
+
+      {/* ===== 4. 학습 이력 ===== */}
+      <section>
+        <h2 className="mb-3 text-lg font-bold text-gray-900">📋 학습 이력</h2>
+
+        {/* Filter pills */}
         <div className="mb-3 flex items-center gap-2 overflow-x-auto">
           {FILTER_OPTIONS.map((f) => (
             <button
@@ -246,74 +401,50 @@ export default function HistoryPage() {
               {f.label}
             </button>
           ))}
-
-          {/* period dropdown */}
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="ml-auto rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700"
-          >
-            {PERIOD_OPTIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
         </div>
 
-        {/* 날짜별 이력 */}
-        <div className="space-y-4">
+        {/* Scrollable session list */}
+        <div className="max-h-[300px] overflow-y-auto space-y-4 rounded-2xl bg-gray-50 p-3">
+          {filteredHistory.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400">해당 유형의 이력이 없어요</p>
+          )}
+
           {filteredHistory.map((day) => (
             <div key={day.date}>
-              {/* date divider */}
+              {/* Date divider */}
               <div className="mb-2 flex items-center gap-2">
                 <div className="h-px flex-1 bg-gray-200" />
-                <span className="text-xs font-semibold text-gray-500">
-                  {formatDate(day.date)}
-                </span>
+                <span className="text-xs font-semibold text-gray-500">{formatDate(day.date)}</span>
                 <div className="h-px flex-1 bg-gray-200" />
               </div>
 
               <div className="space-y-2">
                 {day.sessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="rounded-xl bg-white p-4 shadow-sm"
-                  >
+                  <div key={session.id} className="rounded-xl bg-white p-3.5 shadow-sm">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        {/* top line */}
                         <p className="text-sm font-semibold text-gray-900">
                           {typeIcon(session.type)}{' '}
                           {session.gameEmoji && `${session.gameEmoji} `}
                           {session.gameName}
                           {session.subject && (
                             <span className="text-gray-500">
-                              {' '}
-                              | {session.subject} &gt; {session.unit}
+                              {' '}| {session.subject} &gt; {session.unit}
                             </span>
                           )}
                           {!session.subject && session.type === 'wrong_note' && (
-                            <span className="text-gray-500">
-                              {' '}
-                              | {session.total}문제 완료
-                            </span>
+                            <span className="text-gray-500"> | {session.total}문제 완료</span>
                           )}
                         </p>
-
-                        {/* stats line */}
                         <p className="mt-1 text-sm text-gray-600">
                           {session.correct}/{session.total} 정답 {session.accuracy}%{' '}
                           {resultLabel(session.result)}{' '}
-                          <span className="font-semibold text-amber-600">
-                            🍬+{session.jelly}
-                          </span>
+                          <span className="font-semibold text-amber-600">🍬+{session.jelly}</span>
                         </p>
                       </div>
-
                       <Link
                         href={`/student/game-result/${session.id}?from=history`}
-                        className="ml-3 flex items-center gap-1 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-700"
+                        className="ml-3 flex items-center gap-0.5 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
                         상세보기
                         <ChevronRight className="h-4 w-4" />
@@ -327,76 +458,72 @@ export default function HistoryPage() {
         </div>
       </section>
 
-      {/* 학습맵 */}
+      {/* ===== 5. 학습맵 ===== */}
       <section>
-        <h2 className="mb-3 text-lg font-bold text-gray-900">학습맵 (단원별 숙련도)</h2>
+        <h2 className="mb-3 text-lg font-bold text-gray-900">🗺️ 학습맵</h2>
 
-        <div className="space-y-3">
-          {MOCK_LEARNING_MAP.map((unit) => (
-            <div
-              key={unit.unit}
-              className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-900">{unit.unit}</p>
-                  <span className="text-sm text-gray-500">
-                    {unit.unlearned ? '--' : `${unit.mastery}%`}
-                  </span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200">
-                  <div
-                    className={`h-full rounded-full transition-all ${unit.color}`}
-                    style={{ width: `${unit.mastery}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  {unit.emoji} {unit.message}
-                </p>
-              </div>
-
-              {(unit.unlearned || unit.mastery < 60) && (
-                <Link href="/student/learn">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="whitespace-nowrap text-xs"
-                  >
-                    학습하기
-                    <ChevronRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 뱃지 */}
-      <section>
-        <h2 className="mb-3 text-lg font-bold text-gray-900">뱃지</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {MOCK_BADGES.map((badge) => (
-            <div
-              key={badge.name}
-              className={`flex flex-col items-center rounded-xl p-4 ${
-                badge.earned
-                  ? 'bg-white shadow-sm'
-                  : 'bg-gray-100 opacity-50'
+        {/* Subject tabs */}
+        <div className="mb-3 flex gap-2">
+          {Object.keys(MOCK_LEARNING_MAP).map((subject) => (
+            <button
+              key={subject}
+              onClick={() => setActiveSubject(subject)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeSubject === subject
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              <span className={`text-3xl ${badge.earned ? '' : 'grayscale'}`}>
-                {badge.emoji}
-              </span>
-              <span
-                className={`mt-2 text-xs font-medium ${
-                  badge.earned ? 'text-gray-800' : 'text-gray-400'
-                }`}
-              >
-                {badge.name}
-              </span>
-            </div>
+              {subject}
+            </button>
           ))}
+        </div>
+
+        {/* Unit mastery list */}
+        <div className="max-h-[280px] overflow-y-auto space-y-2 rounded-2xl bg-gray-50 p-3">
+          {(MOCK_LEARNING_MAP[activeSubject] ?? []).map((unit) => {
+            const isWeak = unit.mastery !== null && unit.mastery < 40
+            const isUnlearned = unit.mastery === null
+            const showAction = isWeak || isUnlearned
+
+            return (
+              <div
+                key={unit.unit}
+                className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold text-gray-900">{unit.unit}</p>
+                      {isWeak && <span className="text-xs">⚠️</span>}
+                      {isUnlearned && <span className="text-xs">🆕</span>}
+                    </div>
+                    <span className="text-sm font-medium text-gray-500">
+                      {unit.mastery !== null ? `${unit.mastery}%` : '--'}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className={`h-full rounded-full transition-all ${getMasteryColor(unit.mastery)}`}
+                      style={{ width: `${unit.mastery ?? 0}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {getMasteryEmoji(unit.mastery)} {unit.message}
+                  </p>
+                </div>
+
+                {showAction && (
+                  <Link href="/student/learn">
+                    <Button variant="outline" size="sm" className="whitespace-nowrap text-xs">
+                      학습하기
+                      <ChevronRight className="ml-1 h-3 w-3" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )
+          })}
         </div>
       </section>
     </div>
