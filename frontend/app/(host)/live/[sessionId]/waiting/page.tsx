@@ -120,6 +120,7 @@ export default function WaitingPage() {
   const [qrUrl, setQrUrl] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const cleanupRef = useRef<(() => void)[]>([])
 
   // 확장 세션 정보 (mock)
@@ -183,11 +184,13 @@ export default function WaitingPage() {
 
   // ─── 핸들러 ───────────────────────────────────────────
 
-  const handleStart = async () => {
+  const handleStart = () => {
     setStarting(true)
+    setConfirmOpen(false)
     try { startGame(sessionId) } catch { /* mock 환경에서 무시 */ }
-    // 임시: 바로 컨트롤 패널로 이동
-    router.push(`/live/${sessionId}/control`)
+    setTimeout(() => {
+      router.push(`/live/${sessionId}/control`)
+    }, 100)
   }
 
   const handleRegenQr = async () => {
@@ -463,7 +466,7 @@ export default function WaitingPage() {
             ? `⏳ ${selectingCount}명이 아직 캐릭터를 고르고 있어요`
             : `✅ 모든 학생이 준비되었어요!`}
         </p>
-        <AlertDialog>
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <AlertDialogTrigger asChild>
             <Button size="lg" className="px-12 gap-2" disabled={starting}>
               <Gamepad2 className="h-5 w-5" />
@@ -489,7 +492,7 @@ export default function WaitingPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={handleStart}>시작</AlertDialogAction>
+              <Button onClick={handleStart}>시작</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
