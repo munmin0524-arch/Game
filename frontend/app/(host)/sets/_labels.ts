@@ -33,14 +33,16 @@ export const SETS_HUB_LABELS = {
     heading: '카테고리로 둘러보기',
     sub: '원하는 주제를 한 번에',
     items: [
-      { key: 'new-semester',  emoji: '🎒', label: '신학기 추천',  sub: '진단·아이스브레이킹·복습', gradient: 'from-blue-500 to-indigo-500' },
-      { key: 'bisang',        emoji: '📘', label: '비상 교과서',  sub: 'A안 레디메이드',    gradient: 'from-sky-500 to-cyan-500' },
-      { key: 'gongbuck',      emoji: '📚', label: '공부력',       sub: '테마별 레디메이드',  gradient: 'from-emerald-500 to-teal-500' },
-      { key: 'icebreak',      emoji: '🎤', label: '아이스브레이킹', sub: '수업 도입용',       gradient: 'from-rose-500 to-orange-500' },
-      { key: 'humor',         emoji: '😂', label: '오늘의 유머',  sub: '가볍고 재미있게',    gradient: 'from-amber-500 to-rose-500' },
-      { key: 'math-workbook', emoji: '📐', label: '수학 문제집',  sub: '쎈·개념원리·유형',  gradient: 'from-fuchsia-500 to-pink-500' },
-      { key: 'korean',        emoji: '📖', label: '국어·독해',    sub: '독해력 집중',       gradient: 'from-violet-500 to-purple-500' },
-      { key: 'math-op',       emoji: '🧮', label: '수학 연산',    sub: '계산 속도',         gradient: 'from-amber-400 to-orange-500' },
+      // 과목별 1단원 진입점
+      { key: 'subj-math',    emoji: '🧮', label: '수학',       sub: '1단원부터',      gradient: 'from-blue-500 to-indigo-500' },
+      { key: 'subj-english', emoji: '🔤', label: '영어',       sub: 'Lesson 1부터',   gradient: 'from-sky-500 to-cyan-500' },
+      { key: 'subj-korean',  emoji: '📖', label: '국어',       sub: '1단원부터',      gradient: 'from-rose-500 to-orange-500' },
+      { key: 'subj-social',  emoji: '🌏', label: '사회',       sub: '1단원부터',      gradient: 'from-emerald-500 to-teal-500' },
+      { key: 'subj-science', emoji: '🔬', label: '과학',       sub: '1단원부터',      gradient: 'from-amber-500 to-orange-500' },
+      // 특별 컬렉션
+      { key: 'new-semester', emoji: '🎒', label: '신학기 추천', sub: '진단·복습',      gradient: 'from-violet-500 to-purple-500' },
+      { key: 'icebreak',     emoji: '🎤', label: '아이스브레이킹', sub: '수업 도입용', gradient: 'from-pink-500 to-rose-500' },
+      { key: 'humor',        emoji: '😂', label: '오늘의 유머', sub: '가볍고 재미있게', gradient: 'from-fuchsia-500 to-pink-500' },
     ],
   },
 

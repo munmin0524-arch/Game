@@ -4,7 +4,7 @@
 import { Flame, Sparkles, Trophy, BookMarked } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type SetBadgeKind = 'new' | 'hot' | 'official' | 'best' | 'textbook' | 'theme' | 'difficulty'
+export type SetBadgeKind = 'new' | 'hot' | 'official' | 'best' | 'textbook' | 'theme' | 'difficulty' | 'mine' | 'community'
 
 const STYLES: Record<SetBadgeKind, { cls: string; icon?: React.ReactNode; label: string }> = {
   new:        { cls: 'bg-amber-50 text-amber-700 ring-amber-200',   icon: <Sparkles className="h-3 w-3" />, label: 'NEW' },
@@ -14,6 +14,8 @@ const STYLES: Record<SetBadgeKind, { cls: string; icon?: React.ReactNode; label:
   textbook:   { cls: 'bg-slate-100 text-slate-700 ring-slate-200',  icon: <BookMarked className="h-3 w-3" />, label: '교과서' },
   theme:      { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', label: '테마' },
   difficulty: { cls: 'bg-gray-100 text-gray-700 ring-gray-200', label: '' },
+  mine:       { cls: 'bg-violet-50 text-violet-700 ring-violet-200', label: '내가 만든' },
+  community:  { cls: 'bg-teal-50 text-teal-700 ring-teal-200', label: '다른 선생님' },
 }
 
 export function SetBadge({

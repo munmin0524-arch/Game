@@ -75,9 +75,9 @@ function Row({
       {/* 본문 */}
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center gap-1.5 flex-wrap">
-          {s.is_official && <SetBadge kind="official" />}
-          {s.is_new && <SetBadge kind="new" />}
-          {(s.play_count ?? 0) >= 500 && <SetBadge kind="hot" />}
+          {(s.source === 'quiz_party' || s.is_official) && <SetBadge kind="official" />}
+          {s.source === 'mine' && <SetBadge kind="mine" />}
+          {s.source === 'community' && <SetBadge kind="community" />}
         </div>
         <button
           onClick={() => onPreview(s.set_id)}

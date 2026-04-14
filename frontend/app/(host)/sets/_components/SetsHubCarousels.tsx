@@ -27,12 +27,11 @@ import type { SourceTab } from './SetsSourcePills'
 import type { SetBadgeKind } from '@/components/common/SetBadge'
 
 function badgesFor(s: QuestionSet): SetBadgeKind[] {
-  const out: SetBadgeKind[] = []
-  if (s.is_official) out.push('official')
-  if (s.is_new) out.push('new')
-  if ((s.play_count ?? 0) >= 500) out.push('hot')
-  if ((s.rating_avg ?? 0) >= 4.8 && (s.play_count ?? 0) >= 300) out.push('best')
-  return out
+  // 소스 기반 단일 뱃지만 노출
+  if (s.source === 'quiz_party' || s.is_official) return ['official']
+  if (s.source === 'mine') return ['mine']
+  if (s.source === 'community') return ['community']
+  return []
 }
 
 /** 여러 버킷에서 라운드 로빈으로 섞어 단일 row에 대표 세트 1~2개씩 배치 */

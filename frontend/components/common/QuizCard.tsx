@@ -131,22 +131,19 @@ export function QuizCard({
       onClick={onClick}
     >
       {/* 상단 그라디언트 영역 — 고정 높이로 카드 크기 통일 */}
-      <div className={`bg-gradient-to-br ${gradient} px-4 pt-4 pb-4 relative h-28 flex flex-col`}>
-        {/* 뱃지 스트립 */}
+      <div className={`bg-gradient-to-br ${gradient} px-4 pt-3 pb-3 relative h-[120px] flex flex-col`}>
+        {/* 뱃지 — 소스 1개만 (퀴즈파티 공식 / 내가 만든 / 다른 선생님) */}
         {badges && badges.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {badges.map((b) => (
-              <SetBadge key={b} kind={b} />
-            ))}
+          <div className="flex gap-1 mb-1.5 shrink-0">
+            <SetBadge kind={badges[0]} />
           </div>
         )}
 
-        <p className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 pr-8">
+        <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-3 pr-7 flex-1">
           {title}
         </p>
-        <p className="text-gray-600/70 text-xs mt-1">
+        <p className="text-gray-700/80 text-[11px] mt-1 shrink-0">
           {questionCount}문항
-          {difficulty && <span className="ml-2 text-gray-500">· 난이도 {difficulty}</span>}
         </p>
 
         {/* 액션 메뉴 */}
@@ -236,7 +233,7 @@ export function QuizCard({
 
       {/* 하단 정보 영역 — flex-1로 카드 하단 높이 통일 */}
       <div className="bg-white px-4 py-3 space-y-2 flex-1 flex flex-col">
-        {/* 뱃지 행 */}
+        {/* 정보 행 — 과목·학년만 (필터가 위에 있으므로 메타 최소화) */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {subject && (
             <Badge variant="secondary" className="rounded-full text-[11px] px-2 py-0">
@@ -246,16 +243,6 @@ export function QuizCard({
           {grade && (
             <Badge variant="outline" className="rounded-full text-[11px] px-2 py-0">
               {grade}
-            </Badge>
-          )}
-          {textbook && (
-            <Badge variant="outline" className="rounded-full text-[11px] px-2 py-0 text-slate-600">
-              {textbook}
-            </Badge>
-          )}
-          {theme && (
-            <Badge className="rounded-full text-[11px] px-2 py-0 bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-              {theme.replace('공부력-', '공부력 ')}
             </Badge>
           )}
           {avgRating != null && avgRating > 0 && (

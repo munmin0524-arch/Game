@@ -41,7 +41,7 @@ export function SetsFilterModePicker({
           )}
           aria-pressed={mode === null}
         >
-          🌟 전체
+          🌟 둘러보기
         </button>
         {MODES.map((m) => {
           const active = mode === m.key

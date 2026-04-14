@@ -78,6 +78,33 @@ export const MOCK_QUIZ_PARTY_SETS: QuestionSet[] = [
   // ── 신학기 진단 / 복습 (3~4월 학기 초) ──
   { set_id: 'qp-ns-01', host_member_id: 'quiz_party', title: '🎒 초5 신학기 진단평가 · 수학', subject: '수학', grade: '초등 수학 5-1', tags: ['신학기', '진단평가'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-05T09:00:00Z', updated_at: '2026-04-13T09:00:00Z', question_count: 20, difficulty: '중', thumbnail_variant: 0, play_count: 512, rating_avg: 4.8, is_official: true, is_new: true, source: 'quiz_party' },
   { set_id: 'qp-ns-02', host_member_id: 'quiz_party', title: '🎒 초5 신학기 국어 · 이전 학년 복습', subject: '국어', grade: null, tags: ['신학기', '복습'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-03T09:00:00Z', updated_at: '2026-04-11T09:00:00Z', question_count: 18, difficulty: '하', thumbnail_variant: 2, play_count: 389, rating_avg: 4.7, is_official: true, is_new: true, source: 'quiz_party' },
+
+  // ── 과목별 1단원 진입점 세트 (카테고리 타일 클릭 시 연결) ──
+  // 수학 1단원
+  { set_id: 'qp-sub-math-01', host_member_id: 'quiz_party', title: '초5 수학 · 1단원 자연수의 혼합 계산 시작!', subject: '수학', grade: '초등 수학 5-1', tags: ['1단원', '혼합계산'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-06T09:00:00Z', updated_at: '2026-04-13T09:00:00Z', question_count: 12, unit: '1. 자연수의 혼합 계산', thumbnail_variant: 0, play_count: 398, rating_avg: 4.8, is_official: true, is_new: true, source: 'quiz_party' },
+  { set_id: 'qp-sub-math-02', host_member_id: 'quiz_party', title: '초6 수학 · 1단원 분수의 나눗셈 기초', subject: '수학', grade: '초등 수학 6-1', tags: ['1단원', '분수'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-04T09:00:00Z', updated_at: '2026-04-12T09:00:00Z', question_count: 14, unit: '1. 분수의 나눗셈', thumbnail_variant: 1, play_count: 287, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+  // 영어 Lesson 1
+  { set_id: 'qp-sub-eng-01', host_member_id: 'quiz_party', title: '초5 영어 · Lesson 1 Hello, New Friends!', subject: '영어', grade: '초등 영어 5', tags: ['Lesson 1', '인사'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-06T09:00:00Z', updated_at: '2026-04-13T09:00:00Z', question_count: 10, unit: 'Lesson 1', thumbnail_variant: 2, play_count: 412, rating_avg: 4.8, is_official: true, is_new: true, source: 'quiz_party' },
+  { set_id: 'qp-sub-eng-02', host_member_id: 'quiz_party', title: '초6 영어 · Lesson 1 Nice to Meet You', subject: '영어', grade: '초등 영어 6', tags: ['Lesson 1', '인사'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-05T09:00:00Z', updated_at: '2026-04-12T09:00:00Z', question_count: 12, unit: 'Lesson 1', thumbnail_variant: 3, play_count: 356, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+  // 국어 1단원
+  { set_id: 'qp-sub-kor-01', host_member_id: 'quiz_party', title: '초5 국어 · 1단원 대화와 공감', subject: '국어', grade: null, tags: ['1단원', '대화', '공감'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-05T09:00:00Z', updated_at: '2026-04-12T09:00:00Z', question_count: 12, unit: '1. 대화와 공감', thumbnail_variant: 4, play_count: 345, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+  { set_id: 'qp-sub-kor-02', host_member_id: 'quiz_party', title: '초6 국어 · 1단원 비유하는 표현', subject: '국어', grade: null, tags: ['1단원', '비유'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-02T09:00:00Z', updated_at: '2026-04-10T09:00:00Z', question_count: 10, unit: '1. 비유하는 표현', thumbnail_variant: 5, play_count: 234, rating_avg: 4.6, is_official: true, source: 'quiz_party' },
+  // 사회 1단원
+  { set_id: 'qp-sub-soc-01', host_member_id: 'quiz_party', title: '초5 사회 · 1단원 국토와 우리 생활', subject: '사회', grade: null, tags: ['1단원', '국토'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-04T09:00:00Z', updated_at: '2026-04-12T09:00:00Z', question_count: 15, unit: '1. 국토와 우리 생활', thumbnail_variant: 0, play_count: 289, rating_avg: 4.6, is_official: true, source: 'quiz_party' },
+  { set_id: 'qp-sub-soc-02', host_member_id: 'quiz_party', title: '초6 사회 · 1단원 우리나라의 정치 발전', subject: '사회', grade: null, tags: ['1단원', '정치'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-03-30T09:00:00Z', updated_at: '2026-04-08T09:00:00Z', question_count: 14, unit: '1. 우리나라의 정치 발전', thumbnail_variant: 1, play_count: 256, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+  // 과학 1단원
+  { set_id: 'qp-sub-sci-01', host_member_id: 'quiz_party', title: '초5 과학 · 1단원 온도와 열', subject: '과학', grade: null, tags: ['1단원', '온도', '열'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-03T09:00:00Z', updated_at: '2026-04-11T09:00:00Z', question_count: 12, unit: '1. 온도와 열', thumbnail_variant: 2, play_count: 312, rating_avg: 4.8, is_official: true, is_new: true, source: 'quiz_party' },
+  { set_id: 'qp-sub-sci-02', host_member_id: 'quiz_party', title: '초6 과학 · 1단원 지구와 달의 운동', subject: '과학', grade: null, tags: ['1단원', '지구', '달'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-01T09:00:00Z', updated_at: '2026-04-09T09:00:00Z', question_count: 14, unit: '1. 지구와 달의 운동', thumbnail_variant: 3, play_count: 267, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+
+  // ── 아이스브레이킹 (추가) ──
+  { set_id: 'qp-ice-04', host_member_id: 'quiz_party', title: '🌈 좋아하는 색깔·음식·계절 투표', subject: null, grade: null, tags: ['아이스브레이킹', '투표'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-06T09:00:00Z', updated_at: '2026-04-13T09:00:00Z', question_count: 10, thumbnail_variant: 5, play_count: 445, rating_avg: 4.9, is_official: true, is_new: true, source: 'quiz_party' },
+  { set_id: 'qp-ice-05', host_member_id: 'quiz_party', title: '🤝 친구 공통점 찾기 · 2인 1조 빙고', subject: null, grade: null, tags: ['아이스브레이킹', '빙고', '짝활동'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-02T09:00:00Z', updated_at: '2026-04-11T09:00:00Z', question_count: 12, thumbnail_variant: 0, play_count: 378, rating_avg: 4.8, is_official: true, source: 'quiz_party' },
+  { set_id: 'qp-ice-06', host_member_id: 'quiz_party', title: '🎵 우리반 취향 조사 · 좋아하는 노래/캐릭터', subject: null, grade: null, tags: ['아이스브레이킹', '취향'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-03-30T09:00:00Z', updated_at: '2026-04-08T09:00:00Z', question_count: 8, thumbnail_variant: 1, play_count: 267, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+
+  // ── 오늘의 유머 (추가) ──
+  { set_id: 'qp-humor-03', host_member_id: 'quiz_party', title: '🐧 동물 빵터지는 상식 퀴즈', subject: null, grade: null, tags: ['유머', '동물'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-04-04T09:00:00Z', updated_at: '2026-04-12T09:00:00Z', question_count: 12, thumbnail_variant: 3, play_count: 512, rating_avg: 4.8, is_official: true, is_new: true, source: 'quiz_party' },
+  { set_id: 'qp-humor-04', host_member_id: 'quiz_party', title: '🎭 초성 퀴즈 · 드라마·영화 타이틀', subject: null, grade: null, tags: ['유머', '초성', '드라마'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-03-28T09:00:00Z', updated_at: '2026-04-07T09:00:00Z', question_count: 15, thumbnail_variant: 4, play_count: 389, rating_avg: 4.7, is_official: true, source: 'quiz_party' },
+  { set_id: 'qp-humor-05', host_member_id: 'quiz_party', title: '🌟 역사 속 웃픈 에피소드 TOP 10', subject: '한국사', grade: null, tags: ['유머', '역사'], is_deleted: false, is_shared: false, original_set_id: null, created_at: '2026-03-25T09:00:00Z', updated_at: '2026-04-04T09:00:00Z', question_count: 10, thumbnail_variant: 5, play_count: 234, rating_avg: 4.6, is_official: true, source: 'quiz_party' },
 ]
 
 // ─── 내가 만든 세트지 ───
@@ -132,11 +159,54 @@ export function getHubSetById(setId: string): QuestionSet | undefined {
 // ─── 문항 미리보기 Mock ───
 // TODO: `/api/sets/:id/preview-questions` 연결 시 제거. Phase 1은 템플릿 5문항 생성.
 
+// 아이스브레이킹 / 유머 세트에 대한 고정 미리보기 샘플
+const CURATED_PREVIEWS: Record<string, Array<Omit<Question, 'question_id' | 'set_id' | 'created_at' | 'order_index'>>> = {
+  'qp-ice-01': [
+    { type: 'ox', content: '오늘이 첫 수업이다!', options: null, answer: 'O', hint: null, explanation: '맞아요, 환영합니다!', media_url: null },
+    { type: 'multiple_choice', content: '가장 기대되는 수업 시간은?', options: [{ index: 1, text: '국어' }, { index: 2, text: '수학' }, { index: 3, text: '체육' }, { index: 4, text: '점심시간' }], answer: '4', hint: null, explanation: '점심시간이 최고죠!', media_url: null },
+    { type: 'ox', content: '우리반 담임선생님 이름을 모두 외웠다.', options: null, answer: 'O', hint: null, explanation: '오늘부터 친해져봐요!', media_url: null },
+    { type: 'multiple_choice', content: '가장 먼저 친해지고 싶은 친구 유형은?', options: [{ index: 1, text: '운동 잘하는 친구' }, { index: 2, text: '재미있는 친구' }, { index: 3, text: '공부 잘하는 친구' }, { index: 4, text: '그림 잘 그리는 친구' }], answer: '2', hint: null, explanation: '재미있는 친구가 최고!', media_url: null },
+    { type: 'ox', content: '이번 학기도 재밌게 보낼 자신이 있다!', options: null, answer: 'O', hint: null, explanation: '파이팅!', media_url: null },
+  ],
+  'qp-ice-04': [
+    { type: 'multiple_choice', content: '가장 좋아하는 색깔은?', options: [{ index: 1, text: '빨강' }, { index: 2, text: '파랑' }, { index: 3, text: '초록' }, { index: 4, text: '노랑' }], answer: '2', hint: null, explanation: '파랑이 인기!', media_url: null },
+    { type: 'multiple_choice', content: '가장 좋아하는 음식은?', options: [{ index: 1, text: '피자' }, { index: 2, text: '치킨' }, { index: 3, text: '떡볶이' }, { index: 4, text: '김밥' }], answer: '3', hint: null, explanation: '떡볶이 1위!', media_url: null },
+    { type: 'multiple_choice', content: '가장 좋아하는 계절은?', options: [{ index: 1, text: '봄' }, { index: 2, text: '여름' }, { index: 3, text: '가을' }, { index: 4, text: '겨울' }], answer: '1', hint: null, explanation: '봄을 가장 많이 선택!', media_url: null },
+    { type: 'multiple_choice', content: '주말에 하고 싶은 활동은?', options: [{ index: 1, text: '게임' }, { index: 2, text: '잠자기' }, { index: 3, text: '놀이공원' }, { index: 4, text: '책 읽기' }], answer: '3', hint: null, explanation: '놀이공원이 최고!', media_url: null },
+    { type: 'ox', content: '우리반은 쉬는 시간이 가장 좋다.', options: null, answer: 'O', hint: null, explanation: '모두 동의!', media_url: null },
+  ],
+  'qp-humor-01': [
+    { type: 'ox', content: '코끼리는 점프를 할 수 있다.', options: null, answer: 'X', hint: null, explanation: '코끼리는 점프를 못하는 유일한 포유류!', media_url: null },
+    { type: 'multiple_choice', content: '다음 중 가장 오래 잠자는 동물은?', options: [{ index: 1, text: '사자' }, { index: 2, text: '코알라' }, { index: 3, text: '나무늘보' }, { index: 4, text: '판다' }], answer: '2', hint: null, explanation: '코알라는 하루 22시간!', media_url: null },
+    { type: 'ox', content: '문어는 심장이 3개다.', options: null, answer: 'O', hint: null, explanation: '진짜로 3개!', media_url: null },
+    { type: 'multiple_choice', content: '다음 중 날지 못하는 새는?', options: [{ index: 1, text: '펭귄' }, { index: 2, text: '참새' }, { index: 3, text: '까치' }, { index: 4, text: '비둘기' }], answer: '1', hint: null, explanation: '펭귄은 수영으로 대신!', media_url: null },
+    { type: 'ox', content: '꿀벌은 집에 돌아오지 못하면 슬퍼서 죽는다.', options: null, answer: 'X', hint: null, explanation: '길을 잃으면 죽긴 하지만 슬퍼서는 아님!', media_url: null },
+  ],
+  'qp-humor-02': [
+    { type: 'multiple_choice', content: '세상에서 가장 뜨거운 과일은?', options: [{ index: 1, text: '사과' }, { index: 2, text: '화끈한 참외' }, { index: 3, text: '후끈한 배' }, { index: 4, text: '불타는 포도' }], answer: '2', hint: null, explanation: '"화"끈한!', media_url: null },
+    { type: 'multiple_choice', content: '다음 중 "말" 종류가 아닌 것은?', options: [{ index: 1, text: '경주마' }, { index: 2, text: '얼룩말' }, { index: 3, text: '고등어말' }, { index: 4, text: '당나귀' }], answer: '3', hint: null, explanation: '고등어말은 없어요!', media_url: null },
+    { type: 'ox', content: '"소금"은 짠 돌이다.', options: null, answer: 'O', hint: null, explanation: '농담 반, 진담 반!', media_url: null },
+    { type: 'multiple_choice', content: '"사과"를 영어로 하면?', options: [{ index: 1, text: 'Apple' }, { index: 2, text: 'I am sorry' }, { index: 3, text: '둘 다' }, { index: 4, text: 'Banana' }], answer: '3', hint: null, explanation: '둘 다 정답!', media_url: null },
+    { type: 'ox', content: '"천장"은 1000개의 장이다.', options: null, answer: 'X', hint: null, explanation: '그냥 天井 입니다!', media_url: null },
+  ],
+}
+
 export function buildMockPreviewQuestions(setId: string, count = 5): Question[] {
+  const curated = CURATED_PREVIEWS[setId]
+  const now = new Date().toISOString()
+  if (curated) {
+    return curated.slice(0, count).map((t, i) => ({
+      ...t,
+      question_id: `${setId}-curated-${i + 1}`,
+      set_id: setId,
+      order_index: i + 1,
+      created_at: now,
+    }))
+  }
+
   const set = getHubSetById(setId)
   const topic = set?.title.split(' ').slice(0, 3).join(' ') ?? '퀴즈'
   const subject = set?.subject ?? '수학'
-  const now = new Date().toISOString()
 
   const templates: Array<Omit<Question, 'question_id' | 'set_id' | 'created_at' | 'order_index'>> = [
     {

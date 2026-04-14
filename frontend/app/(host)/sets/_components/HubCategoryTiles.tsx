@@ -12,15 +12,17 @@ import { EMPTY_FILTERS } from './SetsFilterBar'
 // 각 타일 키 → 필터 프리셋 매핑
 function presetFor(key: string): Partial<HubFilters> {
   switch (key) {
-    case 'new-semester':  return { search: '신학기' }
-    case 'bisang':        return { mode: 'textbook', textbook: '비상 교과서' }
-    case 'gongbuck':      return { mode: 'theme' }
-    case 'icebreak':      return { search: '아이스브레이킹' }
-    case 'humor':         return { search: '유머' }
-    case 'math-workbook': return { mode: 'workbook' }
-    case 'korean':        return { mode: 'theme', theme: '공부력-국어' }
-    case 'math-op':       return { mode: 'theme', theme: '공부력-수학' }
-    default:              return {}
+    // 과목별 1단원 진입점 — 과목 모드 + 해당 과목 selected
+    case 'subj-math':    return { mode: 'subject', subject: '수학',  search: '1단원' }
+    case 'subj-english': return { mode: 'subject', subject: '영어',  search: 'Lesson 1' }
+    case 'subj-korean':  return { mode: 'subject', subject: '국어',  search: '1단원' }
+    case 'subj-social':  return { mode: 'subject', subject: '사회',  search: '1단원' }
+    case 'subj-science': return { mode: 'subject', subject: '과학',  search: '1단원' }
+    // 특별 컬렉션 — 검색 키워드로
+    case 'new-semester': return { search: '신학기' }
+    case 'icebreak':     return { search: '아이스브레이킹' }
+    case 'humor':        return { search: '유머' }
+    default:             return {}
   }
 }
 
