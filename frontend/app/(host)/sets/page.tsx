@@ -126,7 +126,6 @@ export default function SetsHubPage() {
       if (filters.grade !== '전체' && s.grade !== filters.grade) return false
       if (filters.textbook !== '전체' && s.textbook !== filters.textbook) return false
       if (filters.theme !== '전체' && s.theme !== filters.theme) return false
-      if (filters.difficulty !== '전체' && s.difficulty !== filters.difficulty) return false
       return true
     })
   }, [sourceSets, filters])
@@ -246,7 +245,6 @@ export default function SetsHubPage() {
         filters={filters}
         onChange={handleFilterChange}
         onResetAll={() => setFilters(EMPTY_FILTERS)}
-        source={source}
       />
 
       {/* 본문 — 캐러셀 or 리스트 */}

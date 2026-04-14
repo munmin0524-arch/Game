@@ -1,10 +1,12 @@
 'use client'
 
-// 필터 순서: 검색 → 교재 → 과목 → 학년 → 테마 → 난이도
-// 근거: 교사의 수업 준비 흐름은 "어떤 교재"가 1번, 그 다음 과목/학년 세부 선택.
+// 3-depth cascade 필터
+//  1depth: Mode (교과서별/교재별/과목별/테마별) — SetsFilterModePicker에서 처리
+//  2depth: 상세 (교과서명·교재명·과목·테마)
+//  3depth: 학년/학기
+// mode=null 일 때는 아무 cascade도 표시하지 않음(검색만 유효)
 
-import { Search, X } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -19,63 +21,75 @@ import {
   SUBJECT_OPTIONS,
   TEXTBOOK_OPTIONS,
   THEME_OPTIONS,
-  DIFFICULTY_OPTIONS,
   getGradeGroups,
 } from '@/lib/filter-constants'
 import { SETS_HUB_LABELS } from '../_labels'
-import type { SourceTab } from './SetsSourcePills'
+import { SetsFilterModePicker, type FilterMode } from './SetsFilterModePicker'
 
 export interface HubFilters {
+  mode: FilterMode
   search: string
   subject: string
   grade: string
   textbook: string
   theme: string
-  difficulty: string
 }
 
 export const EMPTY_FILTERS: HubFilters = {
+  mode: null,
   search: '',
   subject: '전체',
   grade: '전체',
   textbook: '전체',
   theme: '전체',
-  difficulty: '전체',
 }
 
 export function hasActiveFilters(f: HubFilters): boolean {
   return (
+    f.mode !== null ||
     f.search.trim() !== '' ||
     f.subject !== '전체' ||
     f.grade !== '전체' ||
     f.textbook !== '전체' ||
-    f.theme !== '전체' ||
-    f.difficulty !== '전체'
+    f.theme !== '전체'
   )
+}
+
+// 과목별로 사용 가능한 학년 그룹 (수학·영어만 세분화, 그 외는 일반 학년 리스트 사용)
+function useGradeGroups(subject: string) {
+  return getGradeGroups(subject === '전체' ? null : subject)
 }
 
 export function SetsFilterBar({
   filters,
   onChange,
   onResetAll,
-  source,
 }: {
   filters: HubFilters
   onChange: (patch: Partial<HubFilters>) => void
   onResetAll: () => void
-  source: SourceTab
 }) {
   const L = SETS_HUB_LABELS.filter
-  const gradeGroups = getGradeGroups(filters.subject === '전체' ? null : filters.subject)
-  const showTextbook = source === 'all' || source === 'quiz_party' || source === 'community'
+  const gradeGroups = useGradeGroups(filters.subject)
 
+  // ── 모드 변경 시 하위 초기화 ──
+  const handleModeChange = (m: FilterMode) => {
+    onChange({
+      mode: m,
+      textbook: '전체',
+      subject: '전체',
+      grade: '전체',
+      theme: '전체',
+    })
+  }
+
+  // ── 활성 칩 ──
   const chips: Array<{ key: keyof HubFilters; label: string }> = []
-  if (filters.search.trim())         chips.push({ key: 'search',     label: `${L.prefixSearch}: "${filters.search.trim()}"` })
-  if (filters.textbook !== '전체')    chips.push({ key: 'textbook',   label: `${L.prefixTextbook}: ${filters.textbook}` })
-  if (filters.subject !== '전체')     chips.push({ key: 'subject',    label: `${L.prefixSubject}: ${filters.subject}` })
-  if (filters.grade !== '전체')       chips.push({ key: 'grade',      label: `${L.prefixGrade}: ${filters.grade}` })
-  if (filters.theme !== '전체')       chips.push({ key: 'theme',      label: `${L.prefixTheme}: ${filters.theme.replace('공부력-', '공부력 ')}` })
-  if (filters.difficulty !== '전체')  chips.push({ key: 'difficulty', label: `${L.prefixDifficulty}: ${filters.difficulty}` })
+  if (filters.search.trim())         chips.push({ key: 'search',   label: `${L.prefixSearch}: "${filters.search.trim()}"` })
+  if (filters.textbook !== '전체')    chips.push({ key: 'textbook', label: `${L.prefixTextbook}: ${filters.textbook}` })
+  if (filters.subject !== '전체')     chips.push({ key: 'subject',  label: `${L.prefixSubject}: ${filters.subject}` })
+  if (filters.grade !== '전체')       chips.push({ key: 'grade',    label: `${L.prefixGrade}: ${filters.grade}` })
+  if (filters.theme !== '전체')       chips.push({ key: 'theme',    label: `${L.prefixTheme}: ${filters.theme.replace('공부력-', '공부력 ')}` })
 
   const clearChip = (k: keyof HubFilters) => {
     if (k === 'search') onChange({ search: '' })
@@ -84,106 +98,139 @@ export function SetsFilterBar({
 
   return (
     <div className="space-y-3">
-      {/* 필터 드롭다운 행 — 검색 · 교재 · 과목 · 학년 · 테마 · 난이도 */}
-      <div className="flex flex-wrap gap-2">
-        <div className="relative min-w-[220px] flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder={L.searchPlaceholder}
-            className="pl-9"
-            value={filters.search}
-            onChange={(e) => onChange({ search: e.target.value })}
-          />
+      {/* 1-depth: 모드 선택기 + 검색 */}
+      <SetsFilterModePicker
+        mode={filters.mode}
+        onModeChange={handleModeChange}
+        search={filters.search}
+        onSearchChange={(v) => onChange({ search: v })}
+      />
+
+      {/* 2·3-depth: 모드에 따라 다른 cascade */}
+      {filters.mode && (
+        <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+          {/* 교과서별 */}
+          {filters.mode === 'textbook' && (
+            <>
+              <Select value={filters.textbook} onValueChange={(v) => onChange({ textbook: v, subject: '전체', grade: '전체' })}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={`📘 ${L.textbook}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="전체">전체 교과서</SelectItem>
+                  {TEXTBOOK_OPTIONS.filter((t) => t.kind === 'textbook').map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={filters.subject}
+                onValueChange={(v) => onChange({ subject: v, grade: '전체' })}
+                disabled={filters.textbook === '전체'}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder={filters.textbook === '전체' ? '교과서 먼저' : L.subject} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="전체">전체 과목</SelectItem>
+                  {SUBJECT_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                      {s.value}{!s.enabled && ` (${s.label})`}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="국어">국어</SelectItem>
+                </SelectContent>
+              </Select>
+              <GradeSelect
+                value={filters.grade}
+                onChange={(v) => onChange({ grade: v })}
+                groups={gradeGroups}
+                disabled={filters.subject === '전체'}
+                placeholder={filters.subject === '전체' ? '과목 먼저' : L.grade}
+              />
+            </>
+          )}
+
+          {/* 교재별(문제집) */}
+          {filters.mode === 'workbook' && (
+            <>
+              <Select value={filters.textbook} onValueChange={(v) => onChange({ textbook: v, grade: '전체' })}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={`📐 문제집`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="전체">전체 문제집</SelectItem>
+                  {TEXTBOOK_OPTIONS.filter((t) => t.kind === 'workbook').map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <GradeSelect
+                value={filters.grade}
+                onChange={(v) => onChange({ grade: v })}
+                groups={getGradeGroups('수학')}
+                disabled={filters.textbook === '전체'}
+                placeholder={filters.textbook === '전체' ? '문제집 먼저' : L.grade}
+              />
+            </>
+          )}
+
+          {/* 과목별 */}
+          {filters.mode === 'subject' && (
+            <>
+              <Select value={filters.subject} onValueChange={(v) => onChange({ subject: v, grade: '전체' })}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder={`📚 ${L.subject}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="전체">전체 과목</SelectItem>
+                  {SUBJECT_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                      {s.value}{!s.enabled && ` (${s.label})`}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="국어">국어</SelectItem>
+                  <SelectItem value="한자">한자</SelectItem>
+                  <SelectItem value="한국사">한국사</SelectItem>
+                </SelectContent>
+              </Select>
+              <GradeSelect
+                value={filters.grade}
+                onChange={(v) => onChange({ grade: v })}
+                groups={gradeGroups}
+                disabled={filters.subject === '전체'}
+                placeholder={filters.subject === '전체' ? '과목 먼저' : L.grade}
+              />
+            </>
+          )}
+
+          {/* 테마별 */}
+          {filters.mode === 'theme' && (
+            <>
+              <Select value={filters.theme} onValueChange={(v) => onChange({ theme: v })}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder={`🎯 ${L.theme}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="전체">전체 테마</SelectItem>
+                  {THEME_OPTIONS.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.emoji} {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <GradeSelect
+                value={filters.grade}
+                onChange={(v) => onChange({ grade: v })}
+                groups={getGradeGroups(null)}
+                disabled={false}
+                placeholder={`${L.grade} (선택)`}
+              />
+            </>
+          )}
         </div>
-
-        {/* ① 교재 (교사 우선순위) */}
-        {showTextbook && (
-          <Select value={filters.textbook} onValueChange={(v) => onChange({ textbook: v })}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder={L.textbook} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="전체">전체 교재</SelectItem>
-              <SelectGroup>
-                <SelectLabel className="text-xs text-gray-400">교과서</SelectLabel>
-                {TEXTBOOK_OPTIONS.filter((t) => t.kind === 'textbook').map((t) => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel className="text-xs text-gray-400">문제집</SelectLabel>
-                {TEXTBOOK_OPTIONS.filter((t) => t.kind === 'workbook').map((t) => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* ② 과목 */}
-        <Select value={filters.subject} onValueChange={(v) => onChange({ subject: v, grade: '전체' })}>
-          <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder={L.subject} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="전체">전체 과목</SelectItem>
-            {SUBJECT_OPTIONS.map((s) => (
-              <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
-                {s.value}{!s.enabled && ` (${s.label})`}
-              </SelectItem>
-            ))}
-            <SelectItem value="국어">국어</SelectItem>
-            <SelectItem value="한자">한자</SelectItem>
-            <SelectItem value="한국사">한국사</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* ③ 학년 */}
-        <Select value={filters.grade} onValueChange={(v) => onChange({ grade: v })}>
-          <SelectTrigger className="w-[170px]">
-            <SelectValue placeholder={L.grade} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="전체">전체 학년/학기</SelectItem>
-            {gradeGroups.map((g) => (
-              <SelectGroup key={g.group}>
-                <SelectLabel className="text-xs text-gray-400">{g.group}</SelectLabel>
-                {g.items.map((item) => (
-                  <SelectItem key={item} value={item}>{item}</SelectItem>
-                ))}
-              </SelectGroup>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* ④ 테마 */}
-        <Select value={filters.theme} onValueChange={(v) => onChange({ theme: v })}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder={L.theme} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="전체">전체 테마</SelectItem>
-            {THEME_OPTIONS.map((t) => (
-              <SelectItem key={t.value} value={t.value}>
-                {t.emoji} {t.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* ⑤ 난이도 */}
-        <Select value={filters.difficulty} onValueChange={(v) => onChange({ difficulty: v })}>
-          <SelectTrigger className="w-[110px]">
-            <SelectValue placeholder={L.difficulty} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="전체">전체 난이도</SelectItem>
-            {DIFFICULTY_OPTIONS.map((d) => (
-              <SelectItem key={d} value={d}>{d}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      )}
 
       {/* 활성 필터 칩 */}
       {chips.length > 0 && (
@@ -210,5 +257,38 @@ export function SetsFilterBar({
         </div>
       )}
     </div>
+  )
+}
+
+function GradeSelect({
+  value,
+  onChange,
+  groups,
+  disabled,
+  placeholder,
+}: {
+  value: string
+  onChange: (v: string) => void
+  groups: ReturnType<typeof getGradeGroups>
+  disabled: boolean
+  placeholder: string
+}) {
+  return (
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="전체">전체 학년/학기</SelectItem>
+        {groups.map((g) => (
+          <SelectGroup key={g.group}>
+            <SelectLabel className="text-xs text-gray-400">{g.group}</SelectLabel>
+            {g.items.map((item) => (
+              <SelectItem key={item} value={item}>{item}</SelectItem>
+            ))}
+          </SelectGroup>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
