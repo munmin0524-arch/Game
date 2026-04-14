@@ -111,7 +111,27 @@ export interface QuestionSet {
   created_at: Timestamp
   updated_at: Timestamp
   question_count?: number // 집계 필드
+  // ─── 허브 화면 확장 필드 (모두 optional) ───
+  textbook?: string | null          // 비상/천재/미래엔/동아/지학사 + 문제집
+  unit?: string | null              // 단원명 (FilterHierarchyData와 정합)
+  theme?: string | null             // 공부력 테마 (B안) — THEME_OPTIONS.value
+  difficulty?: '상' | '중' | '하' | null
+  thumbnail_variant?: number | null // 0~5, QuizCard gradient index
+  play_count?: number               // 🔥 플레이 수
+  rating_avg?: number               // ⭐ 평균 별점 (내 퀴즈/퀴즈파티 제공 공용)
+  is_official?: boolean             // 퀴즈파티 공식 여부
+  is_new?: boolean                  // 최근 7일 내 업데이트
+  seen_at?: Timestamp | null        // 사용자가 마지막으로 미리보기 한 시간
+  // 커뮤니티 공유 메타 (허브에서 3소스 통합 뷰 목적)
+  host_nickname?: string
+  is_certified?: boolean
+  like_count?: number
+  download_count?: number
+  is_bookmarked?: boolean
 }
+
+// 허브에서 소스 구분용
+export type SetSource = 'quiz_party' | 'mine' | 'community'
 
 export interface LearningMap {
   depth1?: string

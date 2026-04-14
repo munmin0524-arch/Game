@@ -95,3 +95,46 @@ export function getGradeGroups(subject?: string | null): GradeGroup[] {
 export function getGradeList(subject?: string | null): string[] {
   return getGradeGroups(subject).flatMap((g) => g.items)
 }
+
+// ─── 교과서/교재 (A안: 비상 CBS 교과서 전과목 + 주요 문제집) ───
+
+export interface TextbookOption {
+  value: string
+  label: string
+  kind: 'textbook' | 'workbook'
+}
+
+export const TEXTBOOK_OPTIONS: TextbookOption[] = [
+  { value: '비상 교과서', label: '비상 교과서', kind: 'textbook' },
+  { value: '천재 교과서', label: '천재 교과서', kind: 'textbook' },
+  { value: '미래엔 교과서', label: '미래엔 교과서', kind: 'textbook' },
+  { value: '동아 교과서', label: '동아 교과서', kind: 'textbook' },
+  { value: '지학사 교과서', label: '지학사 교과서', kind: 'textbook' },
+  { value: '오투', label: '오투', kind: 'workbook' },
+  { value: '쎈', label: '쎈', kind: 'workbook' },
+  { value: '개념원리', label: '개념원리', kind: 'workbook' },
+  { value: '수학의 정석', label: '수학의 정석', kind: 'workbook' },
+]
+
+// ─── 공부력 테마 (B안: 테마형 세트지 축) ───
+
+export interface ThemeOption {
+  value: string
+  label: string
+  subject: string        // 테마가 암시하는 과목 (필터 연동용)
+  emoji: string
+}
+
+export const THEME_OPTIONS: ThemeOption[] = [
+  { value: '공부력-영어',  label: '공부력 영어',   subject: '영어', emoji: '🔤' },
+  { value: '공부력-국어',  label: '공부력 국어',   subject: '국어', emoji: '📖' },
+  { value: '공부력-한국사', label: '공부력 한국사', subject: '한국사', emoji: '🏯' },
+  { value: '공부력-어휘',  label: '공부력 어휘',   subject: '국어', emoji: '💬' },
+  { value: '공부력-한자',  label: '공부력 한자',   subject: '한자', emoji: '漢' },
+  { value: '공부력-수학',  label: '공부력 수학',   subject: '수학', emoji: '🧮' },
+]
+
+// ─── 난이도 ───
+
+export const DIFFICULTY_OPTIONS = ['상', '중', '하'] as const
+export type Difficulty = (typeof DIFFICULTY_OPTIONS)[number]

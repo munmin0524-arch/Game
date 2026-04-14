@@ -1,9 +1,20 @@
-// QuizCard — 통합 퀴즈 카드 (내 퀴즈 + 퀴즈 광장 공용)
+// QuizCard — 통합 퀴즈 카드 (내 퀴즈 + 마켓플레이스 + 허브 공용)
 
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { Heart, Download, Zap, Play, MoreHorizontal, Edit, Copy, Share2, Trash2 } from 'lucide-react'
+import {
+  Heart,
+  Download,
+  Zap,
+  Play,
+  MoreHorizontal,
+  Edit,
+  Copy,
+  Share2,
+  Trash2,
+  Eye,
+  Flame,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +24,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { SetBadge, type SetBadgeKind } from '@/components/common/SetBadge'
+import { cn } from '@/lib/utils'
 
 // ─── 파스텔 그라디언트 ───
 
@@ -25,7 +38,8 @@ const CARD_GRADIENTS = [
   'from-pink-200 to-rose-100',
 ]
 
-function getGradient(id: string): string {
+function getGradient(id: string, variant?: number | null): string {
+  if (variant != null && variant >= 0) return CARD_GRADIENTS[variant % CARD_GRADIENTS.length]
   const hash = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length]
 }
@@ -59,6 +73,16 @@ export interface QuizCardProps {
   onQuickStart?: () => void
   // 공통
   onClick?: () => void
+  // ─── 허브 확장 ───
+  badges?: SetBadgeKind[]
+  textbook?: string | null
+  theme?: string | null
+  difficulty?: '상' | '중' | '하' | null
+  playCount?: number
+  seen?: boolean
+  /** 'footer' = 하단 버튼 (기본, 마켓플레이스 호환) / 'hover' = 호버 오버레이 CTA (허브 캐러셀) */
+  overlayMode?: 'footer' | 'hover'
+  thumbnailVariant?: number | null
 }
 
 // ─── 컴포넌트 ───
@@ -84,22 +108,45 @@ export function QuizCard({
   onPreview,
   onQuickStart,
   onClick,
+  badges,
+  textbook,
+  theme,
+  difficulty,
+  playCount,
+  seen,
+  overlayMode = 'footer',
+  thumbnailVariant,
 }: QuizCardProps) {
-  const gradient = getGradient(id)
+  const gradient = getGradient(id, thumbnailVariant)
   const isMarketplace = hostNickname != null
+  const isHover = overlayMode === 'hover'
 
   return (
     <div
-      className="group relative flex flex-col rounded-2xl overflow-hidden shadow-soft hover:shadow-card transition-all cursor-pointer"
+      className={cn(
+        'group relative flex flex-col rounded-2xl overflow-hidden shadow-soft transition-all cursor-pointer',
+        'hover:shadow-card hover:scale-[1.02]',
+        seen && 'ring-2 ring-blue-400/60',
+      )}
       onClick={onClick}
     >
       {/* 상단 그라디언트 영역 */}
       <div className={`bg-gradient-to-br ${gradient} px-4 pt-4 pb-6 relative`}>
+        {/* 뱃지 스트립 */}
+        {badges && badges.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {badges.map((b) => (
+              <SetBadge key={b} kind={b} />
+            ))}
+          </div>
+        )}
+
         <p className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 pr-8">
           {title}
         </p>
         <p className="text-gray-600/70 text-xs mt-1">
           {questionCount}문항
+          {difficulty && <span className="ml-2 text-gray-500">· 난이도 {difficulty}</span>}
         </p>
 
         {/* 액션 메뉴 */}
@@ -112,13 +159,11 @@ export function QuizCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {/* 마켓플레이스 퀵 출제 */}
                 {onQuickDeploy && (
                   <DropdownMenuItem onClick={onQuickDeploy}>
                     <Play className="mr-2 h-4 w-4" /> 바로 퀴즈 출제하기
                   </DropdownMenuItem>
                 )}
-                {/* 내 퀴즈 메뉴 */}
                 {onEdit && (
                   <DropdownMenuItem onClick={onEdit}>
                     <Edit className="mr-2 h-4 w-4" /> 편집
@@ -154,6 +199,39 @@ export function QuizCard({
             </DropdownMenu>
           </div>
         )}
+
+        {/* Hover 오버레이 CTA (허브 캐러셀 전용) */}
+        {isHover && (onPreview || onQuickStart) && (
+          <div
+            className={cn(
+              'absolute inset-0 flex items-center justify-center gap-2 bg-black/40 backdrop-blur-[1px]',
+              'opacity-0 group-hover:opacity-100 transition-opacity',
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {onPreview && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="rounded-full h-8 px-3 text-xs bg-white/95 hover:bg-white"
+                onClick={onPreview}
+              >
+                <Eye className="mr-1 h-3.5 w-3.5" />
+                돋보기
+              </Button>
+            )}
+            {onQuickStart && (
+              <Button
+                size="sm"
+                className="rounded-full h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                onClick={onQuickStart}
+              >
+                <Zap className="mr-1 h-3.5 w-3.5" />
+                바로 시작
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 하단 정보 영역 */}
@@ -170,9 +248,24 @@ export function QuizCard({
               {grade}
             </Badge>
           )}
+          {textbook && (
+            <Badge variant="outline" className="rounded-full text-[11px] px-2 py-0 text-slate-600">
+              {textbook}
+            </Badge>
+          )}
+          {theme && (
+            <Badge className="rounded-full text-[11px] px-2 py-0 bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+              {theme.replace('공부력-', '공부력 ')}
+            </Badge>
+          )}
           {avgRating != null && avgRating > 0 && (
             <span className="text-[11px] text-amber-500 font-medium">
               ★ {avgRating.toFixed(1)}
+            </span>
+          )}
+          {playCount != null && playCount > 0 && (
+            <span className="text-[11px] text-gray-500 flex items-center gap-0.5">
+              <Flame className="h-3 w-3 text-orange-400" /> {playCount}
             </span>
           )}
         </div>
@@ -199,8 +292,8 @@ export function QuizCard({
           </div>
         )}
 
-        {/* 마켓플레이스: 미리보기 + 바로 시작 */}
-        {(onPreview || onQuickStart) && (
+        {/* Footer 액션 (마켓플레이스 호환 기본값) */}
+        {!isHover && (onPreview || onQuickStart) && (
           <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
             {onPreview && (
               <Button
@@ -226,7 +319,7 @@ export function QuizCard({
         )}
 
         {/* 내 퀴즈: 게임 열기 버튼 */}
-        {!isMarketplace && onGameOpen && (
+        {!isMarketplace && !isHover && onGameOpen && (
           <div className="flex justify-end">
             <Button
               size="sm"
