@@ -124,7 +124,7 @@ export function QuizCard({
   return (
     <div
       className={cn(
-        'group relative flex flex-col rounded-2xl overflow-hidden shadow-soft transition-all cursor-pointer h-full',
+        'group/card relative flex flex-col rounded-2xl overflow-hidden shadow-soft transition-all cursor-pointer h-full',
         'hover:shadow-card hover:scale-[1.02]',
         seen && 'ring-2 ring-blue-400/60',
       )}
@@ -197,12 +197,12 @@ export function QuizCard({
           </div>
         )}
 
-        {/* Hover 오버레이 CTA (허브 캐러셀 전용) */}
+        {/* Hover 오버레이 CTA — 해당 카드 hover 시에만 (카드 단독 group) */}
         {isHover && (onPreview || onQuickStart) && (
           <div
             className={cn(
-              'absolute inset-0 flex items-center justify-center gap-2 bg-black/40 backdrop-blur-[1px]',
-              'opacity-0 group-hover:opacity-100 transition-opacity',
+              'absolute inset-0 flex items-center justify-center gap-2 bg-black/50 backdrop-blur-[1px]',
+              'opacity-0 group-hover/card:opacity-100 transition-opacity',
             )}
             onClick={(e) => e.stopPropagation()}
           >

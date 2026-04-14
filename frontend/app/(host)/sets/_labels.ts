@@ -80,7 +80,7 @@ export const SETS_HUB_LABELS = {
     best:                { title: '선생님들의 별 5개',                    subtitle: '평점 4.7 이상 — 검증된 수업용 세트' },
     textbookBrowse:      { title: '교과서별 둘러보기',                    subtitle: '비상·천재·미래엔·동아·지학사 대표 세트' },
     mathWorkbook:        { title: '이 문제집은 어떠세요?',                subtitle: '쎈 · 개념원리 · 유형 — 수학 문제집 대표 세트' },
-    themeBrowse:         { title: '공부력 테마 제안',                     subtitle: '영어·국어·한자·어휘·한국사·수학 테마' },
+    themeBrowse:         { title: '테마별 제안',                          subtitle: '영어·국어·한자·어휘·한국사·수학 테마' },
     recent:              { title: '최근 편집한 세트지',                    subtitle: '이어서 작업하거나 바로 시작' },
     certified:           { title: '인증 선생님의 세트지',                  subtitle: '검증된 프로필의 선생님 추천' },
     bookmarked:          { title: '내가 찜한 세트지',                     subtitle: '북마크한 세트지 모음' },
