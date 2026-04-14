@@ -33,14 +33,14 @@ export const SETS_HUB_LABELS = {
     heading: '카테고리로 둘러보기',
     sub: '원하는 주제를 한 번에',
     items: [
-      { key: 'new-semester',  emoji: '🎒', label: '신학기 추천',  sub: '4월 맞춤 세트',    gradient: 'from-blue-500 to-indigo-500' },
-      { key: 'bisang',        emoji: '📘', label: '비상 교과서',  sub: 'A안 레디메이드',   gradient: 'from-sky-500 to-cyan-500' },
-      { key: 'gongbuck',      emoji: '📚', label: '공부력',       sub: '테마별 레디메이드', gradient: 'from-emerald-500 to-teal-500' },
-      { key: 'icebreak',      emoji: '🎤', label: '아이스브레이킹', sub: '수업 도입용',     gradient: 'from-rose-500 to-orange-500' },
-      { key: 'humor',         emoji: '😂', label: '오늘의 유머',  sub: '가볍고 재미있게',   gradient: 'from-amber-500 to-rose-500' },
-      { key: 'beginner',      emoji: '🌱', label: '입문자 OK',    sub: '난이도 하',        gradient: 'from-lime-500 to-emerald-500' },
-      { key: 'korean',        emoji: '📖', label: '국어·독해',    sub: '독해력 집중',      gradient: 'from-violet-500 to-purple-500' },
-      { key: 'math-op',       emoji: '🧮', label: '수학 연산',    sub: '계산 속도',        gradient: 'from-fuchsia-500 to-pink-500' },
+      { key: 'new-semester',  emoji: '🎒', label: '신학기 추천',  sub: '진단·아이스브레이킹·복습', gradient: 'from-blue-500 to-indigo-500' },
+      { key: 'bisang',        emoji: '📘', label: '비상 교과서',  sub: 'A안 레디메이드',    gradient: 'from-sky-500 to-cyan-500' },
+      { key: 'gongbuck',      emoji: '📚', label: '공부력',       sub: '테마별 레디메이드',  gradient: 'from-emerald-500 to-teal-500' },
+      { key: 'icebreak',      emoji: '🎤', label: '아이스브레이킹', sub: '수업 도입용',       gradient: 'from-rose-500 to-orange-500' },
+      { key: 'humor',         emoji: '😂', label: '오늘의 유머',  sub: '가볍고 재미있게',    gradient: 'from-amber-500 to-rose-500' },
+      { key: 'math-workbook', emoji: '📐', label: '수학 문제집',  sub: '쎈·개념원리·유형',  gradient: 'from-fuchsia-500 to-pink-500' },
+      { key: 'korean',        emoji: '📖', label: '국어·독해',    sub: '독해력 집중',       gradient: 'from-violet-500 to-purple-500' },
+      { key: 'math-op',       emoji: '🧮', label: '수학 연산',    sub: '계산 속도',         gradient: 'from-amber-400 to-orange-500' },
     ],
   },
 
@@ -73,11 +73,11 @@ export const SETS_HUB_LABELS = {
   rows: {
     continue:            { title: '이어서 시작하기',                     subtitle: '최근에 살펴본 세트지로 바로 수업을 시작해보세요' },
     top10:               { title: '오늘의 Top 10',                        subtitle: '전국 선생님이 가장 많이 선택한 세트지' },
-    personalGrade:       { title: '비상 교과서 영어 5학년 선생님이세요?', subtitle: '기존에 출제하셨던 단원 기반 추천' },
-    personalOtherTextbook:{ title: '같은 학년, 다른 교재도 추천',          subtitle: '초등 영어 5학년 — 교재를 바꿔 비교해보세요' },
-    new:                 { title: '이번 주 새로 올라온 세트지',            subtitle: '방금 출시된 레디메이드 컬렉션' },
+    personalGrade:       { title: '비상 교과서 수학 5학년 선생님이세요?', subtitle: '기존에 출제하셨던 단원 기반 추천' },
+    personalOtherTextbook:{ title: '같은 학년, 다른 교재도 추천',          subtitle: '초등 수학 5학년 — 교재를 바꿔 비교해보세요' },
     best:                { title: '선생님들의 별 5개',                    subtitle: '평점 4.7 이상 — 검증된 수업용 세트' },
     textbookBrowse:      { title: '교과서별 둘러보기',                    subtitle: '비상·천재·미래엔·동아·지학사 대표 세트' },
+    mathWorkbook:        { title: '이 문제집은 어떠세요?',                subtitle: '쎈 · 개념원리 · 유형 — 수학 문제집 대표 세트' },
     themeBrowse:         { title: '공부력 테마 제안',                     subtitle: '영어·국어·한자·어휘·한국사·수학 테마' },
     recent:              { title: '최근 편집한 세트지',                    subtitle: '이어서 작업하거나 바로 시작' },
     certified:           { title: '인증 선생님의 세트지',                  subtitle: '검증된 프로필의 선생님 추천' },
@@ -117,7 +117,7 @@ export const SETS_HUB_LABELS = {
 // 개인화 추천 mock — 추후 실제 사용자 히스토리 API로 교체
 // TODO: GET /api/me/recent-activity → 최근 출제 grade·subject·textbook 집계
 export const MOCK_PERSONALIZATION = {
-  inferredSubject: '영어',
-  inferredGrade: '초등 영어 5',
+  inferredSubject: '수학',
+  inferredGrade: '초등 수학 5-1',
   inferredTextbook: '비상 교과서',
 } as const

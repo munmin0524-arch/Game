@@ -124,14 +124,14 @@ export function QuizCard({
   return (
     <div
       className={cn(
-        'group relative flex flex-col rounded-2xl overflow-hidden shadow-soft transition-all cursor-pointer',
+        'group relative flex flex-col rounded-2xl overflow-hidden shadow-soft transition-all cursor-pointer h-full',
         'hover:shadow-card hover:scale-[1.02]',
         seen && 'ring-2 ring-blue-400/60',
       )}
       onClick={onClick}
     >
-      {/* 상단 그라디언트 영역 */}
-      <div className={`bg-gradient-to-br ${gradient} px-4 pt-4 pb-6 relative`}>
+      {/* 상단 그라디언트 영역 — 고정 높이로 카드 크기 통일 */}
+      <div className={`bg-gradient-to-br ${gradient} px-4 pt-4 pb-4 relative h-28 flex flex-col`}>
         {/* 뱃지 스트립 */}
         {badges && badges.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
@@ -234,8 +234,8 @@ export function QuizCard({
         )}
       </div>
 
-      {/* 하단 정보 영역 */}
-      <div className="bg-white px-4 py-3 space-y-2">
+      {/* 하단 정보 영역 — flex-1로 카드 하단 높이 통일 */}
+      <div className="bg-white px-4 py-3 space-y-2 flex-1 flex flex-col">
         {/* 뱃지 행 */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {subject && (

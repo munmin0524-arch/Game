@@ -58,7 +58,7 @@ export function HubBillboard({
       onMouseLeave={() => setPaused(false)}
     >
       {/* 배경 그라디언트 */}
-      <div className={cn('relative h-[320px] md:h-[380px] bg-gradient-to-br text-white', gradient)}>
+      <div className={cn('relative h-[160px] md:h-[200px] bg-gradient-to-br text-white', gradient)}>
         {/* 반복 패턴 (감성 텍스처) */}
         <div
           className="absolute inset-0 opacity-20 mix-blend-overlay"
@@ -68,9 +68,9 @@ export function HubBillboard({
           }}
         />
         {/* 하단 그라데이션 오버레이 */}
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/30 to-transparent" />
 
-        <div className="relative h-full flex flex-col justify-between p-6 md:p-10">
+        <div className="relative h-full flex flex-col justify-between p-4 md:p-6">
           {/* 상단: 에디터스 픽 태그 */}
           <div className="flex flex-wrap gap-1.5">
             <span className="inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur px-3 py-1 text-[11px] font-semibold tracking-wider uppercase">
@@ -82,70 +82,65 @@ export function HubBillboard({
           </div>
 
           {/* 중하단: 제목 + 메타 + CTA */}
-          <div className="space-y-4 max-w-2xl">
-            <div className="flex items-center gap-2 text-xs opacity-90">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2 text-[11px] opacity-90">
               {s.textbook && (
                 <span className="inline-flex items-center gap-1">
-                  <BookOpen className="h-3.5 w-3.5" />
+                  <BookOpen className="h-3 w-3" />
                   {s.textbook}
                 </span>
               )}
-              {s.theme && (
-                <span className="inline-flex items-center gap-1">
-                  · {s.theme.replace('공부력-', '공부력 ')}
-                </span>
-              )}
+              {s.theme && <span>· {s.theme.replace('공부력-', '공부력 ')}</span>}
               {s.unit && <span>· {s.unit}</span>}
             </div>
 
-            <h2 className="text-2xl md:text-4xl font-black leading-tight drop-shadow-md">
+            <h2 className="text-lg md:text-2xl font-black leading-tight drop-shadow-md line-clamp-1">
               {s.title}
             </h2>
 
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              {s.subject && <Badge className="rounded-full bg-white/90 text-gray-800 hover:bg-white">{s.subject}</Badge>}
-              {s.grade && <Badge variant="outline" className="rounded-full border-white/50 bg-white/10 text-white">{s.grade}</Badge>}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              {s.subject && <Badge className="rounded-full bg-white/90 text-gray-800 hover:bg-white text-[10px] px-2 py-0">{s.subject}</Badge>}
+              {s.grade && <Badge variant="outline" className="rounded-full border-white/50 bg-white/10 text-white text-[10px] px-2 py-0">{s.grade}</Badge>}
               <span className="font-semibold">{s.question_count ?? 0}문항</span>
-              {s.difficulty && <span>· 난이도 {s.difficulty}</span>}
               {s.rating_avg != null && (
-                <span className="inline-flex items-center gap-1">
-                  · <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
+                <span className="inline-flex items-center gap-0.5">
+                  · <Star className="h-3 w-3 fill-amber-300 text-amber-300" />
                   {s.rating_avg.toFixed(1)}
                 </span>
               )}
               {(s.play_count ?? 0) > 0 && (
-                <span className="inline-flex items-center gap-1">
-                  · <Flame className="h-3.5 w-3.5 text-orange-200" />
-                  {s.play_count}회 플레이
+                <span className="inline-flex items-center gap-0.5">
+                  · <Flame className="h-3 w-3 text-orange-200" />
+                  {s.play_count}
                 </span>
               )}
-            </div>
 
-            <div className="flex flex-wrap gap-2 pt-2">
-              <Button
-                size="lg"
-                onClick={() => onQuickStart(s.set_id)}
-                className="rounded-full bg-white text-gray-900 hover:bg-white/90 font-bold px-6 shadow-lg"
-              >
-                <Play className="h-5 w-5 mr-1.5 fill-current" />
-                {SETS_HUB_LABELS.billboard.ctaPrimary}
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => onPreview(s.set_id)}
-                className="rounded-full border-white/60 bg-white/10 text-white hover:bg-white/20 font-semibold backdrop-blur"
-              >
-                <Eye className="h-5 w-5 mr-1.5" />
-                {SETS_HUB_LABELS.billboard.ctaPreview}
-              </Button>
+              <div className="ml-auto flex gap-1.5">
+                <Button
+                  size="sm"
+                  onClick={() => onQuickStart(s.set_id)}
+                  className="h-7 rounded-full bg-white text-gray-900 hover:bg-white/90 font-bold px-3 text-xs shadow"
+                >
+                  <Play className="h-3.5 w-3.5 mr-1 fill-current" />
+                  {SETS_HUB_LABELS.billboard.ctaPrimary}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onPreview(s.set_id)}
+                  className="h-7 rounded-full border-white/60 bg-white/10 text-white hover:bg-white/20 font-semibold backdrop-blur px-3 text-xs"
+                >
+                  <Eye className="h-3.5 w-3.5 mr-1" />
+                  {SETS_HUB_LABELS.billboard.ctaPreview}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* 우하단 슬라이드 인디케이터 */}
         {slides.length > 1 && (
-          <div className="absolute right-6 bottom-6 md:right-10 md:bottom-8 flex items-center gap-1.5">
+          <div className="absolute right-4 bottom-3 md:right-6 md:bottom-4 flex items-center gap-1.5">
             {slides.map((_, i) => (
               <button
                 key={i}

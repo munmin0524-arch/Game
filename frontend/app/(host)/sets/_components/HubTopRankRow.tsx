@@ -111,7 +111,7 @@ export function HubTopRankRow({
               >
                 {i + 1}
               </div>
-              <div className="w-[180px] sm:w-[200px] relative z-10">
+              <div className="w-[200px] sm:w-[220px] relative z-10">
                 <QuizCard
                   id={s.set_id}
                   title={s.title}

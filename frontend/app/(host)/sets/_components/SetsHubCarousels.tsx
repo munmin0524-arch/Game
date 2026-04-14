@@ -137,19 +137,22 @@ export function SetsHubCarousels({
   }
 
   if (source !== 'mine') {
-    // ⑤ 신규
-    const newSets = sets.filter((s) => s.is_new).slice(0, 12)
-    if (newSets.length > 0) {
-      rows.push(
-        <SetsCarouselRow
-          key="row-new"
-          title={R.new.title}
-          subtitle={R.new.subtitle}
-          icon={<Sparkles className="h-5 w-5 text-amber-500" />}
-          items={newSets}
-          {...rowProps}
-        />,
-      )
+    // ⑤ 수학 문제집 row — 쎈·개념원리·유형
+    if (source === 'all' || source === 'quiz_party') {
+      const WORKBOOKS = ['쎈', '개념원리', '유형']
+      const workbookSets = sets.filter((s) => s.textbook && WORKBOOKS.includes(s.textbook)).slice(0, 12)
+      if (workbookSets.length > 0) {
+        rows.push(
+          <SetsCarouselRow
+            key="row-math-workbook"
+            title={R.mathWorkbook.title}
+            subtitle={R.mathWorkbook.subtitle}
+            icon={<BookOpen className="h-5 w-5 text-fuchsia-500" />}
+            items={workbookSets}
+            {...rowProps}
+          />,
+        )
+      }
     }
 
     // ⑥ 베스트 (별점 4.7+)

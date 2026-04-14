@@ -12,15 +12,15 @@ import { EMPTY_FILTERS } from './SetsFilterBar'
 // 각 타일 키 → 필터 프리셋 매핑
 function presetFor(key: string): Partial<HubFilters> {
   switch (key) {
-    case 'new-semester': return { search: '신학기' }
-    case 'bisang':       return { textbook: '비상 교과서' }
-    case 'gongbuck':     return { search: '공부력' }
-    case 'icebreak':     return { search: '아이스브레이킹' }
-    case 'humor':        return { search: '유머' }
-    case 'beginner':     return { difficulty: '하' }
-    case 'korean':       return { theme: '공부력-국어', subject: '국어' }
-    case 'math-op':      return { theme: '공부력-수학', subject: '수학' }
-    default:             return {}
+    case 'new-semester':  return { search: '신학기' }
+    case 'bisang':        return { textbook: '비상 교과서' }
+    case 'gongbuck':      return { search: '공부력' }
+    case 'icebreak':      return { search: '아이스브레이킹' }
+    case 'humor':         return { search: '유머' }
+    case 'math-workbook': return { search: '쎈', subject: '수학' }
+    case 'korean':        return { theme: '공부력-국어', subject: '국어' }
+    case 'math-op':       return { theme: '공부력-수학', subject: '수학' }
+    default:              return {}
   }
 }
 

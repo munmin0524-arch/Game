@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 
 const NAV_ITEMS = [
   {
-    label: '내 퀴즈',
+    label: '퀴즈',
     href: '/sets',
     match: (p: string) =>
       p.startsWith('/sets') ||

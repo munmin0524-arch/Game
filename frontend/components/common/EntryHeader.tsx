@@ -46,7 +46,7 @@ const DASHBOARD_ITEMS = [
     color: 'bg-violet-500',
   },
   {
-    label: '내 퀴즈',
+    label: '퀴즈',
     icon: FolderOpen,
     href: '/sets',
     color: 'bg-emerald-500',

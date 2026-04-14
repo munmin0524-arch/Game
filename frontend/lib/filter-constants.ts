@@ -113,6 +113,7 @@ export const TEXTBOOK_OPTIONS: TextbookOption[] = [
   { value: '오투', label: '오투', kind: 'workbook' },
   { value: '쎈', label: '쎈', kind: 'workbook' },
   { value: '개념원리', label: '개념원리', kind: 'workbook' },
+  { value: '유형', label: '유형', kind: 'workbook' },
   { value: '수학의 정석', label: '수학의 정석', kind: 'workbook' },
 ]
 

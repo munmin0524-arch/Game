@@ -138,12 +138,12 @@ export default function SetsHubPage() {
     community: sets.filter((s) => s.source === 'community').length,
   }), [sets])
 
-  // 필터가 활성화되어 있으면 grid 모드가 자연스러움 (캐러셀 row가 깨지므로)
-  const effectiveView: ViewMode = hasActiveFilters(filters) ? 'grid' : viewMode
+  // 뷰 모드는 사용자의 명시적 선택을 존중 — 필터가 있어도 자동 전환하지 않음
+  const effectiveView: ViewMode = viewMode
 
-  // 빌보드: 공식 + 베스트 혼합 상위 5개 (전체/퀴즈파티 탭에서만 노출)
+  // 빌보드: 공식 + 베스트 혼합 상위 5개 (둘러보기 모드 · mine 제외)
   const billboardFeatured = useMemo(() => {
-    if (source === 'mine' || hasActiveFilters(filters)) return []
+    if (source === 'mine' || viewMode === 'grid') return []
     return [...sourceSets]
       .filter((s) => s.is_official || (s.rating_avg ?? 0) >= 4.8)
       .sort((a, b) => {
@@ -151,7 +151,7 @@ export default function SetsHubPage() {
         return rank(b) - rank(a)
       })
       .slice(0, 5)
-  }, [sourceSets, source, filters])
+  }, [sourceSets, source, viewMode])
 
   // 테마 선택 시 과목 자동 연동 (독립축이지만 UX 편의)
   const handleFilterChange = (patch: Partial<HubFilters>) => {
@@ -221,7 +221,7 @@ export default function SetsHubPage() {
     <div className="space-y-8">
       <SetsHubHeader />
 
-      {/* 넷플릭스 스타일 빌보드 */}
+      {/* 빌보드 — 둘러보기 모드에서 상시 노출 (필터가 있어도 유지) */}
       {billboardFeatured.length > 0 && effectiveView === 'carousel' && (
         <HubBillboard
           featured={billboardFeatured}
@@ -236,8 +236,8 @@ export default function SetsHubPage() {
         <SetsViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
-      {/* 카테고리 타일 — 카훗 스타일 큐레이션 입구 (전체/퀴즈파티 탭) */}
-      {(source === 'all' || source === 'quiz_party') && effectiveView === 'carousel' && (
+      {/* 카테고리 타일 — 둘러보기 모드에서만 (전체/퀴즈파티) */}
+      {effectiveView === 'carousel' && (source === 'all' || source === 'quiz_party') && (
         <HubCategoryTiles onPick={(preset) => setFilters(preset)} />
       )}
 
@@ -249,8 +249,8 @@ export default function SetsHubPage() {
         source={source}
       />
 
-      {/* 본문 — 캐러셀 or 그리드 */}
-      {effectiveView === 'carousel' && !loading && filteredSets.length > 0 ? (
+      {/* 본문 — 캐러셀 or 리스트 */}
+      {effectiveView === 'carousel' && !loading && filteredSets.length > 0 && !hasActiveFilters(filters) ? (
         <SetsHubCarousels
           sets={filteredSets}
           source={source}
