@@ -49,7 +49,7 @@ export const SETS_HUB_LABELS = {
   // ── 필터 바 ─────────────────────────────────────────────
   // 순서: 검색 → 교재 → 과목 → 학년 → 테마 → 난이도
   filter: {
-    searchPlaceholder: '퀴즈·단원·태그 검색...',
+    searchPlaceholder: '원하는 단원·지식요인을 입력하세요 (예: 일차방정식, 비문학 독해)',
     textbook: '교과서/교재',
     subject: '과목',
     grade: '학년/학기',

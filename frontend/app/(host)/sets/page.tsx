@@ -126,6 +126,7 @@ export default function SetsHubPage() {
       if (filters.grade !== '전체' && s.grade !== filters.grade) return false
       if (filters.textbook !== '전체' && s.textbook !== filters.textbook) return false
       if (filters.theme !== '전체' && s.theme !== filters.theme) return false
+      if (filters.unit !== '전체' && s.unit !== filters.unit) return false
       return true
     })
   }, [sourceSets, filters])

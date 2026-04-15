@@ -6,6 +6,7 @@
 //  - source='mine':     최근편집 + 과목별                                   → 2~5
 //  - source='community':이어서·Top10·인증교사·북마크·신규                  → ≤5
 
+import { useEffect, useState } from 'react'
 import {
   Flame,
   Sparkles,
@@ -44,6 +45,8 @@ function interleave<T>(buckets: T[][], perBucket = 2): T[] {
   return out
 }
 
+const CONTINUE_DISMISSED_KEY = 'sets-hub-continue-dismissed'
+
 export function SetsHubCarousels({
   sets,
   source,
@@ -61,8 +64,20 @@ export function SetsHubCarousels({
   const rows: Array<React.ReactNode> = []
   const rowProps = { onPreview, onQuickStart, seenIds, getBadges: badgesFor }
 
+  const [continueDismissed, setContinueDismissed] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setContinueDismissed(window.sessionStorage.getItem(CONTINUE_DISMISSED_KEY) === '1')
+  }, [])
+  const dismissContinue = () => {
+    setContinueDismissed(true)
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(CONTINUE_DISMISSED_KEY, '1')
+    }
+  }
+
   // ① 이어서 시작하기 (conditional)
-  if (seenIds.size > 0) {
+  if (seenIds.size > 0 && !continueDismissed) {
     const seen = sets.filter((s) => seenIds.has(s.set_id)).slice(0, 12)
     if (seen.length > 0) {
       rows.push(
@@ -72,6 +87,7 @@ export function SetsHubCarousels({
           subtitle={R.continue.subtitle}
           icon={<History className="h-5 w-5 text-blue-500" />}
           items={seen}
+          onDismiss={dismissContinue}
           {...rowProps}
         />,
       )

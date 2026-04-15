@@ -22,6 +22,8 @@ import {
   TEXTBOOK_OPTIONS,
   THEME_OPTIONS,
   getGradeGroups,
+  getUnits,
+  getTextbookSubjects,
 } from '@/lib/filter-constants'
 import { SETS_HUB_LABELS } from '../_labels'
 import { SetsFilterModePicker, type FilterMode } from './SetsFilterModePicker'
@@ -33,6 +35,7 @@ export interface HubFilters {
   grade: string
   textbook: string
   theme: string
+  unit: string
 }
 
 export const EMPTY_FILTERS: HubFilters = {
@@ -42,6 +45,7 @@ export const EMPTY_FILTERS: HubFilters = {
   grade: '전체',
   textbook: '전체',
   theme: '전체',
+  unit: '전체',
 }
 
 export function hasActiveFilters(f: HubFilters): boolean {
@@ -51,7 +55,8 @@ export function hasActiveFilters(f: HubFilters): boolean {
     f.subject !== '전체' ||
     f.grade !== '전체' ||
     f.textbook !== '전체' ||
-    f.theme !== '전체'
+    f.theme !== '전체' ||
+    f.unit !== '전체'
   )
 }
 
@@ -80,8 +85,21 @@ export function SetsFilterBar({
       subject: '전체',
       grade: '전체',
       theme: '전체',
+      unit: '전체',
     })
   }
+
+  // ── 단원 옵션 ──
+  const unitOptions = getUnits(
+    filters.subject === '전체' ? null : filters.subject,
+    filters.grade === '전체' ? null : filters.grade,
+  )
+
+  // ── 교과서 전용: 교과서로 필터링된 과목 옵션 ──
+  const textbookSubjects = getTextbookSubjects(filters.textbook === '전체' ? null : filters.textbook)
+  const textbookSubjectOptions = textbookSubjects.length > 0
+    ? SUBJECT_OPTIONS.filter((s) => textbookSubjects.includes(s.value))
+    : SUBJECT_OPTIONS
 
   // ── 활성 칩 ──
   const chips: Array<{ key: keyof HubFilters; label: string }> = []
@@ -89,6 +107,7 @@ export function SetsFilterBar({
   if (filters.textbook !== '전체')    chips.push({ key: 'textbook', label: `${L.prefixTextbook}: ${filters.textbook}` })
   if (filters.subject !== '전체')     chips.push({ key: 'subject',  label: `${L.prefixSubject}: ${filters.subject}` })
   if (filters.grade !== '전체')       chips.push({ key: 'grade',    label: `${L.prefixGrade}: ${filters.grade}` })
+  if (filters.unit !== '전체')        chips.push({ key: 'unit',     label: `단원: ${filters.unit}` })
   if (filters.theme !== '전체')       chips.push({ key: 'theme',    label: `${L.prefixTheme}: ${filters.theme.replace('공부력-', '공부력 ')}` })
 
   const clearChip = (k: keyof HubFilters) => {
@@ -109,10 +128,10 @@ export function SetsFilterBar({
       {/* 2·3-depth: 모드에 따라 다른 cascade */}
       {filters.mode && (
         <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
-          {/* 교과서별 */}
+          {/* 교과서별 — 3depth(교과서) > 3depth(과목) > 4depth(학년/학기) > 5depth(단원) */}
           {filters.mode === 'textbook' && (
             <>
-              <Select value={filters.textbook} onValueChange={(v) => onChange({ textbook: v, subject: '전체', grade: '전체' })}>
+              <Select value={filters.textbook} onValueChange={(v) => onChange({ textbook: v, subject: '전체', grade: '전체', unit: '전체' })}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder={`📘 ${L.textbook}`} />
                 </SelectTrigger>
@@ -125,7 +144,7 @@ export function SetsFilterBar({
               </Select>
               <Select
                 value={filters.subject}
-                onValueChange={(v) => onChange({ subject: v, grade: '전체' })}
+                onValueChange={(v) => onChange({ subject: v, grade: '전체', unit: '전체' })}
                 disabled={filters.textbook === '전체'}
               >
                 <SelectTrigger className="w-[140px]">
@@ -133,20 +152,30 @@ export function SetsFilterBar({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="전체">전체 과목</SelectItem>
-                  {SUBJECT_OPTIONS.map((s) => (
+                  {textbookSubjectOptions.map((s) => (
                     <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
-                      {s.value}{!s.enabled && ` (${s.label})`}
+                      {s.value}{!s.enabled && s.label ? ` (${s.label})` : ''}
                     </SelectItem>
                   ))}
-                  <SelectItem value="국어">국어</SelectItem>
                 </SelectContent>
               </Select>
               <GradeSelect
                 value={filters.grade}
-                onChange={(v) => onChange({ grade: v })}
+                onChange={(v) => onChange({ grade: v, unit: '전체' })}
                 groups={gradeGroups}
                 disabled={filters.subject === '전체'}
                 placeholder={filters.subject === '전체' ? '과목 먼저' : L.grade}
+              />
+              <UnitSelect
+                value={filters.unit}
+                onChange={(v) => onChange({ unit: v })}
+                units={unitOptions}
+                disabled={filters.grade === '전체'}
+                placeholder={
+                  filters.grade === '전체'
+                    ? '학년/학기 먼저'
+                    : unitOptions.length === 0 ? '단원 데이터 준비중' : '단원 선택'
+                }
               />
             </>
           )}
@@ -175,10 +204,10 @@ export function SetsFilterBar({
             </>
           )}
 
-          {/* 과목별 */}
+          {/* 과목별 — 2depth(과목) > 3depth(학년/학기) > 4depth(단원/지식요인) */}
           {filters.mode === 'subject' && (
             <>
-              <Select value={filters.subject} onValueChange={(v) => onChange({ subject: v, grade: '전체' })}>
+              <Select value={filters.subject} onValueChange={(v) => onChange({ subject: v, grade: '전체', unit: '전체' })}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder={`📚 ${L.subject}`} />
                 </SelectTrigger>
@@ -186,20 +215,28 @@ export function SetsFilterBar({
                   <SelectItem value="전체">전체 과목</SelectItem>
                   {SUBJECT_OPTIONS.map((s) => (
                     <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
-                      {s.value}{!s.enabled && ` (${s.label})`}
+                      {s.value}{!s.enabled && s.label ? ` (${s.label})` : ''}
                     </SelectItem>
                   ))}
-                  <SelectItem value="국어">국어</SelectItem>
-                  <SelectItem value="한자">한자</SelectItem>
-                  <SelectItem value="한국사">한국사</SelectItem>
                 </SelectContent>
               </Select>
               <GradeSelect
                 value={filters.grade}
-                onChange={(v) => onChange({ grade: v })}
+                onChange={(v) => onChange({ grade: v, unit: '전체' })}
                 groups={gradeGroups}
                 disabled={filters.subject === '전체'}
                 placeholder={filters.subject === '전체' ? '과목 먼저' : L.grade}
+              />
+              <UnitSelect
+                value={filters.unit}
+                onChange={(v) => onChange({ unit: v })}
+                units={unitOptions}
+                disabled={filters.grade === '전체'}
+                placeholder={
+                  filters.grade === '전체'
+                    ? '학년/학기 먼저'
+                    : unitOptions.length === 0 ? '단원 데이터 준비중' : '단원/지식요인 선택'
+                }
               />
             </>
           )}
@@ -287,6 +324,35 @@ function GradeSelect({
               <SelectItem key={item} value={item}>{item}</SelectItem>
             ))}
           </SelectGroup>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+function UnitSelect({
+  value,
+  onChange,
+  units,
+  disabled,
+  placeholder,
+}: {
+  value: string
+  onChange: (v: string) => void
+  units: string[]
+  disabled: boolean
+  placeholder: string
+}) {
+  const effectiveDisabled = disabled || units.length === 0
+  return (
+    <Select value={value} onValueChange={onChange} disabled={effectiveDisabled}>
+      <SelectTrigger className="w-[220px]">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="전체">전체 단원</SelectItem>
+        {units.map((u) => (
+          <SelectItem key={u} value={u}>{u}</SelectItem>
         ))}
       </SelectContent>
     </Select>

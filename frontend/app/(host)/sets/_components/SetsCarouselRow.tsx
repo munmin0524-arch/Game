@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QuizCard } from '@/components/common/QuizCard'
 import type { QuestionSet } from '@/types'
@@ -16,6 +16,7 @@ export interface CarouselRowProps {
   onQuickStart: (setId: string) => void
   seenIds: Set<string>
   getBadges?: (s: QuestionSet) => SetBadgeKind[]
+  onDismiss?: () => void
 }
 
 export function SetsCarouselRow({
@@ -27,6 +28,7 @@ export function SetsCarouselRow({
   onQuickStart,
   seenIds,
   getBadges,
+  onDismiss,
 }: CarouselRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canLeft, setCanLeft] = useState(false)
@@ -69,7 +71,18 @@ export function SetsCarouselRow({
           </h2>
           {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
-        <span className="text-xs text-gray-400">{items.length}개</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400">{items.length}개</span>
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              aria-label="이 섹션 숨기기"
+              className="p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="relative group">

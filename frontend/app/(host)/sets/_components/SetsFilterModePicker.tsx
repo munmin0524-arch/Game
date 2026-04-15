@@ -68,7 +68,7 @@ export function SetsFilterModePicker({
       <div className="relative lg:w-[280px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
-          placeholder="퀴즈·단원·태그 검색..."
+          placeholder="원하는 단원·지식요인을 입력하세요 (예: 일차방정식, 비문학 독해)"
           className="pl-9 pr-8"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
