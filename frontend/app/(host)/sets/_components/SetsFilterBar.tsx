@@ -25,6 +25,7 @@ import {
   getUnits,
   getTextbookSubjects,
 } from '@/lib/filter-constants'
+import { PHASE_FILTER_CONFIG, PHASE_MODE_PRESETS, type Phase } from '@/lib/phase-data'
 import { SETS_HUB_LABELS } from '../_labels'
 import { SetsFilterModePicker, type FilterMode } from './SetsFilterModePicker'
 
@@ -69,16 +70,20 @@ export function SetsFilterBar({
   filters,
   onChange,
   onResetAll,
+  phase,
 }: {
   filters: HubFilters
   onChange: (patch: Partial<HubFilters>) => void
   onResetAll: () => void
+  phase: Phase
 }) {
   const L = SETS_HUB_LABELS.filter
   const gradeGroups = useGradeGroups(filters.subject)
+  const phaseConfig = PHASE_FILTER_CONFIG[phase]
 
-  // ── 모드 변경 시 하위 초기화 ──
+  // ── 모드 변경 시 하위 초기화 + 신규 모드 검색 프리셋 ──
   const handleModeChange = (m: FilterMode) => {
+    const preset = m ? PHASE_MODE_PRESETS[m] ?? {} : {}
     onChange({
       mode: m,
       textbook: '전체',
@@ -86,6 +91,7 @@ export function SetsFilterBar({
       grade: '전체',
       theme: '전체',
       unit: '전체',
+      search: preset.search ?? '',
     })
   }
 
@@ -97,9 +103,23 @@ export function SetsFilterBar({
 
   // ── 교과서 전용: 교과서로 필터링된 과목 옵션 ──
   const textbookSubjects = getTextbookSubjects(filters.textbook === '전체' ? null : filters.textbook)
-  const textbookSubjectOptions = textbookSubjects.length > 0
+  const baseTextbookSubjects = textbookSubjects.length > 0
     ? SUBJECT_OPTIONS.filter((s) => textbookSubjects.includes(s.value))
     : SUBJECT_OPTIONS
+
+  // ── Phase별 enabledSubjects 적용 (비어있으면 전부 활성) ──
+  const isSubjectEnabledForPhase = (value: string): boolean => {
+    if (phaseConfig.enabledSubjects.length === 0) return true
+    return phaseConfig.enabledSubjects.includes(value)
+  }
+  const subjectOptionsForPhase = SUBJECT_OPTIONS.map((s) => ({
+    ...s,
+    enabled: s.enabled && isSubjectEnabledForPhase(s.value),
+  }))
+  const textbookSubjectOptions = baseTextbookSubjects.map((s) => ({
+    ...s,
+    enabled: s.enabled && isSubjectEnabledForPhase(s.value),
+  }))
 
   // ── 활성 칩 ──
   const chips: Array<{ key: keyof HubFilters; label: string }> = []
@@ -123,6 +143,7 @@ export function SetsFilterBar({
         onModeChange={handleModeChange}
         search={filters.search}
         onSearchChange={(v) => onChange({ search: v })}
+        phase={phase}
       />
 
       {/* 2·3-depth: 모드에 따라 다른 cascade */}
@@ -213,7 +234,7 @@ export function SetsFilterBar({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="전체">전체 과목</SelectItem>
-                  {SUBJECT_OPTIONS.map((s) => (
+                  {subjectOptionsForPhase.map((s) => (
                     <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
                       {s.value}{!s.enabled && s.label ? ` (${s.label})` : ''}
                     </SelectItem>
@@ -265,6 +286,15 @@ export function SetsFilterBar({
                 placeholder={`${L.grade} (선택)`}
               />
             </>
+          )}
+
+          {/* 신규 모드: 초등 특화 / 커뮤니티 / AI 재가공 — cascade 없이 안내문 */}
+          {(filters.mode === 'elem-special' || filters.mode === 'community' || filters.mode === 'ai-remix') && (
+            <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 ring-1 ring-gray-200">
+              {filters.mode === 'elem-special' && '✍️ 초등 특화 콘텐츠 (맞춤법·국어 독해·한국사·매캔 채널)만 노출됩니다.'}
+              {filters.mode === 'community'    && '🤝 다른 선생님들이 공유한 인기·검증 콘텐츠만 노출됩니다.'}
+              {filters.mode === 'ai-remix'     && '🤖 AI가 우리반·시험 스타일에 맞게 재가공한 콘텐츠만 노출됩니다.'}
+            </div>
           )}
         </div>
       )}

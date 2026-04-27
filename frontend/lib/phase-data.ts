@@ -268,3 +268,57 @@ export function getPhaseSets(phase: Phase): QuestionSet[] {
   if (phase === 'phase1') return PHASE1_ALL_SETS
   return PHASE2_ALL_SETS
 }
+
+// ─── Phase별 필터·노출 설정 ─────────────────────────────────
+
+export type ExtendedFilterMode =
+  | 'textbook'
+  | 'workbook'
+  | 'subject'
+  | 'theme'
+  | 'elem-special'
+  | 'community'
+  | 'ai-remix'
+
+export interface PhaseFilterConfig {
+  /** 1-depth 필터 모드 — 이 배열에 포함된 키만 노출 (둘러보기는 항상 노출) */
+  modes: ExtendedFilterMode[]
+  /** 비어있지 않으면 SUBJECT_OPTIONS에서 이 값들만 enabled */
+  enabledSubjects: string[]
+  /** "오늘의 Top 10" row 노출 여부 */
+  showTop10: boolean
+  /** 상단 빌보드 노출 여부 */
+  showBillboard: boolean
+}
+
+export const PHASE_FILTER_CONFIG: Record<Phase, PhaseFilterConfig> = {
+  mvp: {
+    modes: ['subject', 'theme'],
+    enabledSubjects: ['수학', '영어'],
+    showTop10: false,
+    showBillboard: false,
+  },
+  phase1: {
+    modes: ['subject', 'theme', 'elem-special'],
+    enabledSubjects: ['수학', '영어', '국어', '한국사', '한자'],
+    showTop10: true,
+    showBillboard: false,
+  },
+  phase2: {
+    modes: ['subject', 'theme', 'elem-special', 'community', 'ai-remix'],
+    enabledSubjects: [], // 전체 활성
+    showTop10: true,
+    showBillboard: true,
+  },
+}
+
+// 신규 모드 클릭 시 적용할 필터 프리셋 (검색 키워드)
+export const PHASE_MODE_PRESETS: Record<ExtendedFilterMode, { search?: string }> = {
+  textbook: {},
+  workbook: {},
+  subject: {},
+  theme: {},
+  'elem-special': { search: '초등' },
+  community: { search: '교사' },
+  'ai-remix': { search: 'AI 재가공' },
+}

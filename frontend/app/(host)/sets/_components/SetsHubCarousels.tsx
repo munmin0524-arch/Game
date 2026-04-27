@@ -45,6 +45,7 @@ import {
   PHASE2_REMIX,
   PHASE2_VOCAB_ALL,
   PHASE2_MONTHLY,
+  PHASE_FILTER_CONFIG,
   type Phase,
 } from '@/lib/phase-data'
 import type { QuestionSet } from '@/types'
@@ -110,8 +111,8 @@ export function SetsHubCarousels({
     }
   }
 
-  // ─── 공통 row 2: 오늘의 Top 10 ───
-  if (source !== 'mine') {
+  // ─── 공통 row 2: 오늘의 Top 10 (Phase별 가드) ───
+  if (source !== 'mine' && PHASE_FILTER_CONFIG[phase].showTop10) {
     const top = [...sets]
       .filter((s) => (s.play_count ?? 0) > 0)
       .sort((a, b) => (b.play_count ?? 0) - (a.play_count ?? 0))

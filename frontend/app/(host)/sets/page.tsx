@@ -21,7 +21,7 @@ import { HubBillboard } from './_components/HubBillboard'
 import { HubCategoryTiles } from './_components/HubCategoryTiles'
 
 import { ALL_HUB_SETS } from './_mocks/setsHubMockData'
-import { getPhaseSets, type Phase } from '@/lib/phase-data'
+import { getPhaseSets, PHASE_FILTER_CONFIG, type Phase } from '@/lib/phase-data'
 import { THEME_OPTIONS } from '@/lib/filter-constants'
 import { SETS_HUB_LABELS } from './_labels'
 import type { QuestionSet } from '@/types'
@@ -146,9 +146,9 @@ export default function SetsHubPage() {
   // 뷰 모드는 사용자의 명시적 선택을 존중 — 필터가 있어도 자동 전환하지 않음
   const effectiveView: ViewMode = viewMode
 
-  // 빌보드: 2차 고도화에서만 노출 (교사 커뮤니티 인기 콘텐츠 중심)
+  // 빌보드: PHASE_FILTER_CONFIG.showBillboard 가 true 인 phase에서만 노출
   const billboardFeatured = useMemo(() => {
-    if (phase !== 'phase2') return []
+    if (!PHASE_FILTER_CONFIG[phase].showBillboard) return []
     if (source === 'mine' || viewMode === 'grid') return []
     return [...sourceSets]
       .filter((s) => s.is_official || (s.rating_avg ?? 0) >= 4.8 || (s.like_count ?? 0) >= 500)
@@ -252,6 +252,7 @@ export default function SetsHubPage() {
         filters={filters}
         onChange={handleFilterChange}
         onResetAll={() => setFilters(EMPTY_FILTERS)}
+        phase={phase}
       />
 
       {/* 본문 — 캐러셀 or 리스트 */}

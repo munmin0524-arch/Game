@@ -1,19 +1,30 @@
 'use client'
 
-// 1-depth 필터 모드 선택기 — 세그먼티드 컨트롤 스타일 (라디오 X)
-// 4 mode + 검색바 우측 정렬. 모드 선택 시 하위 cascade가 달라짐.
+// 1-depth 필터 모드 선택기 — Phase별로 노출 모드가 다름
+// 모드 선택 시 하위 cascade가 달라짐.
 
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { PHASE_FILTER_CONFIG, type ExtendedFilterMode, type Phase } from '@/lib/phase-data'
 
-export type FilterMode = 'textbook' | 'workbook' | 'subject' | 'theme' | null
+export type FilterMode = ExtendedFilterMode | null
 
-const MODES: Array<{ key: Exclude<FilterMode, null>; emoji: string; label: string; color: string }> = [
-  { key: 'textbook', emoji: '📘', label: '교과서별',  color: 'from-sky-500 to-cyan-400' },
-  { key: 'workbook', emoji: '📐', label: '교재별',    color: 'from-fuchsia-500 to-pink-400' },
-  { key: 'subject',  emoji: '📚', label: '과목별',    color: 'from-emerald-500 to-teal-400' },
-  { key: 'theme',    emoji: '🎯', label: '테마별',    color: 'from-amber-500 to-orange-400' },
+interface ModeMeta {
+  key: Exclude<FilterMode, null>
+  emoji: string
+  label: string
+  color: string
+}
+
+const ALL_MODES: ModeMeta[] = [
+  { key: 'textbook',     emoji: '📘', label: '교과서별',  color: 'from-sky-500 to-cyan-400' },
+  { key: 'workbook',     emoji: '📐', label: '교재별',    color: 'from-fuchsia-500 to-pink-400' },
+  { key: 'subject',      emoji: '📚', label: '과목별',    color: 'from-emerald-500 to-teal-400' },
+  { key: 'theme',        emoji: '🎯', label: '테마별',    color: 'from-amber-500 to-orange-400' },
+  { key: 'elem-special', emoji: '✍️', label: '초등 특화', color: 'from-rose-500 to-orange-400' },
+  { key: 'community',    emoji: '🤝', label: '커뮤니티',  color: 'from-blue-500 to-indigo-500' },
+  { key: 'ai-remix',     emoji: '🤖', label: 'AI 재가공', color: 'from-violet-500 to-fuchsia-500' },
 ]
 
 export function SetsFilterModePicker({
@@ -21,16 +32,21 @@ export function SetsFilterModePicker({
   onModeChange,
   search,
   onSearchChange,
+  phase,
 }: {
   mode: FilterMode
   onModeChange: (m: FilterMode) => void
   search: string
   onSearchChange: (v: string) => void
+  phase: Phase
 }) {
+  const allowed = PHASE_FILTER_CONFIG[phase].modes
+  const visibleModes = ALL_MODES.filter((m) => allowed.includes(m.key))
+
   return (
     <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
       {/* 모드 세그먼티드 컨트롤 */}
-      <div className="inline-flex items-center gap-1 rounded-2xl bg-gray-100 p-1 ring-1 ring-gray-200 shrink-0">
+      <div className="inline-flex items-center gap-1 rounded-2xl bg-gray-100 p-1 ring-1 ring-gray-200 shrink-0 flex-wrap">
         <button
           onClick={() => onModeChange(null)}
           className={cn(
@@ -43,7 +59,7 @@ export function SetsFilterModePicker({
         >
           🌟 둘러보기
         </button>
-        {MODES.map((m) => {
+        {visibleModes.map((m) => {
           const active = mode === m.key
           return (
             <button
