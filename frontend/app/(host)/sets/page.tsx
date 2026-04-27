@@ -255,12 +255,29 @@ export default function SetsHubPage() {
         phase={phase}
       />
 
-      {/* 본문 — 캐러셀 or 리스트 */}
-      {effectiveView === 'carousel' && !loading && filteredSets.length > 0 && !hasActiveFilters(filters) ? (
+      {/* 본문 — 캐러셀 or 리스트
+          * MVP 둘러보기 모드(filters.mode === null)에서 subject만 적용된 경우는 캐러셀 유지 (수학/영어 섹션 분기) */}
+      {(() => {
+        const otherFiltersInactive =
+          filters.mode === null &&
+          filters.search.trim() === '' &&
+          filters.grade === '전체' &&
+          filters.textbook === '전체' &&
+          filters.theme === '전체' &&
+          filters.unit === '전체'
+        const mvpBrowseSubjectOnly = phase === 'mvp' && otherFiltersInactive
+        const showCarousel =
+          effectiveView === 'carousel' &&
+          !loading &&
+          filteredSets.length > 0 &&
+          (!hasActiveFilters(filters) || mvpBrowseSubjectOnly)
+        return showCarousel
+      })() ? (
         <SetsHubCarousels
           sets={filteredSets}
           source={source}
           phase={phase}
+          subjectFilter={filters.subject}
           onPreview={handlePreview}
           onQuickStart={handleQuickStart}
           seenIds={seenIds}

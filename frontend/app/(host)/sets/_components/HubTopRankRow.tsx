@@ -10,18 +10,26 @@ import { cn } from '@/lib/utils'
 import type { QuestionSet } from '@/types'
 import type { SetBadgeKind } from '@/components/common/SetBadge'
 
+function inferCreatorType(s: QuestionSet): 'ai' | 'teacher' | null {
+  if (s.host_member_id === 'ai-remix') return 'ai'
+  if (s.source === 'community' && s.host_nickname) return 'teacher'
+  return null
+}
+
 export function HubTopRankRow({
   items,
   seenIds,
   onPreview,
   onQuickStart,
   getBadges,
+  showCommunityMeta = false,
 }: {
   items: QuestionSet[]
   seenIds: Set<string>
   onPreview: (setId: string) => void
   onQuickStart: (setId: string) => void
   getBadges?: (s: QuestionSet) => SetBadgeKind[]
+  showCommunityMeta?: boolean
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canLeft, setCanLeft] = useState(false)
@@ -122,15 +130,17 @@ export function HubTopRankRow({
                   theme={s.theme}
                   difficulty={s.difficulty}
                   playCount={s.play_count}
-                  avgRating={s.rating_avg}
                   badges={getBadges?.(s)}
                   thumbnailVariant={s.thumbnail_variant}
-                  hostNickname={s.source === 'community' ? s.host_nickname : undefined}
-                  isCertified={s.is_certified}
-                  likeCount={s.like_count}
                   seen={seenIds.has(s.set_id)}
                   overlayMode="hover"
                   pathPreview={s.description}
+                  avgRating={showCommunityMeta ? s.rating_avg : undefined}
+                  hostNickname={showCommunityMeta && s.source === 'community' ? s.host_nickname : undefined}
+                  isCertified={showCommunityMeta ? s.is_certified : undefined}
+                  likeCount={showCommunityMeta ? s.like_count : undefined}
+                  downloadCount={showCommunityMeta ? s.download_count : undefined}
+                  creatorType={showCommunityMeta ? inferCreatorType(s) : null}
                   onPreview={() => onPreview(s.set_id)}
                   onQuickStart={() => onQuickStart(s.set_id)}
                   onClick={() => onPreview(s.set_id)}

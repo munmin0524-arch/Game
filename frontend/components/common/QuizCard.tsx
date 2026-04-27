@@ -85,6 +85,8 @@ export interface QuizCardProps {
   thumbnailVariant?: number | null
   /** 학년 진행 흐름 등 카드 부제 (보고용 큐레이션 path 표현) */
   pathPreview?: string | null
+  /** 생성 주체 — 'ai' (AI 재가공) / 'teacher' (커뮤니티 교사 제작) — 카드 상단에 작은 뱃지로 표시 */
+  creatorType?: 'ai' | 'teacher' | null
 }
 
 // ─── 컴포넌트 ───
@@ -119,6 +121,7 @@ export function QuizCard({
   overlayMode = 'footer',
   thumbnailVariant,
   pathPreview,
+  creatorType,
 }: QuizCardProps) {
   const gradient = getGradient(id, thumbnailVariant)
   const isMarketplace = hostNickname != null
@@ -135,10 +138,20 @@ export function QuizCard({
     >
       {/* 상단 그라디언트 영역 — 고정 높이로 카드 크기 통일 */}
       <div className={`bg-gradient-to-br ${gradient} px-4 pt-3 pb-3 relative h-[120px] flex flex-col`}>
-        {/* 뱃지 — 소스 1개만 (퀴즈파티 공식 / 내가 만든 / 다른 선생님) */}
-        {badges && badges.length > 0 && (
-          <div className="flex gap-1 mb-1.5 shrink-0">
-            <SetBadge kind={badges[0]} />
+        {/* 뱃지 — 소스 + 생성 주체 (AI/교사) */}
+        {((badges && badges.length > 0) || creatorType) && (
+          <div className="flex gap-1 mb-1.5 shrink-0 flex-wrap">
+            {badges && badges.length > 0 && <SetBadge kind={badges[0]} />}
+            {creatorType === 'ai' && (
+              <span className="inline-flex items-center gap-0.5 rounded-md bg-violet-600 text-white text-[10px] font-bold px-1.5 py-0.5 shadow-sm">
+                🤖 AI 생성
+              </span>
+            )}
+            {creatorType === 'teacher' && (
+              <span className="inline-flex items-center gap-0.5 rounded-md bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 shadow-sm">
+                👤 교사 제작
+              </span>
+            )}
           </div>
         )}
 

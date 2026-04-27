@@ -17,6 +17,14 @@ export interface CarouselRowProps {
   seenIds: Set<string>
   getBadges?: (s: QuestionSet) => SetBadgeKind[]
   onDismiss?: () => void
+  /** 'phase2'면 카드에 마켓플레이스 메타(별점·하트·공유)와 AI/교사 뱃지 표시 */
+  showCommunityMeta?: boolean
+}
+
+function inferCreatorType(s: QuestionSet): 'ai' | 'teacher' | null {
+  if (s.host_member_id === 'ai-remix') return 'ai'
+  if (s.source === 'community' && s.host_nickname) return 'teacher'
+  return null
 }
 
 export function SetsCarouselRow({
@@ -29,6 +37,7 @@ export function SetsCarouselRow({
   seenIds,
   getBadges,
   onDismiss,
+  showCommunityMeta = false,
 }: CarouselRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canLeft, setCanLeft] = useState(false)
@@ -133,15 +142,18 @@ export function SetsCarouselRow({
                 theme={s.theme}
                 difficulty={s.difficulty}
                 playCount={s.play_count}
-                avgRating={s.rating_avg}
                 badges={getBadges?.(s)}
-                hostNickname={s.source === 'community' ? s.host_nickname : undefined}
-                isCertified={s.is_certified}
-                likeCount={s.like_count}
                 thumbnailVariant={s.thumbnail_variant}
                 seen={seenIds.has(s.set_id)}
                 overlayMode="hover"
                 pathPreview={s.description}
+                // 마켓플레이스 메타·AI/교사 뱃지: 2차 고도화 등에서만 표시
+                avgRating={showCommunityMeta ? s.rating_avg : undefined}
+                hostNickname={showCommunityMeta && s.source === 'community' ? s.host_nickname : undefined}
+                isCertified={showCommunityMeta ? s.is_certified : undefined}
+                likeCount={showCommunityMeta ? s.like_count : undefined}
+                downloadCount={showCommunityMeta ? s.download_count : undefined}
+                creatorType={showCommunityMeta ? inferCreatorType(s) : null}
                 onPreview={() => onPreview(s.set_id)}
                 onQuickStart={() => onQuickStart(s.set_id)}
                 onClick={() => onPreview(s.set_id)}

@@ -102,6 +102,7 @@ export function SetsHubCarousels({
   sets,
   source,
   phase,
+  subjectFilter = '전체',
   onPreview,
   onQuickStart,
   seenIds,
@@ -109,13 +110,16 @@ export function SetsHubCarousels({
   sets: QuestionSet[]
   source: SourceTab
   phase: Phase
+  subjectFilter?: string
   onPreview: (setId: string) => void
   onQuickStart: (setId: string) => void
   seenIds: Set<string>
 }) {
   const R = SETS_HUB_LABELS.rows
   const sections: Array<React.ReactNode> = []
-  const rowProps = { onPreview, onQuickStart, seenIds, getBadges: badgesFor }
+  // 2차 고도화에서만 마켓플레이스 메타·AI/교사 뱃지 노출
+  const showCommunityMeta = phase === 'phase2'
+  const rowProps = { onPreview, onQuickStart, seenIds, getBadges: badgesFor, showCommunityMeta }
 
   // ─── 이어서 시작하기 dismiss 상태 ───
   const [continueDismissed, setContinueDismissed] = useState(false)
@@ -145,15 +149,19 @@ export function SetsHubCarousels({
           onPreview={onPreview}
           onQuickStart={onQuickStart}
           getBadges={badgesFor}
+          showCommunityMeta={showCommunityMeta}
         />,
       )
     }
   }
 
   // ═════════════════════════════════════════════════════════
-  // MVP — 수학 / 영어 두 개의 큰 섹션
+  // MVP — 수학 / 영어 두 개의 큰 섹션 (subjectFilter로 분기 가능)
   // ═════════════════════════════════════════════════════════
-  if (phase === 'mvp' && source !== 'mine') {
+  const showMvpMath = phase === 'mvp' && source !== 'mine' && (subjectFilter === '전체' || subjectFilter === '수학')
+  const showMvpEnglish = phase === 'mvp' && source !== 'mine' && (subjectFilter === '전체' || subjectFilter === '영어')
+
+  if (showMvpMath) {
     // 🟦 수학 섹션
     sections.push(
       <CurationSection
@@ -186,7 +194,9 @@ export function SetsHubCarousels({
         />
       </CurationSection>,
     )
+  }
 
+  if (showMvpEnglish) {
     // 🟩 영어 섹션
     sections.push(
       <CurationSection
