@@ -18,12 +18,32 @@ export function SetsHubHeader({ phase }: { phase: Phase }) {
         'relative overflow-hidden rounded-2xl bg-gradient-to-br px-6 py-5 text-white shadow-card',
         H.gradient,
       )}>
-        <div className="relative z-10 max-w-3xl">
-          <span className="inline-block text-[11px] font-bold tracking-wider uppercase bg-white/15 backdrop-blur rounded-full px-3 py-1">
-            {H.badge}
-          </span>
-          <h2 className="text-xl md:text-2xl font-bold mt-2 leading-tight">{H.title}</h2>
-          <p className="text-sm text-white/80 mt-1.5 leading-relaxed">{H.subtitle}</p>
+        <div className="relative z-10 grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-6">
+          {/* 좌측: 컨셉 */}
+          <div>
+            <span className="inline-block text-[11px] font-bold tracking-wider uppercase bg-white/15 backdrop-blur rounded-full px-3 py-1">
+              {H.badge}
+            </span>
+            <p className="text-base md:text-lg font-bold mt-2 text-yellow-200">
+              💡 {H.oneLiner}
+            </p>
+            <h2 className="text-lg md:text-xl font-semibold mt-1 leading-tight">{H.title}</h2>
+            <p className="text-sm text-white/80 mt-1.5 leading-relaxed">{H.subtitle}</p>
+          </div>
+          {/* 우측: 큐레이션 리스트 */}
+          <div className="rounded-xl bg-white/10 backdrop-blur px-4 py-3 ring-1 ring-white/20">
+            <p className="text-[11px] font-bold tracking-wider uppercase text-white/70 mb-2">
+              이 단계의 큐레이션
+            </p>
+            <ul className="space-y-1.5 text-[13px] leading-snug">
+              {H.curation.map((item, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-white/50 shrink-0">·</span>
+                  <span className="text-white">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
         <div className="absolute -right-4 top-16 h-24 w-24 rounded-full bg-white/5" />

@@ -146,6 +146,32 @@ export function SetsFilterBar({
         phase={phase}
       />
 
+      {/* 둘러보기 모드 — MVP에서만 영수·학년 빠른 필터 노출 (이미지 큐레이션 정합) */}
+      {filters.mode === null && phase === 'mvp' && (
+        <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+          <Select value={filters.subject} onValueChange={(v) => onChange({ subject: v, grade: '전체', unit: '전체' })}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="📚 과목 (영·수)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="전체">전체 과목</SelectItem>
+              {subjectOptionsForPhase.map((s) => (
+                <SelectItem key={s.value} value={s.value} disabled={!s.enabled}>
+                  {s.value}{!s.enabled && s.label ? ` (${s.label})` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <GradeSelect
+            value={filters.grade}
+            onChange={(v) => onChange({ grade: v, unit: '전체' })}
+            groups={gradeGroups}
+            disabled={filters.subject === '전체'}
+            placeholder={filters.subject === '전체' ? '과목 먼저' : L.grade}
+          />
+        </div>
+      )}
+
       {/* 2·3-depth: 모드에 따라 다른 cascade */}
       {filters.mode && (
         <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
