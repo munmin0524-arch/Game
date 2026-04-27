@@ -5,7 +5,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { PublishDialog } from '@/components/marketplace/PublishDialog'
 import { questionSetsApi } from '@/lib/api'
@@ -21,6 +21,7 @@ import { HubBillboard } from './_components/HubBillboard'
 import { HubCategoryTiles } from './_components/HubCategoryTiles'
 
 import { ALL_HUB_SETS } from './_mocks/setsHubMockData'
+import { getPhaseSets, type Phase } from '@/lib/phase-data'
 import { THEME_OPTIONS } from '@/lib/filter-constants'
 import { SETS_HUB_LABELS } from './_labels'
 import type { QuestionSet } from '@/types'
@@ -50,7 +51,11 @@ function saveSeenIds(ids: Set<string>) {
 
 export default function SetsHubPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
+
+  // Phase 쿼리 (?phase=mvp|phase1|phase2) — GNB 서브탭에서 전환
+  const phase = (searchParams.get('phase') as Phase | null) ?? 'mvp'
 
   const [source, setSource] = useState<SourceTab>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('carousel')
@@ -79,8 +84,8 @@ export default function SetsHubPage() {
     })
   }, [])
 
-  // ─── 데이터 로드 (Mock 폴백) ───
-  // TODO: 백엔드 endpoint 연결 시 Promise.all로 source별 병렬 fetch.
+  // ─── 데이터 로드 (Phase별 Mock) ───
+  // 시연용: API 호출은 그대로 두되, Phase 콘텐츠를 Mock에 합쳐 노출
   const fetchSets = useCallback(async () => {
     setLoading(true)
     try {
@@ -89,18 +94,18 @@ export default function SetsHubPage() {
         subject: filters.subject === '전체' ? undefined : filters.subject,
         grade: filters.grade === '전체' ? undefined : filters.grade,
       })
-      // 현재 API는 단일 소스만 반환 — Mock을 우선 사용해 3소스 허브를 구현
+      const phaseSets = getPhaseSets(phase)
       if (res.data && res.data.length > 0) {
-        setSets([...res.data, ...ALL_HUB_SETS])
+        setSets([...phaseSets, ...res.data, ...ALL_HUB_SETS])
       } else {
-        setSets(ALL_HUB_SETS)
+        setSets([...phaseSets, ...ALL_HUB_SETS])
       }
     } catch {
-      setSets(ALL_HUB_SETS)
+      setSets([...getPhaseSets(phase), ...ALL_HUB_SETS])
     } finally {
       setLoading(false)
     }
-  }, [filters.search, filters.subject, filters.grade])
+  }, [filters.search, filters.subject, filters.grade, phase])
 
   useEffect(() => {
     const timer = setTimeout(fetchSets, 300)
@@ -141,17 +146,18 @@ export default function SetsHubPage() {
   // 뷰 모드는 사용자의 명시적 선택을 존중 — 필터가 있어도 자동 전환하지 않음
   const effectiveView: ViewMode = viewMode
 
-  // 빌보드: 공식 + 베스트 혼합 상위 5개 (둘러보기 모드 · mine 제외)
+  // 빌보드: 2차 고도화에서만 노출 (교사 커뮤니티 인기 콘텐츠 중심)
   const billboardFeatured = useMemo(() => {
+    if (phase !== 'phase2') return []
     if (source === 'mine' || viewMode === 'grid') return []
     return [...sourceSets]
-      .filter((s) => s.is_official || (s.rating_avg ?? 0) >= 4.8)
+      .filter((s) => s.is_official || (s.rating_avg ?? 0) >= 4.8 || (s.like_count ?? 0) >= 500)
       .sort((a, b) => {
-        const rank = (s: QuestionSet) => (s.rating_avg ?? 0) * 100 + (s.play_count ?? 0) / 10
+        const rank = (s: QuestionSet) => (s.rating_avg ?? 0) * 100 + (s.play_count ?? 0) / 10 + (s.like_count ?? 0) / 5
         return rank(b) - rank(a)
       })
       .slice(0, 5)
-  }, [sourceSets, source, viewMode])
+  }, [sourceSets, source, viewMode, phase])
 
   // 테마 선택 시 과목 자동 연동 (독립축이지만 UX 편의)
   const handleFilterChange = (patch: Partial<HubFilters>) => {
@@ -219,9 +225,9 @@ export default function SetsHubPage() {
 
   return (
     <div className="space-y-8">
-      <SetsHubHeader />
+      <SetsHubHeader phase={phase} />
 
-      {/* 빌보드 — 둘러보기 모드에서 상시 노출 (필터가 있어도 유지) */}
+      {/* 빌보드 — 2차 고도화에서만 노출 */}
       {billboardFeatured.length > 0 && effectiveView === 'carousel' && (
         <HubBillboard
           featured={billboardFeatured}
@@ -238,7 +244,7 @@ export default function SetsHubPage() {
 
       {/* 카테고리 타일 — 둘러보기 모드에서만 (전체/퀴즈파티) */}
       {effectiveView === 'carousel' && (source === 'all' || source === 'quiz_party') && (
-        <HubCategoryTiles onPick={(preset) => setFilters(preset)} />
+        <HubCategoryTiles phase={phase} onPick={(preset) => setFilters(preset)} />
       )}
 
       {/* 필터바 */}
@@ -253,6 +259,7 @@ export default function SetsHubPage() {
         <SetsHubCarousels
           sets={filteredSets}
           source={source}
+          phase={phase}
           onPreview={handlePreview}
           onQuickStart={handleQuickStart}
           seenIds={seenIds}
