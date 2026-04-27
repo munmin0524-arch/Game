@@ -130,6 +130,7 @@ export function HubTopRankRow({
                   likeCount={s.like_count}
                   seen={seenIds.has(s.set_id)}
                   overlayMode="hover"
+                  pathPreview={s.description}
                   onPreview={() => onPreview(s.set_id)}
                   onQuickStart={() => onQuickStart(s.set_id)}
                   onClick={() => onPreview(s.set_id)}

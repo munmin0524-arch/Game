@@ -83,6 +83,8 @@ export interface QuizCardProps {
   /** 'footer' = 하단 버튼 (기본, 마켓플레이스 호환) / 'hover' = 호버 오버레이 CTA (허브 캐러셀) */
   overlayMode?: 'footer' | 'hover'
   thumbnailVariant?: number | null
+  /** 학년 진행 흐름 등 카드 부제 (보고용 큐레이션 path 표현) */
+  pathPreview?: string | null
 }
 
 // ─── 컴포넌트 ───
@@ -116,6 +118,7 @@ export function QuizCard({
   seen,
   overlayMode = 'footer',
   thumbnailVariant,
+  pathPreview,
 }: QuizCardProps) {
   const gradient = getGradient(id, thumbnailVariant)
   const isMarketplace = hostNickname != null
@@ -139,10 +142,15 @@ export function QuizCard({
           </div>
         )}
 
-        <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-3 pr-7 flex-1">
+        <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2 pr-7 shrink-0">
           {title}
         </p>
-        <p className="text-gray-700/80 text-[11px] mt-1 shrink-0">
+        {pathPreview && (
+          <p className="text-gray-700/80 text-[10px] leading-snug mt-1 line-clamp-3 break-keep">
+            {pathPreview}
+          </p>
+        )}
+        <p className="text-gray-700/80 text-[11px] mt-auto shrink-0">
           {questionCount}문항
         </p>
 

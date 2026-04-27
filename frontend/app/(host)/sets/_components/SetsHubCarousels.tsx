@@ -1,9 +1,12 @@
 'use client'
 
-// Phase별 큐레이션 섹션 — 보고용 이미지의 큐레이션 컬럼과 1:1 매핑
-//  - phase='mvp':    {공통} 시간 컷 / {수학} 학년>지식요인 / {영어} 학년>어휘·문법
-//  - phase='phase1': 주제 몰입형 (MVP + 초등 특화)
-//  - phase='phase2': 커뮤니티 기반 순환 (1차 + 교사·AI·월간·편입)
+// Phase별 큐레이션 섹션 — 보고용 이미지 큐레이션 컬럼과 1:1 매핑
+// 사용자 명세 기준 큐레이션 구조:
+//   MVP 수학: 타임어택 / 학년 > 지식요인별 / 테마별
+//   MVP 영어: 타임어택 / 학년 > 문법 / 학년 > 어휘 / 테마별
+//   1차 추가: 주제 몰입형 (맞춤법·국어독해·한국사·매캔)
+//   2차 추가: 커뮤니티 기반 순환 (인기교사·like·AI재가공·월간·내세트지 편입)
+//   "이어서 시작하기" — 모든 phase에서 마지막에 노출
 
 import { useEffect, useState } from 'react'
 import {
@@ -27,12 +30,14 @@ import {
   GraduationCap,
   Crown,
   TrendingUp,
+  Layers,
 } from 'lucide-react'
 import { SetsCarouselRow } from './SetsCarouselRow'
 import { HubTopRankRow } from './HubTopRankRow'
 import { SETS_HUB_LABELS } from '../_labels'
 import {
   MVP_MATH_ROADMAP,
+  MVP_MATH_BY_GRADE_KE,
   MVP_MATH_TIME,
   MVP_ENG_VOCAB,
   MVP_ENG_GRAMMAR_GRADE,
@@ -74,7 +79,7 @@ function CurationSection({
   category: string
   badge?: string
   description?: string
-  accent: string // tailwind text color, e.g. 'text-amber-600'
+  accent: string
   children: React.ReactNode
 }) {
   return (
@@ -125,25 +130,7 @@ export function SetsHubCarousels({
     }
   }
 
-  // ─── 공통: 이어서 시작하기 (모든 phase) ───
-  if (seenIds.size > 0 && !continueDismissed) {
-    const seen = sets.filter((s) => seenIds.has(s.set_id)).slice(0, 12)
-    if (seen.length > 0) {
-      sections.push(
-        <SetsCarouselRow
-          key="row-continue"
-          title={R.continue.title}
-          subtitle={R.continue.subtitle}
-          icon={<History className="h-5 w-5 text-blue-500" />}
-          items={seen}
-          onDismiss={dismissContinue}
-          {...rowProps}
-        />,
-      )
-    }
-  }
-
-  // ─── 공통: Top 10 (PhaseConfig.showTop10) ───
+  // ─── 공통: Top 10 (PhaseConfig.showTop10 == true 일 때만) ───
   if (source !== 'mine' && PHASE_FILTER_CONFIG[phase].showTop10) {
     const top = [...sets]
       .filter((s) => (s.play_count ?? 0) > 0)
@@ -164,75 +151,75 @@ export function SetsHubCarousels({
   }
 
   // ═════════════════════════════════════════════════════════
-  // MVP — {공통} / {수학} / {영어} 3개 섹션
+  // MVP — 수학 / 영어 두 개의 큰 섹션
   // ═════════════════════════════════════════════════════════
   if (phase === 'mvp' && source !== 'mine') {
+    // 🟦 수학 섹션
     sections.push(
       <CurationSection
-        key="mvp-common"
-        badge="MVP · 공통"
-        category="과목 > 학년 > 5 / 10 / 15 / 20분"
-        description="짧고 강한 시간 단위 패키지"
-        accent="text-amber-600"
+        key="mvp-math"
+        badge="MVP · 수학"
+        category="타임어택 + 학년 > 지식요인 + 테마별"
+        description="22개정 지식요인 단위 — 교과서 무관 즉시 시작"
+        accent="text-blue-600"
       >
         <SetsCarouselRow
-          title="⏱️ 수학 시간 컷 — 지식요인 단위 숏팩"
-          subtitle="5분 몸풀기 · 10분 벼락치기 · 15분 정복 · 20분 도전"
+          title="⏱️ 타임어택 — 지식요인별 5/10/15/20분 컷"
+          subtitle="중1 정수와 유리수 10분 · 중2 연립방정식 20분 도전 등"
           icon={<Timer className="h-5 w-5 text-blue-500" />}
           items={MVP_MATH_TIME}
           {...rowProps}
         />
         <SetsCarouselRow
-          title="⏱️ 영어 시간 컷 — 어휘·문법 단위 숏팩"
-          subtitle="중1 be동사 vs 일반동사 · 중1 필수 어휘 · 중2 현재완료"
-          icon={<Timer className="h-5 w-5 text-cyan-500" />}
-          items={MVP_ENG_TIME}
+          title="📐 학년 > 지식요인별 단원 세트지"
+          subtitle="중1 정수와 유리수 · 중2 일차함수 · 초5 분수의 덧뺄셈 등"
+          icon={<Layers className="h-5 w-5 text-indigo-500" />}
+          items={MVP_MATH_BY_GRADE_KE}
           {...rowProps}
         />
-      </CurationSection>,
-    )
-    sections.push(
-      <CurationSection
-        key="mvp-math"
-        badge="MVP · 수학"
-        category="학년 > 지식요인"
-        description="ex) 분수 풀코스 패키지"
-        accent="text-blue-600"
-      >
         <SetsCarouselRow
-          title="🧮 주제 관통 로드맵 팩"
-          subtitle="분수 풀코스부터 함수 로드맵까지 — 학년을 가로지르는 마스터 코스"
+          title="🧮 테마별 수학 — 학년 관통 풀코스 / 로드맵"
+          subtitle="분수 풀코스 (초3-1 → 초6-2, 약 660문항) · 함수 로드맵 · 방정식 완전정복 등"
           icon={<Compass className="h-5 w-5 text-amber-500" />}
           items={MVP_MATH_ROADMAP}
           {...rowProps}
         />
       </CurationSection>,
     )
+
+    // 🟩 영어 섹션
     sections.push(
       <CurationSection
         key="mvp-english"
         badge="MVP · 영어"
-        category="학년 > 어휘 / 문법"
-        description="ex) 동사 확장팩 (중등)"
+        category="타임어택 + 학년 > 문법 + 학년 > 어휘 + 테마별"
+        description="문법·어휘를 학년 진도와 학년 관통 두 축으로 동시 제공"
         accent="text-emerald-600"
       >
         <SetsCarouselRow
-          title="📘 학년별 어휘 마스터 팩"
-          subtitle="이 학년 진도 맞는 어휘 딱 주세요에 바로 대응"
-          icon={<BookOpen className="h-5 w-5 text-emerald-500" />}
-          items={MVP_ENG_VOCAB}
+          title="⏱️ 타임어택 — 지식요인별 숏팩"
+          subtitle="중1 be동사 vs 일반동사 5분 · 중2 현재완료 15분 벼락치기 등"
+          icon={<Timer className="h-5 w-5 text-cyan-500" />}
+          items={MVP_ENG_TIME}
           {...rowProps}
         />
         <SetsCarouselRow
-          title="📝 학년별 문법 마스터 팩"
-          subtitle="중1 18종, 중2 17종, 공1·공2 9종 — 항목별 50문항"
+          title="📝 학년 > 문법 요인별 마스터 팩"
+          subtitle="중1 18종 · 중2 17종 · 공1·공2 9종 — 항목별 50문항"
           icon={<Star className="h-5 w-5 text-violet-500" />}
           items={MVP_ENG_GRAMMAR_GRADE}
           {...rowProps}
         />
         <SetsCarouselRow
-          title="🗺️ 문법 테마 로드맵 — 동사 확장팩 외"
-          subtitle="시제 대서사시 · 동사 확장 · to부정사 풀코스 · 관계사 올인원 · 비교 구문 등"
+          title="📘 학년 단위 어휘 마스터 팩"
+          subtitle="이 학년 진도 맞는 어휘 딱 주세요에 바로 대응 — 학년별 12세트지"
+          icon={<BookOpen className="h-5 w-5 text-emerald-500" />}
+          items={MVP_ENG_VOCAB}
+          {...rowProps}
+        />
+        <SetsCarouselRow
+          title="🗺️ 테마별 영어 — 시제 대서사시 / 동사의 확장 외"
+          subtitle="시제 대서사시 (중1 현재진행 → 공1 과거완료) · 동사 확장 · to부정사 풀코스 · 관계사 올인원 등"
           icon={<Trophy className="h-5 w-5 text-purple-500" />}
           items={MVP_ENG_GRAMMAR_THEME}
           {...rowProps}
@@ -249,7 +236,7 @@ export function SetsHubCarousels({
   }
 
   // ═════════════════════════════════════════════════════════
-  // 1차 고도화 — 주제 몰입형 (MVP 콘텐츠 위에 추가)
+  // 1차 고도화 — 주제 몰입형 + MVP 누적
   // ═════════════════════════════════════════════════════════
   if (phase === 'phase1' && source !== 'mine') {
     sections.push(
@@ -290,12 +277,13 @@ export function SetsHubCarousels({
         />
       </CurationSection>,
     )
-    // 1차에는 MVP 콘텐츠도 함께 노출 (계속해서 사용 가능한 기반 콘텐츠)
+    // 1차에는 MVP 콘텐츠도 누적 노출
     sections.push(
       <CurationSection
         key="p1-mvp-base"
         badge="기존 MVP 콘텐츠"
-        category="22개정 지식요인 기반 — 영수 시간 컷 + 로드맵"
+        category="22개정 지식요인 기반 — 영수 기반 콘텐츠"
+        description="시간 컷 + 학년 단원 + 테마별 풀코스"
         accent="text-slate-500"
       >
         <SetsCarouselRow
@@ -305,7 +293,7 @@ export function SetsHubCarousels({
           {...rowProps}
         />
         <SetsCarouselRow
-          title="🧮 수학 주제 관통 로드맵 + 📘 영어 학년별 어휘"
+          title="🧮 수학 테마별 + 📘 영어 학년 어휘"
           icon={<Compass className="h-5 w-5 text-amber-500" />}
           items={[...MVP_MATH_ROADMAP, ...MVP_ENG_VOCAB]}
           {...rowProps}
@@ -315,7 +303,7 @@ export function SetsHubCarousels({
   }
 
   // ═════════════════════════════════════════════════════════
-  // 2차 고도화 — 커뮤니티 기반 순환
+  // 2차 고도화 — 커뮤니티 기반 순환 + 1차/MVP 누적
   // ═════════════════════════════════════════════════════════
   if (phase === 'phase2' && source !== 'mine') {
     sections.push(
@@ -395,7 +383,7 @@ export function SetsHubCarousels({
           {...rowProps}
         />
         <SetsCarouselRow
-          title="🧮 수학 로드맵 + 📘 영어 어휘 마스터"
+          title="🧮 수학 테마별 + 📘 영어 학년 어휘"
           icon={<Compass className="h-5 w-5 text-amber-500" />}
           items={[...MVP_MATH_ROADMAP, ...MVP_ENG_VOCAB]}
           {...rowProps}
@@ -447,6 +435,24 @@ export function SetsHubCarousels({
           subtitle={R.bookmarked.subtitle}
           icon={<Heart className="h-5 w-5 text-rose-500" />}
           items={bookmarked}
+          {...rowProps}
+        />,
+      )
+    }
+  }
+
+  // ─── 마지막: 이어서 시작하기 (모든 phase 공통) ───
+  if (seenIds.size > 0 && !continueDismissed) {
+    const seen = sets.filter((s) => seenIds.has(s.set_id)).slice(0, 12)
+    if (seen.length > 0) {
+      sections.push(
+        <SetsCarouselRow
+          key="row-continue"
+          title={R.continue.title}
+          subtitle={R.continue.subtitle}
+          icon={<History className="h-5 w-5 text-blue-500" />}
+          items={seen}
+          onDismiss={dismissContinue}
           {...rowProps}
         />,
       )
