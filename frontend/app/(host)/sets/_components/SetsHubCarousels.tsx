@@ -258,8 +258,8 @@ export function SetsHubCarousels({
         accent="text-rose-600"
       >
         <SetsCarouselRow
-          title="🚀 초등 매캔(MacCann) 채널 연동 패키지"
-          subtitle="파트너십 채널과 연동된 초등 타겟 — 학생 도달까지 함께 공략"
+          title="🚀 매캔(Math Canvas) 연동 — 초등 수학 학년·지식요인별"
+          subtitle="매스 캔버스 채널과 연동된 초등 수학 콘텐츠 — 학년 + 지식요인 단위로 즉시 시작 (초3 곱셈 → 초6 분수 나눗셈)"
           icon={<Rocket className="h-5 w-5 text-fuchsia-500" />}
           items={PHASE1_MACCANN}
           {...rowProps}
